@@ -15,8 +15,8 @@
 // Audit pass (2026-09-08, C-rich): capture_time / simon_len / fuse_souls rows (df_rich_scaled fallbacks
 // until df_steps has them), no capture fail while he is within 900 of the tower, power-chamber softlock
 // fix (R1_RICH_CHAMBER + poll), table pulses blue while he is alive at the tower, R2 beams on unfilled
-// lamps, Richtofen side rules from R1 on (Avogadro every round, Jet Gun heat relief, turrets need no
-// turbine from R2, power-OFF penalty at end of round).
+// lamps, Richtofen side rules from R1 on (Avogadro every round, turrets need no turbine from R2, power-OFF
+// penalty at end of round).
 // Earlier passes kept: models via df_model, puzzle prompt via df_prompt_puzzle, single-press pickups via
 // df_press_use, lamps via df_lamps.gsc (one set per game), the inserted card stays on table slot 1.
 // V2 pass (2026-09-09, V2-rich; tools/audit_steps_v2.md #1, tools/audit_art.md R1/R2, tools/audit_dialogue_v2.md):
@@ -1707,9 +1707,9 @@ df_r1_fuse_charged_look( fuse, on )
 }
 
 // ---- Richtofen side rules (audit 2.4: "the noise") ---------------------------------------
-// From R1 on: Avogadro returns EVERY round until the finale; the Jet Gun bleeds heat above 50 for every
-// holder (E removes the Step 6 copy); at end of round with the power OFF one filled lamp / charged box
-// loses 5 souls (console only). Turrets need no turbine from R2 on (df_r2_run).
+// From R1 on: Avogadro returns EVERY round until the finale; at end of round with the power OFF one filled
+// lamp / charged box loses 5 souls (console only). Turrets need no turbine from R2 on (df_r2_run). The Jet Gun
+// is left alone (rc5): Step 6 needs its overheat, and TranZit Enhanced rewrites the heat every tick anyway.
 df_r1_side_rules_start()
 {
     if ( is_true( level.df_r1_rules ) )
@@ -1717,7 +1717,6 @@ df_r1_side_rules_start()
 
     level.df_r1_rules = 1;
     level thread df_r1_avogadro_keeper();
-    level thread df_r1_jetgun_relief();
     level thread df_r1_power_penalty();
 }
 
@@ -1739,32 +1738,6 @@ df_r1_avogadro_keeper()
         {
             level.avogadro.return_round = level.round_number + 1;
             df_debug_print( "DF: avogadro returns next round" );
-        }
-    }
-}
-
-// isweaponoverheating( 1 ) = heat value, ( 0 ) = locked; the builtins vanilla's watch_overheat uses
-// (_zm_weap_jetgun.gsc:160-175, weapon name "jetgun_zm" :165). One heat point per 0.1 s above 50.
-df_r1_jetgun_relief()
-{
-    level endon( "end_game" );
-
-    while ( true )
-    {
-        wait 0.1;
-
-        foreach ( player in getplayers() )
-        {
-            if ( !is_player_valid( player ) || player getcurrentweapon() != "jetgun_zm" )
-                continue;
-
-            if ( player isweaponoverheating( 0 ) )
-                continue;
-
-            heat = player isweaponoverheating( 1 );
-
-            if ( heat > 50 )
-                player setweaponoverheating( 0, heat - 1 );
         }
     }
 }

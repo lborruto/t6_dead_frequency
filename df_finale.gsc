@@ -23,7 +23,8 @@
 //   Shared helpers this file uses from df_systems (core agent, 2026-09-09): df_cue_deny( player ),
 //   df_cue_side_flash( origin, side ), df_fx_burst( fx, origin, seconds ), df_vox_once( alias, origin ).
 //   Rewards: every perk (the six TranZit machines, df_fin_perk_list; down players get them on revive;
-//   "!df fire perks" tests it alone) + Max Ammo; Richtofen: turret needs no turbine, jet gun never overheats;
+//   "!df fire perks" tests it alone) + Max Ammo; Richtofen: turret needs no turbine (from Act 2), jet gun never
+//   overheats (finale only: Step 6 needs the overheat);
 //   Maxis: every lamp post powered server-side (portals / burrows without a turbine, df_lamp_power_silent_all).
 //   The secret song is not here any more: it plays during the Step 7 wave (owner decision 2026-09-08).
 #include common_scripts\utility;
@@ -828,6 +829,12 @@ df_fin_rewards( side, socket )
     df_fin_reward_sting( socket );
     df_fin_reward_powerup( socket );
     df_fin_side_reward( side );
+
+    // rc5: the Jet Gun that never overheats is a FINALE reward only. Given at Act 2 it zeroed the heat every tick
+    // and the Richtofen Step 6 draw (fire at the block until the gun overheats) could never complete.
+    if ( side == "rich" )
+        df_fin_reward_rich_jetgun();
+
     df_fin_reward_message( side );
 }
 
@@ -942,14 +949,21 @@ df_fin_reward_message( side )
         player df_out( text );
 }
 
-// Richtofen: turrets deploy powered without a turbine (zm_transit.gsc:1627 sets
-// level.equipment_turret_needs_power = 1; with it off, _zm_equip_turret.gsc:224-238 startturretdeploy
-// sets weapon.power_on = 1 and runs turretdecay, 60 s of fire), and the jet gun never overheats.
+// Richtofen side reward (Act 2 or the finale, whichever comes first): turrets deploy powered without a turbine
+// (zm_transit.gsc:1627 sets level.equipment_turret_needs_power = 1; with it off, _zm_equip_turret.gsc:224-238
+// startturretdeploy sets weapon.power_on = 1 and runs turretdecay, 60 s of fire). NOT the Jet Gun: Step 6 still
+// needs it to overheat (df_fin_reward_rich_jetgun, finale only).
 df_fin_reward_rich()
 {
     level.equipment_turret_needs_power = 0;
+    df_debug_print( "DF: richtofen reward on (turret self-powered)" );
+}
+
+// Richtofen finale reward: the Jet Gun never overheats (nothing needs its heat after Step 7).
+df_fin_reward_rich_jetgun()
+{
     level thread df_fin_jetgun_cool_loop();
-    df_debug_print( "DF: richtofen reward on (turret self-powered, jet gun cool)" );
+    df_debug_print( "DF: richtofen finale reward on (jet gun cool)" );
 }
 
 // never_overheat() in _zm_weap_jetgun.gsc:143-158 is dev-only (whole body inside /# #/), but the builtin

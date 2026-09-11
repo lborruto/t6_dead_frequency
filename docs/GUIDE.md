@@ -131,8 +131,7 @@ by a strike at the lamp's foot. A knife or any other melee is refused ("Bare ste
 Take every spool (they stack in hand) and press F at the table to place them all. Every spool placed = R2 done,
 and the Act 2 reward drops at once (see below).
 
-Richtofen side rules from here on: Avogadro returns every round; the Jet Gun bleeds heat off slowly; turrets
-work without a turbine. Ending a round with the power OFF costs you: the fullest hungry lamp loses 5 souls (a
+Richtofen side rules from here on: Avogadro returns every round; turrets work without a turbine. Ending a round with the power OFF costs you: the fullest hungry lamp loses 5 souls (a
 full lamp can reopen), or during the R1 lock one charged box loses its battery.
 
 ---

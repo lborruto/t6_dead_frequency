@@ -38,7 +38,7 @@ init()
     // ignored ("model not precached" at spawn, tested 2026-09-07). Other loose mods do the same.
     df_coords_precache(); // every model of df_coords::df_models_init (precachemodel works only here, synchronously)
     df_catalog_page_precache(); // one page of the full catalogue when `set df_catalog_page <n>` was used (df_catalog.gsc)
-    level.df_version = "1.0.0-rc4";
+    level.df_version = "1.0.0-rc5";
 
     // df_compat.gsc: replaces the vanilla sidequest entry points (zm_transit_sq.gsc) with no-ops and
     // filters its stat writes, so only the NavCard path of vanilla survives.
@@ -303,6 +303,11 @@ df_debug_cmd_world( sub, arg, args )
 
         case "cue":
             self df_debug_cue( arg );
+            return 1;
+
+        case "jet":
+            // Jet Gun heat diagnostic (df_audition.gsc): every gate of the vanilla + TranZit Enhanced heat path, per player
+            self df_jet_report( arg );
             return 1;
 
         case "freeze":

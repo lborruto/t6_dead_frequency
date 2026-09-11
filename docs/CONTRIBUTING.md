@@ -89,7 +89,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   refusal while carrying and the boot spawn of the fog parts and the table.
 - `df_act2_rich.gsc` - Act 2 Richtofen: R1 Summon the Storm (Simon on the four barn boxes, key card, Avogadro
   capture at the tower, one-battery refill on failure), R2 Souls on the Line (hungry lamps, Galvaknuckle punch,
-  spools), and the Richtofen side rules (Avogadro every round, Jet Gun relief, turrets without turbine,
+  spools), and the Richtofen side rules (Avogadro every round, turrets without turbine,
   power-off penalty).
 - `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt
   in Nacht, the stone), M2 Fire and Ash (ember, four graves along the lava, burning kills, scorched nodes), and

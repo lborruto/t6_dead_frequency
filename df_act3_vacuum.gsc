@@ -1328,6 +1328,11 @@ df_s6_draw_monitor()
             {
                 // rc3: no heat relief any more: the draw ENDS with the overheat (df_s6_overheat_watch), like the vanilla
                 // tower step; TranZit Enhanced overheats the gun after 7.7 s of fire
+                // a Jet Gun that reached the hand outside the equipment path has no heat value and never heats: start the
+                // vanilla watcher for it (safe: the watcher ends on weapon change)
+                if ( !isdefined( player.jetgun_heatval ) )
+                    player thread maps\mp\zombies\_zm_weap_jetgun::watch_overheat();
+
                 if ( isdefined( player.df_orb ) )
                     node = player df_s6_aimed_node( range2 );
 

@@ -839,3 +839,63 @@ df_freeze_release()
 
     self thread maps\mp\zombies\_zm_ai_basic::find_flesh();
 }
+
+// ------------------------------------------------------------------------------------------ jet gun ----
+// !df jet: why does the Jet Gun (not) heat? One console block per player with every value the heat path reads:
+// vanilla _zm_weap_jetgun watch_overheat (jetgun_heatval / jetgun_overheating, started only by the equipment give),
+// TranZit Enhanced's own model (jgx_heat, jgx_cooling, jgx_cool_left, jgx_lock), the engine's heat and the trigger.
+// Hold the trigger 3 s, then type it. Also starts the vanilla watcher when a held Jet Gun has no heat value at all
+// (a gun given outside the equipment path never heats otherwise).
+df_jet_report( arg )
+{
+    // "!df jet watch": 8 s of samples every 0.5 s, so the trigger can be HELD while the values are read (typing the
+    // command releases the trigger, and the enhanced model cools 2.5 units a second: a single sample after typing
+    // shows nothing)
+    if ( isdefined( arg ) && arg == "watch" )
+    {
+        self thread df_jet_watch();
+        return;
+    }
+
+    foreach ( player in getplayers() )
+    {
+        w = player getcurrentweapon();
+        has = player hasweapon( "jetgun_zm" );
+        line = player.name + ": weapon " + w + " | has jetgun " + has;
+        line += " | vanilla heatval " + df_jet_val( player.jetgun_heatval ) + " overheating " + df_jet_val( player.jetgun_overheating );
+        line += " | engine heat " + player isweaponoverheating( 1 ) + " overheating " + player isweaponoverheating( 0 );
+        line += " | enhanced jgx_heat " + df_jet_val( player.jgx_heat ) + " cooling " + df_jet_val( player.jgx_cooling ) + " cool_left " + df_jet_val( player.jgx_cool_left ) + " lock " + df_jet_val( player.jgx_lock );
+        line += " | trigger " + player attackbuttonpressed();
+        self df_out( "DF jet: " + line );
+
+        if ( has && w == "jetgun_zm" && !isdefined( player.jetgun_heatval ) )
+        {
+            player thread maps\mp\zombies\_zm_weap_jetgun::watch_overheat();
+            self df_out( "DF jet: " + player.name + " had no vanilla heat value (gun given outside the equipment path): watcher started, fire again" );
+        }
+    }
+
+    if ( !isdefined( level.te_active ) )
+        self df_out( "DF jet: TranZit Enhanced is NOT loaded (level.te_active undefined): vanilla heat model only" );
+}
+
+df_jet_val( v )
+{
+    if ( !isdefined( v ) )
+        return "undef";
+
+    return "" + v;
+}
+
+df_jet_watch()
+{
+    self endon( "disconnect" );
+    level endon( "end_game" );
+    self df_out( "DF jet: sampling for 8 s, HOLD THE TRIGGER now" );
+
+    for ( i = 0; i < 16; i++ )
+    {
+        wait 0.5;
+        self df_out( "DF jet " + ( i * 0.5 ) + " s: trigger " + self attackbuttonpressed() + " | engine heat " + self isweaponoverheating( 1 ) + " | vanilla heatval " + df_jet_val( self.jetgun_heatval ) + " | enhanced jgx_heat " + df_jet_val( self.jgx_heat ) + " cooling " + df_jet_val( self.jgx_cooling ) + " lock " + df_jet_val( self.jgx_lock ) + " | weapon " + self getcurrentweapon() );
+    }
+}
