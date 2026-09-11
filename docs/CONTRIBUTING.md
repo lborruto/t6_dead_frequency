@@ -2,8 +2,7 @@
 
 This file is for people who want to read, build, test or change the mod. Players should read the
 [README](../README.md) and, for spoilers, [GUIDE.md](GUIDE.md). The owner's in-game test protocol is
-[TESTING.md](TESTING.md); the model browser notes are [MODELS.md](MODELS.md); the original design document
-(French) is [SPEC_fr.md](SPEC_fr.md).
+[TESTING.md](TESTING.md); the model browser notes are [MODELS.md](MODELS.md).
 
 The sources are the `df_*.gsc` files in the repository root. The release is a BUILD of them: `tools/pack.pl`
 concatenates the sources into two loadable files. Never edit a packed file; edit a source and pack again.
