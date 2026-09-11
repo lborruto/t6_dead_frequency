@@ -1490,31 +1490,6 @@ df_s6_lava_debug( range2 )
     df_debug_print( "DF: s6 carrier near node " + node.index + " but not on lava (stand in it to draw)" );
 }
 
-// self = player holding a firing Jet Gun. isweaponoverheating( 1 ) = heat value, ( 0 ) = locked.
-// Same builtins vanilla uses outside dev blocks in watch_overheat (_zm_weap_jetgun.gsc:160). Threshold 30
-// (audit section 5: at 50 the gun could still break into parts mid-draw). Richtofen only; when the act2_rich
-// agent adds the level-wide Richtofen relief (audit 2.4) this one becomes redundant and can go.
-// Once per game, the first time the gun runs hot (heat above 70) while a carrier draws, Richtofen's canon
-// jet_low line (vox_zmba_sidequest_jet_low_0: vanilla plays it on a hot / locked Jet Gun at a lamp,
-// zm_transit_sq.gsc:642-653) goes to Stuhlinger through df_vox_once (art audit section 5).
-df_s6_overheat_relief()
-{
-    if ( self isweaponoverheating( 0 ) )
-        return;
-
-    heat = self isweaponoverheating( 1 );
-
-    if ( heat > 70 && isdefined( self.df_orb ) && !is_true( level.df_s6_said_jet_low ) )
-    {
-        level.df_s6_said_jet_low = 1; // our own flag saves a df_vox_once call per tick once it has played
-        df_vox_once( "vox_zmba_sidequest_jet_low_0", undefined );
-        df_debug_print( "DF: s6 jet gun running hot during a draw (" + int( heat ) + "), jet_low line" );
-    }
-
-    if ( heat > 30 )
-        self setweaponoverheating( 0, heat - 1 );
-}
-
 // The node gives up its charge into the carried orb: node visuals off, the SUB-GOAL cue at the draw point
 // (df_cue_subgoal: zmb_sq_navcard_success 3D, the side flash and the canon node -> tower runner), the
 // meteor ping (zmb_meteor_activate, zm_transit.gsc:3353), a trail from the light into the carrier, one more

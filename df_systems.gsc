@@ -119,12 +119,10 @@ df_say_pump()
     level.df_say_running = 0;
 }
 
-// Recipients (owner rule 2026-09-08): Maxis is heard by every player; Richtofen only by Samuel
-// (df_rich_recipient: level.rich_sq_player = Stuhlinger, zm_transit.gsc:1184; solo = the player), so
-// Samuel hears both patrons and the other players hear Maxis only, EXCEPT Richtofen lines tagged
-// broadcast in the sheet (audit 2026-09-08 #1: his whole ladder on the Richtofen path), which every
-// player sees in the same blue. Speaker name coloured (Maxis warm orange, Richtofen cold blue), the text
-// itself white. Debug: one console line naming the recipients.
+// Recipients, as in vanilla (zm_transit_sq.gsc richtofensay :956, zm_transit.gsc:1184): Maxis is heard by every
+// player; Richtofen by the Stuhlinger player only (level.rich_sq_player), solo included. No Stuhlinger in the
+// game = no Richtofen line. Speaker name coloured (Maxis warm orange, Richtofen cold blue), the text itself
+// white. Debug: one console line naming the recipients.
 df_show_line( e )
 {
     if ( e.speaker == "maxis" )
@@ -140,13 +138,15 @@ df_show_line( e )
         recipients = [];
         player = df_rich_recipient();
 
+        // vanilla, strictly (owner 2026-09-11): Stuhlinger alone hears Richtofen. No Stuhlinger playing = the line is
+        // dropped (one console note per game).
         if ( isdefined( player ) )
             recipients[0] = player;
-
-        // a Richtofen line that is the ONLY text of an event on his side (START / hints / fail) reaches everyone,
-        // otherwise three of four co-op players get no hint (e.broadcast is set by df_add_line's 4th argument)
-        if ( is_true( e.broadcast ) )
-            recipients = getplayers();
+        else if ( !is_true( level.df_rich_silent_said ) )
+        {
+            level.df_rich_silent_said = 1;
+            df_debug_print( "DF: no Stuhlinger in this game: Richtofen stays silent (vanilla rule), his lines are dropped" );
+        }
     }
 
     // a copy queued for one recipient only (nobody when he has left)
@@ -172,20 +172,20 @@ df_show_line( e )
 
 // Solo: the only player. Co-op: the Stuhlinger player (characterindex 1, set in zm_transit.gsc:1184).
 // Co-op without Stuhlinger: first player, so the story is not lost.
+// Vanilla rule, strictly (owner 2026-09-11; zm_transit_sq.gsc richtofensay :956): Richtofen speaks to
+// level.rich_sq_player, Stuhlinger, and to nobody else, solo included. No Stuhlinger in the game = Richtofen silent.
 df_rich_recipient()
 {
-    players = getplayers();
-
-    if ( players.size == 0 )
-        return undefined;
-
-    if ( players.size == 1 )
-        return players[0];
-
-    if ( isdefined( level.rich_sq_player ) && isplayer( level.rich_sq_player ) )
+    if ( isdefined( level.rich_sq_player ) && isplayer( level.rich_sq_player ) && is_player_valid( level.rich_sq_player ) )
         return level.rich_sq_player;
 
-    return players[0];
+    return undefined;
+}
+
+// True when Richtofen has nobody to talk to (no Stuhlinger playing).
+df_rich_silent()
+{
+    return !isdefined( df_rich_recipient() );
 }
 
 // The tiny "a line appeared" tick, played to self (player) when a subtitle is shown. One place to
@@ -394,6 +394,10 @@ df_rich_vox( alias, origin )
         wait 0.1;
 
     player = df_rich_recipient();
+
+    // vanilla rule (owner 2026-09-11): no Stuhlinger in a co-op lobby = no Richtofen, recordings included
+    if ( df_rich_silent() )
+        return;
 
     if ( !isdefined( player ) && !isdefined( origin ) )
         return;

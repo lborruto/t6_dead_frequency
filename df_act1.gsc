@@ -925,10 +925,16 @@ df_step3_hum_stop()
     level.df_step3_hum = undefined;
 }
 
-// Valid players inside the bus (player.isonbus, zm_transit_bus.gsc) or on its roof trigger.
+// Valid players riding WITH THE RELAY: inside the bus (player.isonbus, zm_transit_bus.gsc), on its roof trigger, or
+// within a bus-sized radius of the relay itself (260 flat, 200 up: the roof, the ladder, the back bumper), which moves
+// with the bus (owner 2026-09-11: an empty bus completing a stop must not count).
 df_players_on_bus()
 {
     out = [];
+    relay = undefined;
+
+    if ( isdefined( level.df_relay ) )
+        relay = level.df_relay.origin;
 
     foreach ( p in getplayers() )
     {
@@ -936,6 +942,12 @@ df_players_on_bus()
             continue;
 
         if ( is_true( p.isonbus ) || ( isdefined( level.roof_trig ) && p istouching( level.roof_trig ) ) )
+        {
+            out[out.size] = p;
+            continue;
+        }
+
+        if ( isdefined( relay ) && abs( p.origin[2] - relay[2] ) < 200 && distance2dsquared( p.origin, relay ) < 260 * 260 )
             out[out.size] = p;
     }
 
@@ -1103,10 +1115,15 @@ df_step3_arrival_watch()
 
     level.the_bus waittill( "reached_destination" );
 
-    if ( level.df_relay_hp > 0 && df_riders_recently() )
+    // the stop counts only if somebody rode with the relay into it (seen within the last 3 s: a ladder climb or
+    // a moment in last stand must not lose an honest ride)
+    if ( level.df_relay_hp > 0 && df_riders_recently( 3000 ) )
         level notify( "df_step3_outcome", "arrived" );
     else
+    {
+        df_debug_print( "DF: the bus reached the stop with nobody riding the relay: not counted" );
         level notify( "df_step3_outcome", "empty" );
+    }
 }
 
 // EMP within 256 (+ its radius) of the bus fails the sweep (level "emp_detonate", _zm_weap_emp_bomb.gsc:80).
@@ -1202,7 +1219,14 @@ df_relay_attack_swing( item )
     }
 
     self orientmode( "face point", item.origin );
-    self animscripted( self.origin, flat_angle( vectortoangles( item.origin - self.origin ) ), melee_anim );
+
+    // animscripted pins the zombie to a WORLD position: on a moving bus it hung in the air while the bus drove on
+    // (owner 2026-09-11). While the bus moves the swing is damage + sound only; the anim plays when it stands.
+    moving = isdefined( level.the_bus ) && level.the_bus getspeedmph() > 0.5;
+
+    if ( !moving )
+        self animscripted( self.origin, flat_angle( vectortoangles( item.origin - self.origin ) ), melee_anim );
+
     self notify( "item_attack" );
     df_relay_damage( 60 ); // audit #9 (was 40): 800 hp / 60 = 14 swings, so one stop can still be lost
     item playsound( "fly_riotshield_zm_impact_flesh" );
@@ -1304,12 +1328,15 @@ df_step3_empty_watch()
 
 // Climbing to the roof, hanging on the ladder or a moment in last stand must not fail the ride:
 // a rider seen within the last 6 s still counts.
-df_riders_recently()
+df_riders_recently( window_ms )
 {
+    if ( !isdefined( window_ms ) )
+        window_ms = 6000;
+
     if ( df_players_on_bus().size > 0 )
         return true;
 
-    return isdefined( level.df_last_rider_time ) && gettime() - level.df_last_rider_time < 6000;
+    return isdefined( level.df_last_rider_time ) && gettime() - level.df_last_rider_time < window_ms;
 }
 
 // Destroyed relay: burst (blue one-shot + elec_md + turbine explosion sound, _zm_equip_turbine.gsc:447),
@@ -2778,11 +2805,11 @@ df_a1_roof_spawner()
     level endon( "end_game" );
     level endon( "df_skip_step3" );
 
-    df_debug_print( "DF: roof waves on: a zombie every 2.5 s near the bus, up to 10, until the relay locks or the sweep ends" );
+    df_debug_print( "DF: roof waves on: two zombies every 1.5 s ahead of the bus, cap " + df_a1_roof_cap() + ", until the relay locks or the sweep ends" );
 
     while ( is_true( level.df_sweep_active ) && !is_true( level.df_relay_locked ) )
     {
-        wait 2.5;
+        wait 1.5;
 
         if ( !isdefined( level.the_bus ) || !isdefined( level.zombie_spawners ) || level.zombie_spawners.size == 0 )
             continue;
@@ -2806,7 +2833,10 @@ df_a1_roof_spawner()
                     if ( isdefined( s.is_enabled ) && !s.is_enabled )
                         continue;
 
-                    if ( distancesquared( s.origin, level.the_bus.origin ) < 700 * 700 )
+                    // within 900 of the bus and AHEAD of it (dot with its forward > 0), so the wave meets the bus
+                    // and boards it instead of chasing its tail (owner 2026-09-11: "a lot of zombies getting on the roof")
+                    if ( distancesquared( s.origin, level.the_bus.origin ) < 900 * 900
+                        && vectordot( anglestoforward( level.the_bus.angles ), vectornormalize( s.origin - level.the_bus.origin ) ) > 0 )
                         spots[spots.size] = s;
                 }
             }
@@ -2815,19 +2845,25 @@ df_a1_roof_spawner()
         if ( spots.size == 0 )
             continue;
 
-        spot = random( spots );
-        spawner = random( level.zombie_spawners );
-        ai = spawn_zombie( spawner, spawner.targetname, spot );
+        for ( k = 0; k < 2; k++ )
+        {
+            if ( df_a1_roof_count() >= df_a1_roof_cap() || getfreeactorcount() < 1 )
+                break;
 
-        if ( !isdefined( ai ) )
-            continue;
+            spot = random( spots );
+            spawner = random( level.zombie_spawners );
+            ai = spawn_zombie( spawner, spawner.targetname, spot );
 
-        if ( isdefined( spot.script_noteworthy ) && issubstr( spot.script_noteworthy, "riser_location" ) )
-            ai._rise_spot = spot;
-        else
-            ai.spawn_point_override = spot;
+            if ( !isdefined( ai ) )
+                continue;
 
-        ai.df_roof_ours = 1;
+            if ( isdefined( spot.script_noteworthy ) && issubstr( spot.script_noteworthy, "riser_location" ) )
+                ai._rise_spot = spot;
+            else
+                ai.spawn_point_override = spot;
+
+            ai.df_roof_ours = 1;
+        }
     }
 
     df_debug_print( "DF: roof waves off" );
@@ -2846,8 +2882,8 @@ df_a1_roof_count()
     return n;
 }
 
-// audit v3 #7: 4 roof zombies alive at once solo, +2 per extra player (10 sprinters against one rider chewing 60 a
-// swing on 800 hp was a wipe).
+// The assault on the charging relay (owner 2026-09-11: "a lot of zombies"): 8 of ours alive at once solo, +3 per extra
+// player. The relay has 800 hp and loses 60 a swing, so the rider has to fight, not wait.
 df_a1_roof_cap()
 {
     n = getplayers().size;
@@ -2855,5 +2891,5 @@ df_a1_roof_cap()
     if ( n < 1 )
         n = 1;
 
-    return 4 + 2 * ( n - 1 );
+    return 8 + 3 * ( n - 1 );
 }

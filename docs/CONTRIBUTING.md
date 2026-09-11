@@ -55,7 +55,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   `df_side_locked`. Holds the scaling table (one row per key, four columns = 1..4 players) and the stall-hint
   ladder (START at +2 s, HINT_1 at 4 min, HINT_2 at 10 min then every 6 min).
 - `df_dialogue.gsc` - the dialogue sheet, data only. Speakers `maxis` (shown to everyone) and `rich` (shown to
-  the Stuhlinger player unless the line is tagged broadcast). Key families `<P>_START`, `<P>_HINT_1`,
+  the Stuhlinger player only, as in vanilla: no Stuhlinger in the game means no Richtofen line; the broadcast tag is kept as data and no longer widens the audience). Key families `<P>_START`, `<P>_HINT_1`,
   `<P>_HINT_2` and event keys per step; `_RICH` / `_MAXIS` variants for the shared acts. Writing rules are in its
   header (see "Rules" below).
 - `df_coords.gsc` - world anchors and the model registry. Positions derive from TranZit's entity list
