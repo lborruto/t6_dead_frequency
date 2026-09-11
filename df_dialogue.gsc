@@ -170,7 +170,7 @@ df_dialogue_act2_maxis()
     df_add_line( "M1_HINT_2", "maxis", "Carry a little one on your head to the table. A hole opens. Go in. Kill six." );
     // M1_EVENT: the first denizen latches onto a player after M1 opens (event hint, audit #6)
     df_add_line( "M1_EVENT", "maxis", "Do not kill it. Let it ride. Carry it to the socket under the Spire. Quickly!" );
-    df_add_line( "M1_PORTAL", "maxis", "A door. It is cold on the other side. Do not linger there." );
+    df_add_line( "M1_PORTAL", "maxis", "A door. It opens on the old bunker in the corn. All of you go. Do not linger." );
     df_add_line( "M1_PORTAL", "rich", "Do not go in there, Samuel. Actually, do. I could use the laugh." );
     df_add_line( "M1_MAXIS_FAIL", "maxis", "Too slow. The cold does not wait. Bring another one to the socket." );
     df_add_line( "M1_DONE", "maxis", "It is keyed. The signal knows us now. What is left needs fire." );
@@ -179,7 +179,7 @@ df_dialogue_act2_maxis()
     df_add_line( "ITEM_SKULL_MAXIS", "maxis", "Lightning left you a stone. Take it. Set it on the table under the Spire." );
 
     // M2 - Fire and Ash
-    df_add_line( "M2_START", "maxis", "Four graves face the lava for a reason. A flame waits for you on the table." );
+    df_add_line( "M2_START", "maxis", "Four graves by the lava: the men who laid the line. The flame is on the table." );
     df_add_line( "M2_HINT_1", "maxis", "Four graves stand by the lava past the Spire. Touch each with the flame." );
     df_add_line( "M2_HINT_2", "maxis", "Light a grave, stay near it, kill five burning dead beside it. Then the next." );
     df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. The fire remembers it." );

@@ -53,7 +53,7 @@ df_init_scaling()
     df_scale_row( "sweep_time_rich", 480, 360, 300, 270 ); // audit v2 #3: Richtofen's Step 5 clock (three denizen latches are RNG); df_act3_sweep reads it when level.df_side == "rich"
     df_scale_row( "hold_time", 75, 90, 105, 120 ); // audit v2 section 6 (owner 2026-09-09 had 75/95/115/135): Step 7 wave seconds
     df_scale_row( "hold_kills", 40, 55, 70, 85 ); // Step 7 kills inside the zone (spec row; the hold file defends an orb instead)
-    df_scale_row( "orb_hp", 3000, 3600, 4200, 4800 ); // owner 2026-09-09: was 2000..3200 // audit (was a fixed 2000): Step 7 orb hit points (level.df_s7_cfg_orb_hp in df_act3_hold)
+    df_scale_row( "orb_hp", 3000, 4200, 5400, 6600 ); // audit v3 co-op: the sprinter cap grows faster than the old hp did // owner 2026-09-09: was 2000..3200 // audit (was a fixed 2000): Step 7 orb hit points (level.df_s7_cfg_orb_hp in df_act3_hold)
     df_scale_row( "s7_period", 1.3, 1.0, 0.8, 0.7 ); // audit v2 section 6 (was 1.0/0.9/0.8/0.7): Step 7 seconds between sprinter spawns (df_act3_hold level.df_s7_cfg_period)
     df_scale_row( "s7_cap_rich", 10, 14, 18, 22 ); // audit v2 section 6 (was 12/16/20/24): Step 7 sprinters alive at once, Richtofen side (Avogadro adds pressure)
     df_scale_row( "s7_cap_maxis", 14, 18, 22, 26 ); // audit v2 section 6 (was 16/20/24/28): same, Maxis side (denizens add pressure)
