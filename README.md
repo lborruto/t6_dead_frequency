@@ -1,5 +1,8 @@
 # Dead Frequency
 
+<img width="640" height="360" alt="1789149570984-wp9607715-3" src="https://github.com/user-attachments/assets/e769e5c5-b96b-4a2c-bee2-88d9f3ad7947" />
+
+
 A new Easter Egg for **TranZit** on **Plutonium T6**. The original quest is gone; this one takes its place.
 
 Twelve steps across the whole map, from the bus Depot to the tower. Halfway through you side with Richtofen or
@@ -8,6 +11,10 @@ you through it. Solo or up to four players.
 
 **Play it blind.** It was built to be discovered. If you are truly stuck, [docs/GUIDE.md](docs/GUIDE.md) has the
 solution, one folded step at a time.
+
+<img width="630" height="430" alt="1789150242878-99fa2a6c-e46b-427d-a962-a5bd6ffaabca-image" src="https://github.com/user-attachments/assets/ad9b17bf-49b4-4cd9-9132-e417d23cf34b" />
+<img width="630" height="430" alt="1789150120232-05b5bb01-287b-4d2a-8bf4-4441e0dd1ce0-image" src="https://github.com/user-attachments/assets/1a99d03d-178e-4e50-8227-773b71743875" />
+<img width="630" height="430" alt="1789150354432-dcb3dc8d-252f-4e6e-ac08-09828865c064-image" src="https://github.com/user-attachments/assets/b76a3db6-88f6-4952-bf18-a469b57da4cd" />
 
 ## Requirements
 
