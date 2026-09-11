@@ -37,7 +37,8 @@ Nothing else from this repository goes into the game folders. To update, replace
 
 ## Credits
 
-- Design and direction: [lborruto](https://github.com/lborruto). Code: lborruto and Claude (Anthropic).
+- Design and direction: [lborruto](https://github.com/lborruto).
+- Code: lborruto and Claude (Anthropic).
 - [Scavenger Project](https://github.com/NickB05/Project_Scavenger): NickB_05.
 - [TranZit Enhanced](https://forum.plutonium.pw/topic/46428/release-zm-tranzit-enhanced): Myrix.
 - Treyarch for the game, the Plutonium team for the platform.
