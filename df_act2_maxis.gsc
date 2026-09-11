@@ -208,13 +208,12 @@ df_m1_hooks_install()
 }
 
 // True after M1 for a player within 400 of the table or a lit brazier: the fog creatures are ours there.
+// rc3 (owner): the denizens leave a player alone ONLY beside a lit grave while M2 runs (the ember run). The tower is a
+// denizen zone in vanilla (the cornfield fog has no safety volume) and stays one: no permanent camp.
 df_m1_protected( pos )
 {
-    if ( !df_is_done( "m1" ) || isdefined( level.df_m1_mode ) )
+    if ( !is_true( level.df_m2_armed ) )
         return false;
-
-    if ( distancesquared( pos, df_coord( "DF_SOCKET" ).origin ) < 400 * 400 )
-        return true;
 
     return df_m2_lit_near( pos, 400 );
 }

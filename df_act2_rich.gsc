@@ -466,22 +466,14 @@ df_r1_export_nodes()
 
     if ( isdefined( pos ) )
     {
-        offs = [];
-        offs[0] = ( 25, 25, 0 );
-        offs[1] = ( 25, -25, 0 );
-        offs[2] = ( -25, -25, 0 );
-        offs[3] = ( -25, 25, 0 );
-
-        for ( i = 0; i < 4; i++ )
-        {
-            node = spawnstruct();
-            node.origin = pos + offs[i];
-            node.name = "core_" + ( i + 1 );
-            node.kind = "core";
-            level.df_nodes[level.df_nodes.size] = node;
-        }
-
-        df_debug_print( "DF: r1 done: Step 6 nodes = the transformer block at " + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + " (four draws)" );
+        // ONE node (rc3): the whole Jet Gun goes into the block in one draw that ends when the gun overheats, as the
+        // vanilla tower step (four 5 s draws at the same point were bookkeeping nobody could see)
+        node = spawnstruct();
+        node.origin = pos;
+        node.name = "core";
+        node.kind = "core";
+        level.df_nodes[level.df_nodes.size] = node;
+        df_debug_print( "DF: r1 done: Step 6 node = the transformer block at " + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + " (one draw: fire until the Jet Gun overheats)" );
         return;
     }
 

@@ -1326,10 +1326,16 @@ df_s6_draw_monitor()
             }
             else if ( is_player_valid( player ) && df_s6_is_jetgun( player getcurrentweapon() ) && player maps\mp\zombies\_zm_weap_jetgun::is_jetgun_firing() )
             {
-                player df_s6_overheat_relief();
-
+                // rc3: no heat relief any more: the draw ENDS with the overheat (df_s6_overheat_watch), like the vanilla
+                // tower step; TranZit Enhanced overheats the gun after 7.7 s of fire
                 if ( isdefined( player.df_orb ) )
                     node = player df_s6_aimed_node( range2 );
+
+                if ( isdefined( node ) && !is_true( player.df_s6_heat_watch ) )
+                {
+                    player.df_s6_heat_watch = 1;
+                    player thread df_s6_overheat_watch( node, range2 );
+                }
             }
 
             if ( !isdefined( node ) )
@@ -1356,10 +1362,45 @@ df_s6_draw_monitor()
             if ( node.draw_ticks % 10 == 0 )
                 df_fx_burst( df_s6_charge_fx(), df_s6_orb_pos( node ), 0.6 );
 
-            if ( node.draw_ticks >= df_s6_draw_ticks() )
+            // Maxis (lava) completes by ticks; Richtofen completes on the overheat (df_s6_overheat_watch)
+            if ( maxis && node.draw_ticks >= df_s6_draw_ticks() )
                 df_s6_drain( node, player );
         }
     }
+}
+
+// self = player, Richtofen. Started at the first firing tick aimed at `node`: waits for the gun to overheat
+// ("jetgun_overheated", vanilla _zm_weap_jetgun.gsc watch_overheat and TranZit Enhanced both notify it) and drains
+// the node if the player still carries the orb and still aims at it within range. Any other end (weapon away,
+// down, step over) just releases the watch so a new attempt can start.
+df_s6_overheat_watch( node, range2 )
+{
+    self endon( "disconnect" );
+    level endon( "df_skip_step6" );
+    level endon( "df_s6_stop" );
+
+    what = self waittill_any_return( "jetgun_overheated", "weapon_change", "player_downed", "death" );
+    self.df_s6_heat_watch = 0;
+
+    if ( what != "jetgun_overheated" || !isdefined( node ) || node.state != "charged" )
+        return;
+
+    if ( !isdefined( self.df_orb ) )
+    {
+        df_debug_print( "DF: s6 jet gun overheated but the orb is not carried: nothing drawn" );
+        return;
+    }
+
+    aimed = self df_s6_aimed_node( range2 );
+
+    if ( !isdefined( aimed ) || aimed != node )
+    {
+        df_debug_print( "DF: s6 jet gun overheated away from the block: nothing drawn" );
+        return;
+    }
+
+    df_debug_print( "DF: s6 jet gun overheated at the block: the charge is drawn" );
+    df_s6_drain( node, self );
 }
 
 // self = player. Shows "Drawing the charge" with the node's progress while drawing, removes it otherwise.

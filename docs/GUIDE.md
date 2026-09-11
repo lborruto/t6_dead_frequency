@@ -223,12 +223,12 @@ the Diner, Town, or the Power station. Look for the glint and the light beam poi
 ORB is a small rock. Press F to take it (no lamp portals while carrying). Every charged node also gets a beam
 from the tower and a light column, and the Step 5 lamps go dark.
 
-Charge the orb at four nodes, 5 seconds each (cumulative, the draw is heard as a rising sound):
+Charge the orb (the draw is heard as a rising sound):
 
-- RICHTOFEN: the node is the sparking transformer block on the small bridge at the Power station exit. Carry the
-  orb onto the bridge and fire the JET GUN at the block, four draws of 5 s in the same place: the whole gun goes
-  into it. You need a Jet Gun in the team.
-- MAXIS: the nodes are the four scorched grave spots. Carry the orb and stand IN THE LAVA next to the spot.
+- RICHTOFEN: one node, the sparking transformer block on the small bridge at the Power station exit. Carry the
+  orb onto the bridge and fire the JET GUN at the block until the gun OVERHEATS, as in the vanilla tower step: the
+  whole gun goes into it in one go. You need a Jet Gun in the team.
+- MAXIS: four nodes, the scorched grave spots, 5 seconds each. Carry the orb and stand IN THE LAVA next to the spot.
   Stepping out pauses the draw; the lava burns you the whole time (Juggernog helps). No Jet Gun on this side.
 
 Fully charged (three clinks, an aura and a hum on the orb and on you): press F at the table to place it. If you

@@ -1987,10 +1987,17 @@ df_s7_afterwave()
 
         player = random( players );
 
-        if ( df_zombies_near( player.origin, 1500 ) >= cap )
+        // rc3 (owner): the waves rise AT THE TOWER, not beside the players (one player under the tower and three
+        // farming far away was a free ride); the cap counts the dead around the tower
+        center = df_s7_tower_center();
+
+        if ( df_zombies_near( center, 1500 ) >= cap )
             continue;
 
-        spots = df_spawn_spots_near( player.origin, 900 );
+        spots = level.df_s7_spots;
+
+        if ( !isdefined( spots ) || spots.size == 0 )
+            spots = df_spawn_spots_near( center, 1400 );
 
         if ( spots.size == 0 )
             continue;
