@@ -34,7 +34,7 @@ Around the Depot building four short pipes stand on the ground. Each one blinks 
 look for a far light: it flashes the SAME numbers as groups of flashes with a click per flash, in the order
 you need, for example "3, pause, 1, pause, 4, pause, 2".
 
-Kick the pipes in that order: for each group, find the pipe whose blink count matches and press F on it. A
+Kick the pipes in that order: for each group, find the pipe whose blink count matches and press F on it (no prompt shows). A
 right pipe sparks, stops blinking and stays lit. A wrong pipe buzzes and every pipe goes back to blinking; the
 order stays the same, so just count the far light again and start over.
 
