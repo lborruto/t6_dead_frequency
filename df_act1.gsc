@@ -2034,7 +2034,7 @@ df_step4_skip_cleanup()
 // returns the base script_model.
 df_a1_relay_spawn( pos, yaw, top_kind )
 {
-    yaw = yaw - 45; // owner 2026-09-11: the relay sits at 45 degrees on the roof and on the table, turned this way (all pieces follow relay.df_yaw)
+    yaw = yaw - 135; // owner 2026-09-22: turned a further 90 degrees clockwise (was -45); the relay sits at 45 degrees on the roof and on the table, turned this way (all pieces follow relay.df_yaw)
     relay = spawn( "script_model", pos );
     relay setmodel( df_model( "relay" ) );
     relay.angles = df_model_angles( "relay", yaw );

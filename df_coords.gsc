@@ -886,7 +886,7 @@ df_table_demo_prop( kind, pos, offset )
 
     // the relay pieces sit at 45 degrees on the table (df_act1 df_a1_relay_spawn, owner 2026-09-11)
     if ( kind == "relay" || kind == "relay_coil" || kind == "relay_top" || kind == "relay_mast" )
-        yaw = yaw - 45;
+        yaw = yaw - 135; // owner 2026-09-22: matches df_act1 (90 degrees clockwise from the old -45)
 
     ent = spawn( "script_model", pos + df_offset_rotate( offset, yaw ) );
     ent setmodel( df_model( kind ) );
@@ -1354,7 +1354,7 @@ df_models_init_items()
     // a trigger, 11 x 4 x 10, proven to spawn as a buildable. Fallback: p6_zm_buildable_battery (16 x 14 x 9).
     // receiver (the phone's part) = the wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the
     // same model R2's spools use: the relay carries one on the radio.
-    df_model_def( "receiver", "p6_zm_buildable_sq_electric_box", 0, 0, 0 ); // owner pick 2026-09-11 (Prop Picker): the EE power box
+    df_model_def( "receiver", "p6_zm_buildable_sq_electric_box", -10, 0, -14 ); // owner pick 2026-09-11 (Prop Picker): the EE power box; pitch -10 yaw -14 from the composer 2026-09-22
 
     // spool: the wire spool a filled lamp drops in R2 (audit 9). The jet gun wire bundle piece
     // (so_zclassic_zm_transit, ALWAYS, zm_transit_buildables.gsc jetgun pieces), 25 x 7 x 25: a coil of cable.
@@ -1467,7 +1467,7 @@ df_fx_points_init()
     level.df_fx_point_parent = [];
 
     // ---- Step 1 pipes and the far signal light
-    df_fx_point_def( "pipe_glow", "tv", ( 0, 0, 1 ) );              // base: TOP of the prop, df_model_top_z( "tv" ); the registry holds the extra
+    df_fx_point_def( "pipe_glow", "tv", ( 0, 0, -3 ) ); // owner composer 2026-09-22             // base: TOP of the prop, df_model_top_z( "tv" ); the registry holds the extra
     df_fx_point_def( "signal_flash", "signal", ( 0, 0, 70 ) );      // base: anchor origin; the dvar df_signal_lift still overrides it live
     df_fx_point_def( "signal_hum", "signal", ( 0, 0, 20 ) );        // base: DF_SIGNAL_SND origin
 
