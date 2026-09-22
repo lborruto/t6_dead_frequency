@@ -345,9 +345,9 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   stone(s) forget their dead (Maxis wants the dark)`: every lit hungry grave is back to 0/5 (spent graves stay gone);
   nothing left to lose prints `m2 power on at end of round, nothing left to lose`. `!df fire m2_penalty` does it now.
 - Step 5, expiry FAILS FORWARD: anchor ONE lamp, then `!df fire s5_time`: EMP thump, `s5 countdown expired: 1 anchor(s)
-  kept, 2 lamp(s) pay the penalty`, D5_FAIL, the anchored lamp KEEPS its light and shaft, `s5 penalty: 8 souls each into
+  kept, 2 lamp(s) pay the penalty`, D5_FAIL, the anchored lamp KEEPS its light and shaft, `s5 penalty: 15 souls each into
   the unanchored lamp(s) <names>`: ONLY those two show the hungry look. Kill within 400 of them: trails, `penalty lamp X
-  souls a/8`, at 8 `filled`; `s5 penalty paid`, `s5 tuning open again on the unanchored lamps, countdown starts at the
+  souls a/15`, at 15 `filled`; `s5 penalty paid`, `s5 tuning open again on the unanchored lamps, countdown starts at the
   next anchor`. `!df fire s5_penalty` or `!df souls` pays it.
 - Step 5, no anchor: "signal lost" after 15 s, 10 s drain, nothing else, no countdown.
 - Step 6, orb dropped: 60 s then home (nearer of the landing spot / table front, charges kept). After a Step 7 fail its

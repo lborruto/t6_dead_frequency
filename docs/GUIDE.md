@@ -209,7 +209,7 @@ lost.
 
 The FIRST anchor starts a countdown you hear, not see: Maxis 360 s solo (300 / 270 / 240), Richtofen 480 s
 (360 / 300 / 270). Anchor every set lamp before it ends and Step 5 is done. If it runs out, the anchored lamps
-STAY anchored; only the lamps you missed need souls again (8 / 10 / 12 / 14 kills each near the post) before
+STAY anchored; only the lamps you missed need souls again (15 / 18 / 21 / 24 kills each near the post, solo to four players) before
 they can be tuned, and the next anchor starts a fresh countdown with only the missing lamps left.
 
 </details>
