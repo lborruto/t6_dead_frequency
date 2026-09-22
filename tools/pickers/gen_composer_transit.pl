@@ -285,7 +285,10 @@ my @slot2 = table_slot_xyz(2);
 # The relay sits 45 degrees off the table's front on slot 0 (df_a1_relay_spawn: "yaw = yaw - 45"; df_table_demo_prop:
 # same, "the relay pieces sit at 45 degrees on the table"); relay_coil / relay_mast ride at their registered
 # df_model_offset, turned the same way (df_model_offset_at / df_offset_rotate).
-my $relay_yaw = $table_front_yaw - 45;
+# the turn is read from df_table_demo_prop ("yaw = yaw - N;") so the page follows the code (owner turned it to 135 on 2026-09-22)
+my ($relay_turn) = $gsc =~ /df_table_demo_prop(.*?yaw = yaw - (d+);/s;
+$relay_turn = 45 unless defined $relay_turn;
+my $relay_yaw = $table_front_yaw - $relay_turn;
 my ( $coil_ox, $coil_oy, $coil_oz ) = df_rotate_offset( $model_def{relay_coil}{ox}, $model_def{relay_coil}{oy}, $model_def{relay_coil}{oz}, $relay_yaw );
 my ( $mast_ox, $mast_oy, $mast_oz ) = df_rotate_offset( $model_def{relay_mast}{ox}, $model_def{relay_mast}{oy}, $model_def{relay_mast}{oz}, $relay_yaw );
 my @relay_pos      = ( r2( $slot0[0] ),               r2( $slot0[1] ),               r2( $slot0[2] ) );
@@ -402,7 +405,7 @@ add_preset(
 
 add_preset(
     'relay_table', 'Relay (table, plugged)',
-    'The relay assembly as it stands on the table before the table\'s own front yaw is applied (see "Table, ... loaded" for the full -45 turn). '
+    'The relay assembly as it stands on the table before the table\'s own front yaw is applied (see "Table, ... loaded" for the full turn). '
       . 'mast = kind "relay_mast" (' . $model_def{relay_mast}{name} . '), df_model_offset (' . $model_def{relay_mast}{ox} . ',' . $model_def{relay_mast}{oy} . ',' . $model_def{relay_mast}{oz}
       . '). relay_array_node marks slot 0\'s own array position (registry offset (0,0,' . $fx_def{relay_array_node}{z}
       . ')); relay_array_step is drawn ONCE here (node + 1 step, "+step") though the game code multiplies its registry offset by the live array level.',
@@ -429,7 +432,7 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
     my $note =
         'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw
       . '. Slot Z = df_model_top_z("table") = ' . $table_top_z . ', spacing = df_table_slot_spacing() = ' . $table_spacing
-      . '. Slot 0: the plugged relay assembly (relay turned yaw - 45 = ' . $relay_yaw . '); relay_coil / relay_mast at their '
+      . '. Slot 0: the plugged relay assembly (relay turned yaw - ' . $relay_turn . ' = ' . $relay_yaw . '); relay_coil / relay_mast at their '
       . 'df_model_offset, rotated the same way. Slot 1: '
       . ( $is_rich
         ? 'kind "card" (' . $model_def{card}{name} . ') at slot 1 + (0,0,' . $card_lift . ') (df_table_demo_prop\'s own card lift).'
