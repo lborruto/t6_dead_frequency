@@ -875,7 +875,7 @@ df_table_demo_prop( kind, pos, offset )
     if ( kind == "relay" || kind == "relay_coil" || kind == "relay_top" || kind == "relay_mast" )
         yaw = yaw - 45;
 
-    ent = spawn( "script_model", pos + offset );
+    ent = spawn( "script_model", pos + df_offset_rotate( offset, yaw ) );
     ent setmodel( df_model( kind ) );
     ent.angles = df_model_angles( kind, yaw );
     return ent;
@@ -1375,6 +1375,20 @@ df_model_offset( kind )
         return level.df_model_offset[kind];
 
     return ( 0, 0, 0 );
+}
+
+// The stacking offset turned with the parent: df_model_def offsets are written in the parent's own frame (the
+// Prop Composer exports them with the base at yaw 0), so a relay turned to `yaw` carries its pieces around with it.
+df_model_offset_at( kind, yaw )
+{
+    return df_offset_rotate( df_model_offset( kind ), yaw );
+}
+
+df_offset_rotate( offset, yaw )
+{
+    c = cos( yaw );
+    s = sin( yaw );
+    return ( offset[0] * c - offset[1] * s, offset[0] * s + offset[1] * c, offset[2] );
 }
 
 // Height of the TOP surface of a kind's model above its own origin (which sits at the model's base for

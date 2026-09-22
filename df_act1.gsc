@@ -2060,7 +2060,7 @@ df_a1_relay_coil_attach( relay )
     if ( isdefined( relay.df_yaw ) )
         yaw = relay.df_yaw;
 
-    coil = spawn( "script_model", relay.origin + df_model_offset( "relay_coil" ) );
+    coil = spawn( "script_model", relay.origin + df_model_offset_at( "relay_coil", yaw ) );
     coil setmodel( df_model( "relay_coil" ) );
     coil.angles = df_model_angles( "relay_coil", yaw );
     coil linkto( relay );
@@ -2074,12 +2074,12 @@ df_a1_relay_top_attach( relay, kind )
         return;
 
     // the registry owns the stacking height (df_coords df_model_def, printed by `!df dump`)
-    offset = df_model_offset( kind );
     yaw = relay.angles[1];
 
     if ( isdefined( relay.df_yaw ) )
         yaw = relay.df_yaw;
 
+    offset = df_model_offset_at( kind, yaw );
     top = spawn( "script_model", relay.origin + offset );
     top setmodel( df_model( kind ) );
     top.angles = df_model_angles( kind, yaw );
