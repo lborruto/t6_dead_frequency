@@ -315,10 +315,8 @@ df_step1_poll()
                 continue;
             }
 
-            if ( target.kind == "phone" )
-                player df_a1_puzzle_prompt( 1, "Press [{+activate}] to listen" );
-            else
-                player df_act1_prompt( 1, "Press [{+activate}] to kick the pipe", "pipe" ); // audit v3 #10: a mechanic prompt, always shown
+            // no prompt on the pipes (owner 2026-09-22): vanilla shows none for a puzzle input, only for pickups and builds;
+            // the press still works, the player has to find that the pipes react
 
             if ( !player df_press_use() )
                 continue;

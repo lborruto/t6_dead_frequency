@@ -574,7 +574,7 @@ df_fuse_prompt_poll()
                 }
             }
 
-            player df_prompt( near, "Press [{+activate}]" ); // audit v3 #10: a mechanic prompt, always shown
+            // no prompt on the boxes (owner 2026-09-22): the Simon boxes are the puzzle; `near` still gates the press below
         }
     }
 }
