@@ -656,7 +656,7 @@ __LIST__
 <div class="mid">
 <div class="viewer" id="viewer"><canvas id="c"></canvas>
 <div class="vbar"><code id="vname">nothing previewed</code><span class="dims" id="vdims"></span><button class="pickbtn" type="button" id="addBtn" disabled>Add as part</button></div>
-<div class="hint">Click a model on the left to preview it; "Add as part" drops it into the scene at the origin. Arrows = X/Y by 1, PageUp/PageDown = Z by 1, Q/E = yaw 5&deg; (Shift = 5 units / 15&deg;, Alt = 0.25 unit / 1&deg;) on the selected part -- for a selected fx cross, arrows/PageUp/PageDown move its offset in its PARENT's frame instead (it has no yaw of its own: it turns with its parent).</div>
+<div class="hint">Click a model on the left to preview it; "Add as part" drops it into the scene at the origin. Arrows = X/Y by 1, PageUp/PageDown = Z by 1, Q/E = yaw 5&deg;, R/F = pitch 5&deg;, Z/C = roll 5&deg; (Shift = 5 units / 15&deg;, Alt = 0.25 unit / 1&deg;) on the selected part -- for a selected fx cross, arrows/PageUp/PageDown move its offset in its PARENT's frame instead (it has no pitch/yaw/roll of its own: it turns with its parent).</div>
 <div class="diag" id="diag"></div>
 </div>
 <div class="readout" id="readout">nothing selected</div>
@@ -699,7 +699,7 @@ __SCRIPTS__
 (function(){
   var PRESETS = __PRESETS_JSON__;
   var FX_REGISTRY = __FX_REGISTRY_JSON__;
-  var VERSION = 'v3';
+  var VERSION = 'v4';
   var STORE_KEY = 'df_composer_transit';
 
   function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(e){ return null; } }
@@ -830,6 +830,19 @@ __SCRIPTS__
   // scene is Y-up, so the vertical logical Z maps to three's Y here, matching the corrective root rotation
   // already baked into every dumped glTF (that is what lets the plain Prop Picker show any single model
   // upright with no rotation of its own).
+  //
+  // Axis mapping for setPose()'s Euler, spelled out (this is the one thing every part -- model or fx group --
+  // rotates through, so pitch/roll editing depends on it being right): game angles are (pitch, yaw, roll)
+  // exactly as df_model_angles() returns them ( base[0]=pitch, front_yaw+yawoff, base[2]=roll ), pitch tips the
+  // model's nose up/down around its own left/right (three's X) axis, yaw turns it left/right around the
+  // vertical (three's Y, since toThree maps logical Z -> three Y) axis, roll banks it around its own forward
+  // (three's Z, since toThree maps logical Y -> three Z) axis. THREE.Euler order 'YXZ' applies yaw, then pitch,
+  // then roll, each around the object's OWN (already-rotated) axis -- the same order the composed quaternion
+  // from df_model_angles' single (pitch, yaw, roll) triplet implies. Yaw is negated because the engine's yaw
+  // increases clockwise looking down +Z while three's Y-rotation increases counter-clockwise looking down +Y.
+  // A part's pitch/roll fields (in the Parts panel, or R/F and Z/C on the keyboard) feed p.pitch / p.roll here
+  // directly: e.g. the card's registry pitch 90 (df_model_def "card","p6_zm_keycard",90,0,0) tips it flat,
+  // exactly like a wall prop's registered upright pitch/roll already does for tv/fuse/socket.
   function toThree(x, y, z){ return new THREE.Vector3(x, z, y); }
   function setPose(obj, p){
     obj.position.copy(toThree(p.x, p.y, p.z));
@@ -1096,6 +1109,10 @@ __SCRIPTS__
       case 'PageDown': if (isFx) p.oz -= unit; else p.z -= unit; break;
       case 'q': case 'Q': if (!isFx) p.yaw -= deg; else used = false; break;
       case 'e': case 'E': if (!isFx) p.yaw += deg; else used = false; break;
+      case 'r': case 'R': if (!isFx) p.pitch -= deg; else used = false; break;
+      case 'f': case 'F': if (!isFx) p.pitch += deg; else used = false; break;
+      case 'z': case 'Z': if (!isFx) p.roll -= deg; else used = false; break;
+      case 'c': case 'C': if (!isFx) p.roll += deg; else used = false; break;
       default: used = false;
     }
     if (used) { ev.preventDefault(); saveStore(); renderParts(); rebuildScene(); }
