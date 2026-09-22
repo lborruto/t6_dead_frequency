@@ -70,7 +70,7 @@ df_dialogue_init()
 // Act 1 "Static" (shared, both patrons). Mechanics (df_act1.gsc): Step 1 four pipes on the ground around
 // the Depot each blink their own number (1-4, random per game); a far light past the fence flashes the
 // order; the pipes are kicked in that order and the coil strikes down near the Depot (puzzle prompts
-// hidden, the lines are the only teacher); Step 2 radio (Cabin), mast (tunnel) and coil (Depot) built on
+// hidden, the lines are the only teacher); Step 2 radio (Diner garage), mast (Farm barn) and coil (Depot) built on
 // the bus roof; Step 3 the relay rides ONE full stop with power on while zombies chew on it
 // (df_a1_stops_needed); Step 4 the relay goes to the table under the tower, the power state locks the side.
 df_dialogue_act1()
@@ -89,8 +89,8 @@ df_dialogue_act1()
     // Step 2 - Salvage
     df_add_line( "S2_START", "maxis", "A voice needs a body. Three pieces of one; two lie where the fog is thick." );
     df_add_line( "S2_START", "rich", "A scavenger hunt! Oh, I adore those. Mind the corn, Samuel. It bites." );
-    df_add_line( "S2_HINT_1", "maxis", "A cabin and a tunnel. The fog kept a piece in each. The light gave the third." );
-    df_add_line( "S2_HINT_2", "maxis", "Radio from the cabin, mast from the tunnel, the coil. Build on the bus roof." );
+    df_add_line( "S2_HINT_1", "maxis", "A garage and a barn. The fog kept a piece in each. The light gave the third." );
+    df_add_line( "S2_HINT_2", "maxis", "Garage radio, barn mast, the coil. Build the relay on the bus roof." );
     df_add_line( "S2_HINT_2", "rich", "Three parts and a school bus roof, Samuel. Even Maxis could build that." );
     df_add_line( "D2_DONE", "rich", "A relay on a school bus. Samuel, you are a genius and I hate it." );
     df_add_line( "D2_DONE", "maxis", "It travels. Good. Now let it listen to the road." );

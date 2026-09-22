@@ -49,8 +49,8 @@ When all four are lit the bus dashboard pulses, Maxis and Richtofen speak, and t
 
 Two more parts lie in the fog from round 1 and can be taken at any time, even before Step 1:
 
-- the RADIO, at the hunter's cabin (the shack between the Farm and the Power station);
-- the MAST, a tall standing post, at the tunnel.
+- the RADIO, in the garage next to the Diner (behind the mystery box);
+- the MAST, a tall standing post, on the upper floor of the Farm barn.
 
 With all three parts, get on the bus roof: "Hold F to build the relay". Three seconds later the relay stands on
 the roof (radio, coil box, mast). With only two parts there is no build prompt.

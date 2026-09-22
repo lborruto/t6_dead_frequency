@@ -536,7 +536,7 @@ df_a1_receiver_idx()
     return df_a1_parts_total() - 1;
 }
 
-// Boot (owner rule): the two fog parts (battery at the cabin, lattice in the tunnel), their glints and
+// Boot (owner rule): the two fog parts (radio in the Diner garage, mast in the Farm barn), their glints and
 // triggers exist from game start; a part taken before Step 2 opens still counts (the team inventory is
 // level-wide). The skip listener starts here for the same reason. Idempotent.
 df_a1_parts_boot()

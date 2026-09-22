@@ -51,7 +51,7 @@ Everything below must already be there. Missing = the biggest bug of this build.
   light 70 above the anchor) a light flashes the order in GROUPS with a click per flash and the same blue spark closing
   the message; a hum at `DF_SIGNAL_SND`. Is the far light visible from the Depot? Can you count four blinking pipes?
   Say so. The wall phone: no glint, no prompt, nothing on press.
-- Fog: `!df tp DF_PART_A` radio (cabin), `DF_PART_B` mast (tunnel, a 117-tall post standing). Glint on each. `DF_PART_C` still exists as an
+- Fog: `!df tp DF_PART_A` radio (Diner garage, behind the box), `DF_PART_B` mast (Farm barn upper floor, a 117-tall post standing). Glint on each. `DF_PART_C` still exists as an
   anchor but NOTHING lies there (the third part is the wire coil, which arrives after Step 1). Take one part now: notice
   "Relay parts (1/3)", console `radio taken (1/3)`. It must count later.
 - Tower: `!df tp DF_TABLE`: the work bench stands there, empty. Walk into it: you must NOT pass through, and you must

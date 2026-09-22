@@ -253,7 +253,7 @@ df_apply_overrides()
     df_coord_override_rest( "DF_TV_3", ( -7234, 4588, -55 ), ( 0, 175, 0 ), "tv" ); // owner move 2026-09-11
     df_coord_override_rest( "DF_TV_4", ( -6884, 5627, -55 ), ( 0, 285, 0 ), "tv" ); // owner move 2026-09-11
 
-    // Salvage parts on the ground at the spots (A cabin, B farm upper level, C Nacht bunker).
+    // Salvage parts on the ground at the spots (A Diner garage behind the box, B Farm barn upper level, C Nacht bunker: unused).
     // owner-placed with !df grab on 2026-09-08
     df_coord_override( "DF_PART_A", ( -4830, -7978, -29 ), ( 0, 130, 0 ) );
     df_coord_override( "DF_PART_B", ( 8149, -5088, 52 ), ( 0, 401, 0 ) );
@@ -1221,18 +1221,18 @@ df_models_init()
     // owner's choice; the orb spins and wears the aura, the skull sits still on slot 1).
     df_model_def( "orb", "p6_zm_buildable_sq_meteor", 0, 0, 0 );
 
-    // part_a: cabin, the "battery" of spec 10. Vanilla electric trap battery piece (so_zclassic_zm_transit,
+    // part_a: Diner garage (owner move; the derived fallback below is the cabin jet gun spot), the "battery" of spec 10. Vanilla electric trap battery piece (so_zclassic_zm_transit,
     // zm_transit_buildables.gsc electric_trap pieces): a car battery, clearly a power cell.
     // Owner 2026-09-09: the parts ARE the pieces of the assembled relay, same positions, models swapped:
-    // part_a (Cabin) = the radio itself (the car battery moved to kind "battery" for the R1 bus battery).
+    // part_a (Diner garage) = the radio itself (the car battery moved to kind "battery" for the R1 bus battery).
     df_model_def( "part_a", "p6_zm_buildable_sq_transceiver", 0, 0, 0 );
 
     // battery: the R1 bus battery (df_act2_rich), the electric trap battery piece (so_zclassic_zm_transit).
     df_model_def( "battery", "p6_zm_buildable_battery", 0, 0, 0 );
 
-    // part_b: tunnel, the "antenna" of spec 10. Vanilla EE tower lattice piece (zm_transit, sq_common
+    // part_b: Farm barn (owner move; the derived fallback below is the tunnel jet gun spot), the "antenna" of spec 10. Vanilla EE tower lattice piece (zm_transit, sq_common
     // "tag_part_01", zm_transit_buildables.gsc:137): a metal mast section, reads as an antenna.
-    // part_b (tunnel) = the mast, the fence end post (13 x 3 footprint, 117 tall, base pivot): it STANDS at its
+    // part_b (Farm barn) = the mast, the fence end post (13 x 3 footprint, 117 tall, base pivot): it STANDS at its
     // anchor, readable from far (owner 2026-09-09; was the flat lattice slab).
     df_model_def( "part_b", "p6_zm_chain_fence_piece_end", 0, 0, 0 );
 
