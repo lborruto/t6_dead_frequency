@@ -304,6 +304,14 @@ df_apply_overrides()
     df_coord_override_ground( "DF_BRAZIER_2", ( 9296, -1073, -203 ), 120, "brazier" );
     df_coord_override_ground( "DF_BRAZIER_3", ( 9913, -1193, -217 ), -121, "brazier" );
     df_coord_override_ground( "DF_BRAZIER_4", ( 10363, -1240, -215 ), 33, "brazier" );
+
+    // The four M1 cold-room spawn points inside the Nacht bunker: player spots, no model (df_coord_set above
+    // passes undefined and df_coord_override leaves the model alone), read as .origin by df_act2_maxis.
+    // owner anchor map 2026-09-22: they were four points 40 apart around one spot, now spread over the room.
+    df_coord_override( "DF_NACHT_SPAWN_1", ( 13752, -441, -189 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_2", ( 13807, -978, -189 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_3", ( 13601, -645, -189 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_4", ( 13548, -920, -189 ), ( 0, 1, 0 ) );
 }
 
 // Owner paste format: a raw [SPOT] / [PLACE] line whose position is a FLOOR spot, for a kind whose model
