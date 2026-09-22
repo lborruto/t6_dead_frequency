@@ -8,7 +8,8 @@
 //      vertalign top, default font, no sort, 2.5 s then a 0.5 s fade), one row lower (y +30) so both never
 //      overlap when they fire in the same second.
 //   2. A "Dead Frequency" square in Scavenger's TAB row (zm_scavenger.gsc:786 mc_tab_square_watch): same
-//      border shader zm_hud_icon_sq_tranceiver 33x33 alpha 0.7 sort 1, inner icon 25x25 sort 3, counter "n/N"
+//      33x33 frame (a plain dark "white" plate, theirs is zm_hud_icon_sq_tranceiver = the radio picture) sort 1,
+//      inner icon 25x25 sort 3 alpha 0.9, counter "n/N"
 //      below (sort 3), check mark zm_hud_icon_sq_scafold 10x10 sort 4 when complete, square lifted 10 px while
 //      something is carried. Placed right after their fifth TranZit square (x 91 + 5 * 39 = 286; their
 //      plow / hatch / ladder block starts at 634 - 3 * 39 = 517), or at x 91 when Scavenger is not installed.
@@ -489,14 +490,16 @@ df_scav_tab_create()
     cfg = level.df_scav_cfg;
     x = df_scav_slot_x();
 
+    // a plain dark plate as the frame (owner 2026-09-22: the "border" shader Scavenger uses for every square,
+    // zm_hud_icon_sq_tranceiver, IS the radio picture on TranZit and drowned the item icon)
     border = self df_scav_tab_elem( x, cfg.tab_y, 1 );
-    border.alpha = 0.7;
-    border.color = ( 1, 1, 1 );
-    border setshader( "zm_hud_icon_sq_tranceiver", cfg.sq + cfg.pad * 2, cfg.sq + cfg.pad * 2 );
+    border.alpha = 0.55;
+    border.color = ( 0.08, 0.08, 0.08 );
+    border setshader( "white", cfg.sq + cfg.pad * 2, cfg.sq + cfg.pad * 2 );
     self.df_scav_tab_border = border;
 
     icon = self df_scav_tab_elem( x, cfg.tab_y, 3 );
-    icon.alpha = 0.5;
+    icon.alpha = 0.9;
     self.df_scav_tab_icon = icon;
     self.df_scav_tab_icon_kind = undefined;
     self.df_scav_tab_rev = -1;
