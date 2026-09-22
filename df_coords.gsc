@@ -1190,19 +1190,19 @@ df_models_init()
     // Owner 2026-09-09: "the relay should look the same each time": the roof relay is the SAME assembly as the
     // table relay, radio + coil + mast (relay_top = relay_mast; the slab read as "just a plank"). The mast pokes
     // through the tunnel roof and the depot roof for a second while the bus passes: cosmetic, no collision.
-    df_model_def( "relay_top", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( 0, 0, 27 ) ); // on the box: 7 + 20
+    df_model_def( "relay_top", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( -5, -3, 4.5 ) ); // owner composer 2026-09-22: the mast stands on the radio, the box rides the mast
 
     // relay_coil: the wire coil the phone gave (part 3), stacked on the radio (7.3 tall) on the roof and on the
     // table; the mast stands on the coil (7.6 tall, base pivot, 25 x 25 footprint on the radio's 26 x 19).
     // owner pick 2026-09-11: the power box (13 x 20 x 4, CENTRE pivot) stands upright on the radio: centre at 7 + 10
-    df_model_def( "relay_coil", "p6_zm_buildable_sq_electric_box", 0, 0, 0, ( 0, 0, 17 ) );
+    df_model_def( "relay_coil", "p6_zm_buildable_sq_electric_box", 0, 0, -29, ( -4, -0.5, 39.5 ) ); // owner composer 2026-09-22
 
     // relay_mast: the piece on the TABLE relay after Step 4 (no clearance problem under the tower): a fence
     // end post, zm_transit ALWAYS, glTF 13 x 3 footprint, 117 tall, pivot at its base, its brace extends 12
     // along -x (inside the radio's 26-long footprint). Stacked at the radio's top (7) it makes the plugged
     // relay a 124-tall antenna readable from outside the fence (art audit #7). Spawned by df_act1
     // (df_step4_plugged_relay_spawn) at relay.origin + df_model_offset( "relay_mast" ) with the relay's yaw.
-    df_model_def( "relay_mast", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( 0, 0, 27 ) ); // on the box (7 + 20)
+    df_model_def( "relay_mast", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( -5, -3, 4.5 ) ); // owner composer 2026-09-22
 
     // orb: Step 6/7 charge core. Art audit #6: kind "orb" and kind "skull" were both zombie_skull, so the
     // Maxis table held two identical skulls; the trophy stays the skull, the orb is a machine part: the
