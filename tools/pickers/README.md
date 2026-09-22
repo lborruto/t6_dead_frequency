@@ -22,3 +22,4 @@ in a browser.
 The roles (actions / props / effects) and their "today" values are hard-coded at the top of each generator: update
 them when the cue grammar or the model registry changes.
 - `gen_composer_transit.pl` - Prop Composer: stack several models into one assembly, position each part, export `df_model_def` lines (presets: relay, table slots, tombstone + ember).
+- `gen_anchor_map_transit.pl` - Anchor Map: top-down 2D map of TranZit (the pathnode cloud as the floor plan, zone labels, windows, the bus) with every mod anchor as a draggable marker for gross X/Y placement by eye; exports `df_coord_override` lines for the moved ones.
