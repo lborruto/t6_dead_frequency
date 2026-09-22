@@ -1243,6 +1243,9 @@ df_models_init()
     // the relay is a composite: this radio set as the base (vanilla EE piece, zm_transit_buildables.gsc:138,
     // sq_common "tag_part_03", 64x96 pickup radius) plus "relay_top" stacked on it (below).
     // Spec 9 note: the owner's noee mod uses this model for call-bus panels at stop signs (cosmetic overlap).
+    // The Prop Composer exports -135 as this yawoff (the relay stands at 45 degrees on the table): that turn is
+    // ALREADY applied by the code (df_act1 df_a1_relay_spawn and df_coords df_table_demo_prop both do
+    // "yaw = yaw - 135"), so the registry yawoff stays 0 - pasting the -135 here would turn it twice.
     df_model_def( "relay", "p6_zm_buildable_sq_transceiver", 0, 0, 0 );
 
     // relay_top: the piece on the ROOF radio (the bus goes through the tunnel and under the depot roof, so
@@ -1347,9 +1350,10 @@ df_models_init()
     // card: the NavCard model (zm_transit; zm_transit.gsc:118 precaches it, zm_transit_sq.gsc:1365 places it
     // LYING FLAT on the depot floor at (-6245, 5479.5, -55.35), angles (0,0,0): the model's origin is on the
     // card, face up +z). Owner 2026-09-08: "invisible, can be taken but not seen" when floating at chest
-    // height: a flat card seen edge-on has no visible area. Pose here: pitch 90 stands it upright with its
-    // face along the wall normal (out of the wall), so DF_CARD_SPAWN shows it like a badge on the wall.
-    df_model_def( "card", "p6_zm_keycard", 90, 0, 0 );
+    // height: a flat card seen edge-on has no visible area. Pose here (owner composer 2026-09-22): pitch 180
+    // with the face turned 44 off the front, the look the owner settled on for the card on the table and on
+    // the barn wall (DF_CARD_SPAWN shows it like a badge).
+    df_model_def( "card", "p6_zm_keycard", 180, 0, 44 ); // owner composer 2026-09-22: pitch 180, turned 44 off the front
 
     // table: the bench under the tower everything is deposited on (owner 2026-09-08). Vanilla Pack-a-Punch
     // "legs" buildable piece (so_zclassic_zm_transit; zm_transit_buildables.gsc:53 generate_zombie_buildable_piece
@@ -1526,23 +1530,23 @@ df_fx_points_init()
     df_fx_point_def( "relay_array_step", "relay", ( 0, 0, 16 ) );   // multiplied by the array level, on top of relay_array_node
 
     // ---- the table under the tower (DF_SOCKET sits on DF_TABLE)
-    df_fx_point_def( "socket_spark", "table", ( 0, 0, 20 ) );
-    df_fx_point_def( "socket_glow", "table", ( 0, 0, 30 ) );        // the table light, the pulses, the finale stings
-    df_fx_point_def( "socket_marker", "table", ( 0, 0, 40 ) );      // the AVAILABLE marker over the table
+    df_fx_point_def( "socket_spark", "table", ( 1, 17.5, 52 ) ); // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
+    df_fx_point_def( "socket_glow", "table", ( 0, 0, 42.5 ) );      // owner composer 2026-09-22; the table light, the pulses, the finale stings
+    df_fx_point_def( "socket_marker", "table", ( 0, 0, 42.5 ) );    // owner composer 2026-09-22; the AVAILABLE marker over the table
     df_fx_point_def( "table_slot_glint", "table", ( 0, 0, 6 ) );    // base: TOP of the table, df_table_slot( n ) already carries it
     df_fx_point_def( "table_demo_step", "table", ( 0, 0, 10 ) );    // `!df show DF_TABLE` only: multiplied by the slot index
 
     // ---- the things that sit on the table
-    df_fx_point_def( "card_glint", "card", ( 0, 0, 10 ) );
-    df_fx_point_def( "card_glow", "card", ( 0, 0, 6 ) );
+    df_fx_point_def( "card_glint", "card", ( 0, -0.5, 0.5 ) );      // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
+    df_fx_point_def( "card_glow", "card", ( 0, -0.5, 0.5 ) );       // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
     df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
     df_fx_point_def( "skull_table_glow", "skull", ( 0, 0, 8 ) );
     df_fx_point_def( "ember_glow", "ember", ( 0, 0, 14 ) );
 
     // ---- the barn fuse boxes and the Step 6 nodes
-    df_fx_point_def( "fuse_led", "fuse", ( 0, 0, 10 ) );            // the LED face: glow, spark and Simon flash
-    df_fx_point_def( "fuse_focus", "fuse", ( 0, 0, 6 ) );           // base: fuse_led, not the box origin
-    df_fx_point_def( "fuse_aim", "fuse", ( 0, 0, 20 ) );            // where the orb hum and the guide beam land
+    df_fx_point_def( "fuse_led", "fuse", ( 0, 0, 5 ) );             // owner composer 2026-09-22; the LED face: glow, spark and Simon flash
+    df_fx_point_def( "fuse_focus", "fuse", ( 0, 0, -5 ) );          // owner composer 2026-09-22; base: fuse_led, not the box origin
+    df_fx_point_def( "fuse_aim", "fuse", ( 0, 0, 5 ) );             // owner composer 2026-09-22; where the orb hum and the guide beam land
     df_fx_point_def( "core_node", "core", ( 0, 0, 30 ) );
     df_fx_point_def( "lamp_bulb_glow", "lamp", ( 0, 0, 148 ) );     // fallback bulb height when the map exploder is not found
     df_fx_point_def( "node_aim", "brazier", ( 0, 0, 60 ) );         // generic Step 6 node: the orb hum
@@ -1555,8 +1559,8 @@ df_fx_points_init()
     df_fx_point_def( "brazier_ember", "brazier", ( 0, 0, 2 ) );     // base: brazier origin, the scorched glow of a spent stone
 
     // ---- the orb
-    df_fx_point_def( "orb_aura", "orb", ( 0, 0, 0 ) );              // the aura and the charge bursts ride the orb's own origin
-    df_fx_point_def( "orb_glint", "orb", ( 0, 0, 20 ) );            // the key glint and the guide beam over a loose orb
+    df_fx_point_def( "orb_aura", "orb", ( 0, 0, -0.5 ) );           // owner composer 2026-09-22; the aura and the charge bursts ride the orb's own origin
+    df_fx_point_def( "orb_glint", "orb", ( 0, 0, -0.5 ) );          // owner composer 2026-09-22; the key glint and the guide beam over a loose orb
 
     // ---- the M1 burrow portal
     df_fx_point_def( "portal_light", "portal", ( 0, 0, 40 ) );

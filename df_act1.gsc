@@ -1982,7 +1982,7 @@ df_step4_plug( who )
     level.df_a1_preview = undefined; // the preview light becomes the final one
     df_step4_socket_light( side );
     df_step4_plugged_relay_spawn();
-    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", level.df_socket.origin + df_fx_point( "socket_spark" ) );
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", level.df_socket.origin + df_fx_point_at( "socket_spark", df_table_yaw() ) ); // horizontal part: turned with the table (DF_SOCKET sits on DF_TABLE)
     df_cue_tick( level.df_socket.origin + ( 0, 0, 30 ) );
     playsoundatposition( "zmb_buildable_complete", level.df_socket.origin ); // 1.4 s "built" (zmb_turn_on = 14 s)
     df_tower_fx_start( side );

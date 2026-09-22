@@ -813,7 +813,7 @@ df_r1_card_place( pos )
     level.df_card = spawn( "script_model", pos );
     level.df_card setmodel( df_model( "card" ) );
     level.df_card.angles = ( 0, randomint( 360 ), 0 );
-    level.df_card_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "card_glint" ) );
+    level.df_card_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point_at( "card_glint", level.df_card.angles[1] ) ); // the point has a horizontal part: turned with the card the glint hangs on
     level.df_card_carrier = undefined;
 
     if ( !isdefined( level.df_card_float ) || level.df_card_float != 0 )
@@ -842,7 +842,7 @@ df_r1_card_table_place()
     level.df_card_table = spawn( "script_model", pos );
     level.df_card_table setmodel( df_model( "card" ) );
     level.df_card_table.angles = df_model_angles( "card", df_table_yaw() );
-    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "card_glint" ) );
+    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point_at( "card_glint", df_table_yaw() ) ); // horizontal part: turned with the card, which faces the table front
     df_debug_print( "DF: key card on the table, slot 1" );
 }
 
@@ -853,7 +853,7 @@ df_r1_card_table_glow()
         return;
 
     df_fx_stop( level.df_card_table_fx );
-    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_card_table.origin + df_fx_point( "card_glow" ) );
+    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_card_table.origin + df_fx_point_at( "card_glow", df_table_yaw() ) ); // horizontal part: turned with the card
 }
 
 df_r1_card_table_remove()
