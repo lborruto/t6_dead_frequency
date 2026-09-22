@@ -286,7 +286,7 @@ my @slot2 = table_slot_xyz(2);
 # same, "the relay pieces sit at 45 degrees on the table"); relay_coil / relay_mast ride at their registered
 # df_model_offset, turned the same way (df_model_offset_at / df_offset_rotate).
 # the turn is read from df_table_demo_prop ("yaw = yaw - N;") so the page follows the code (owner turned it to 135 on 2026-09-22)
-my ($relay_turn) = $gsc =~ /df_table_demo_prop(.*?yaw = yaw - (d+);/s;
+my ($relay_turn) = $gsc =~ /df_table_demo_prop\(.*?yaw = yaw - (\d+);/s;
 $relay_turn = 45 unless defined $relay_turn;
 my $relay_yaw = $table_front_yaw - $relay_turn;
 my ( $coil_ox, $coil_oy, $coil_oz ) = df_rotate_offset( $model_def{relay_coil}{ox}, $model_def{relay_coil}{oy}, $model_def{relay_coil}{oz}, $relay_yaw );
