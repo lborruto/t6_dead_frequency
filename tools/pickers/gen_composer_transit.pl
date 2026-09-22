@@ -71,16 +71,44 @@ die "df_models_init(): no df_model_def(...) lines found in $coords\n" unless %mo
 my ($table_spacing) = $gsc =~ /df_table_slot_spacing\(\)\s*\{\s*return\s+(-?[\d.]+)\s*;/;
 $table_spacing = defined($table_spacing) ? $table_spacing + 0 : 18;
 
-for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember)) {
+# df_model_top_z()'s "tops" lookup and df_model_rest_z()'s "rest" lookup (both keyed by MODEL NAME, not kind)
+# -- read here the same way df_model_def(...) is, so the "Table, Richtofen/Maxis loaded" presets' slot Z and
+# card/skull/orb lift stay correct if the table or item models are ever swapped in the registry.
+my %top_z_by_model;
+while ( $gsc =~ /tops\[\s*"([^"]+)"\s*\]\s*=\s*(-?[\d.]+)\s*;/g ) {
+    $top_z_by_model{$1} = $2 + 0;
+}
+my %rest_z_by_model;
+while ( $gsc =~ /rest\[\s*"([^"]+)"\s*\]\s*=\s*(-?[\d.]+)\s*;/g ) {
+    $rest_z_by_model{$1} = $2 + 0;
+}
+# DF_TABLE's own front yaw (df_apply_overrides' df_coord_override_ground_front( "DF_TABLE", ..., front_yaw, "table" )).
+my ($table_front_yaw) = $gsc =~ /df_coord_override_ground_front\(\s*"DF_TABLE"\s*,\s*\([^)]*\)\s*,\s*(-?[\d.]+)\s*,\s*"table"\s*\)/;
+$table_front_yaw = defined($table_front_yaw) ? $table_front_yaw + 0 : 0;
+# df_table_demo_spawn's own card lift ( df_table_demo_prop( "card", df_table_slot(1), ( 0, 0, <this> ) ) ); the
+# orb's lift is df_model_rest_z( "orb" ), already covered by %rest_z_by_model above.
+my ($card_lift) = $gsc =~ /df_table_demo_prop\(\s*"card"\s*,\s*df_table_slot\(\s*1\s*\)\s*,\s*\(\s*0\s*,\s*0\s*,\s*(-?[\d.]+)\s*\)\s*\)/;
+$card_lift = defined($card_lift) ? $card_lift + 0 : 8;
+
+for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb)) {
     die "df_model_def for kind \"$kind\" not found in $coords -- needed for a preset\n" unless $model_def{$kind};
 }
+
+my $table_top_z = $top_z_by_model{ $model_def{table}{name} };
+die "df_model_top_z: no tops[] entry for table model \"$model_def{table}{name}\" in $coords -- needed for the table presets\n"
+    unless defined $table_top_z;
+my $orb_rest   = $rest_z_by_model{ $model_def{orb}{name} }   // 0;
+my $skull_rest = $rest_z_by_model{ $model_def{skull}{name} } // 0;
 
 printf STDERR "df_coords.gsc: relay=%s(0,0,0) relay_coil=%s(0,0,%s) relay_mast=%s(0,0,%s) relay_top=%s(0,0,%s) table_slot_spacing=%s brazier=%s ember=%s(offset 0,0,0)\n",
     $model_def{relay}{name}, $model_def{relay_coil}{name}, $model_def{relay_coil}{oz}, $model_def{relay_mast}{name}, $model_def{relay_mast}{oz},
     $model_def{relay_top}{name}, $model_def{relay_top}{oz}, $table_spacing, $model_def{brazier}{name}, $model_def{ember}{name};
+printf STDERR "df_coords.gsc: table=%s top_z=%s front_yaw=%s card=%s(pitch %s, lift %s) skull=%s(rest %s) orb=%s(rest %s)\n",
+    $model_def{table}{name}, $table_top_z, $table_front_yaw, $model_def{card}{name}, $model_def{card}{pitch}, $card_lift,
+    $model_def{skull}{name}, $skull_rest, $model_def{orb}{name}, $orb_rest;
 
 # The preset's own models must be embedded no matter what the size budget below does to the general list.
-my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast table brazier ember);
+my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast table brazier ember card skull orb);
 
 # ---- 16 MB page budget: if the embedded glTF payload would push the page over it, drop the largest
 #      glTF files first (never a model any preset needs) and remember how many were dropped. -------------
@@ -113,6 +141,55 @@ my $scripts = join( '', map { qq~<script type="application/json" data-model="$_-
 # only knowable from the glTF mesh bounds, so those parts carry snapTop:1 and the page resolves their Z at
 # load time from the base model's live bounds (mirrors df_model_top_z / df_m2_rim_height in df_coords.gsc /
 # df_act2_maxis.gsc, which likewise derive it from the measured glTF bounds, not a stored constant).
+# Rotates an (x,y,z) stacking offset by a yaw in degrees -- the same 2D rotation df_offset_rotate() in
+# df_coords.gsc applies (via df_model_offset_at) to a piece's registered offset when its parent is turned.
+sub df_rotate_offset {
+    my ( $ox, $oy, $oz, $yaw_deg ) = @_;
+    my $rad = $yaw_deg * 3.14159265358979323846 / 180;
+    my $c   = cos($rad);
+    my $s   = sin($rad);
+    return ( $ox * $c - $oy * $s, $ox * $s + $oy * $c, $oz );
+}
+sub r2 { my $n = shift; return int( $n * 100 + ( $n >= 0 ? 0.5 : -0.5 ) ) / 100; }
+
+# df_table_slot( n ) in df_coords.gsc: c.origin + right * ( (n-1) * df_table_slot_spacing() ) + (0,0,df_model_top_z("table")),
+# where right = anglestoright( (0, df_table_yaw(), 0) ). At yaw 0 the engine's right vector is (0,-1,0) (X-forward,
+# Z-up, right-handed: forward x up = (1,0,0) x (0,0,1) = (0,-1,0)); df_rotate_offset() turns that with table_front_yaw
+# the same way it turns any other registered offset. "n=0 is on the left looking along the table's front"
+# (df_table_preview_slots) checks out: left = -right, so slot 0 = right * (-spacing) sits on the left.
+my ( $right_x, $right_y ) = df_rotate_offset( 0, -1, 0, $table_front_yaw );
+sub table_slot_xyz {
+    my ($n) = @_;
+    my $mult = ( $n - 1 ) * $table_spacing;
+    return ( r2( $right_x * $mult ), r2( $right_y * $mult ), $table_top_z );
+}
+my @slot0 = table_slot_xyz(0);
+my @slot1 = table_slot_xyz(1);
+my @slot2 = table_slot_xyz(2);
+
+# The relay sits 45 degrees off the table's front on slot 0 (df_a1_relay_spawn: "yaw = yaw - 45"; df_table_demo_prop:
+# same, "the relay pieces sit at 45 degrees on the table"); relay_coil / relay_mast ride at their registered
+# df_model_offset, turned the same way (df_model_offset_at / df_offset_rotate).
+my $relay_yaw = $table_front_yaw - 45;
+my ( $coil_ox, $coil_oy, $coil_oz ) = df_rotate_offset( $model_def{relay_coil}{ox}, $model_def{relay_coil}{oy}, $model_def{relay_coil}{oz}, $relay_yaw );
+my ( $mast_ox, $mast_oy, $mast_oz ) = df_rotate_offset( $model_def{relay_mast}{ox}, $model_def{relay_mast}{oy}, $model_def{relay_mast}{oz}, $relay_yaw );
+my @relay_pos      = ( r2( $slot0[0] ),               r2( $slot0[1] ),               r2( $slot0[2] ) );
+my @relay_coil_pos = ( r2( $slot0[0] + $coil_ox ),     r2( $slot0[1] + $coil_oy ),     r2( $slot0[2] + $coil_oz ) );
+my @relay_mast_pos = ( r2( $slot0[0] + $mast_ox ),     r2( $slot0[1] + $mast_oy ),     r2( $slot0[2] + $mast_oz ) );
+my $relay_coil_yaw = $relay_yaw + $model_def{relay_coil}{yawoff};
+my $relay_mast_yaw = $relay_yaw + $model_def{relay_mast}{yawoff};
+
+# card / skull sit on slot 1, not turned with the relay (df_table_demo_prop only turns the relay kinds); their
+# own yaw is just the table's front yaw plus the kind's own df_model_def yaw offset (0 for both).
+my $card_yaw  = $table_front_yaw + $model_def{card}{yawoff};
+my $skull_yaw = $table_front_yaw + $model_def{skull}{yawoff};
+my @card_pos  = ( r2( $slot1[0] ), r2( $slot1[1] ), r2( $slot1[2] + $card_lift ) );
+my @skull_pos = ( r2( $slot1[0] ), r2( $slot1[1] ), r2( $slot1[2] + $skull_rest ) );
+
+# orb sits on slot 2 (both sides), hovering df_model_rest_z( "orb" ) above the slot (df_table_demo_prop's own orb line).
+my $orb_yaw  = $table_front_yaw + $model_def{orb}{yawoff};
+my @orb_pos  = ( r2( $slot2[0] ), r2( $slot2[1] ), r2( $slot2[2] + $orb_rest ) );
+
 my %presets = (
     relay => {
         label => 'Relay (roof and table)',
@@ -139,6 +216,51 @@ my %presets = (
             { kind => 'slot_0', model => 'p6_zm_buildable_sq_meteor', x => -1 * $table_spacing, y => 0, z => 0, pitch => 0, roll => 0, yaw => 0, snapTop => 1 },
             { kind => 'slot_1', model => 'p6_zm_buildable_sq_meteor', x => 0,                    y => 0, z => 0, pitch => 0, roll => 0, yaw => 0, snapTop => 1 },
             { kind => 'slot_2', model => 'p6_zm_buildable_sq_meteor', x => 1 * $table_spacing,  y => 0, z => 0, pitch => 0, roll => 0, yaw => 0, snapTop => 1 },
+        ],
+    },
+    table_rich => {
+        label => 'Table, Richtofen loaded',
+        note  => 'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw
+          . ' (df_apply_overrides\' df_coord_override_ground_front for DF_TABLE). Slot Z = df_model_top_z("table") = '
+          . $table_top_z . ', spacing = df_table_slot_spacing() = ' . $table_spacing
+          . '; slot 0 is on the left looking along the table\'s front (right = (0,-1,0) at yaw 0), so slot 0 = ('
+          . $slot0[0] . ',' . $slot0[1] . ',' . $slot0[2] . '), slot 1 = (' . $slot1[0] . ',' . $slot1[1] . ',' . $slot1[2]
+          . '), slot 2 = (' . $slot2[0] . ',' . $slot2[1] . ',' . $slot2[2] . '). Slot 0: the plugged relay assembly, same '
+          . 'math as df_table_demo_prop / df_a1_relay_spawn -- relay turned yaw - 45 = ' . $relay_yaw
+          . '; relay_coil at its df_model_offset (' . $model_def{relay_coil}{ox} . ',' . $model_def{relay_coil}{oy} . ',' . $model_def{relay_coil}{oz}
+          . ') rotated by that -45 to (' . $coil_ox . ',' . $coil_oy . ',' . $coil_oz . '); relay_mast at its df_model_offset ('
+          . $model_def{relay_mast}{ox} . ',' . $model_def{relay_mast}{oy} . ',' . $model_def{relay_mast}{oz} . ') rotated the same way to ('
+          . $mast_ox . ',' . $mast_oy . ',' . $mast_oz . '). Slot 1: kind "card" (' . $model_def{card}{name}
+          . ') at slot 1 + (0,0,' . $card_lift . ') (df_table_demo_prop\'s own card lift), pitch ' . $model_def{card}{pitch}
+          . ' per its df_model_def. Slot 2: kind "orb" (' . $model_def{orb}{name} . ') at slot 2 + (0,0,df_model_rest_z("orb")='
+          . $orb_rest . '). The GSC export gives relay_coil / relay_mast offsets relative to the relay part (matching how '
+          . 'they are registered), plus a separate "table layout" block for the three slots\' own positions.',
+        parts => [
+            { kind => 'table',      model => $model_def{table}{name},      x => 0, y => 0, z => 0, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw },
+            { kind => 'relay',      model => $model_def{relay}{name},      x => $relay_pos[0],      y => $relay_pos[1],      z => $relay_pos[2],      pitch => $model_def{relay}{pitch},      roll => $model_def{relay}{roll},      yaw => $relay_yaw, slot => 0 },
+            { kind => 'relay_coil', model => $model_def{relay_coil}{name}, x => $relay_coil_pos[0], y => $relay_coil_pos[1], z => $relay_coil_pos[2], pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => $relay_coil_yaw },
+            { kind => 'relay_mast', model => $model_def{relay_mast}{name}, x => $relay_mast_pos[0], y => $relay_mast_pos[1], z => $relay_mast_pos[2], pitch => $model_def{relay_mast}{pitch}, roll => $model_def{relay_mast}{roll}, yaw => $relay_mast_yaw },
+            { kind => 'card',       model => $model_def{card}{name},       x => $card_pos[0],       y => $card_pos[1],       z => $card_pos[2],       pitch => $model_def{card}{pitch},       roll => $model_def{card}{roll},       yaw => $card_yaw, slot => 1 },
+            { kind => 'orb',        model => $model_def{orb}{name},        x => $orb_pos[0],        y => $orb_pos[1],        z => $orb_pos[2],        pitch => $model_def{orb}{pitch},        roll => $model_def{orb}{roll},        yaw => $orb_yaw, slot => 2 },
+        ],
+    },
+    table_maxis => {
+        label => 'Table, Maxis loaded',
+        note  => 'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw
+          . '. Same slot 0 relay assembly and slot 2 orb as "Table, Richtofen loaded" (see that preset\'s note for the '
+          . 'relay math); slot 1 here is kind "skull" (' . $model_def{skull}{name}
+          . ', the same model as "orb") instead of the card -- df_coords.gsc has no dedicated df_table_demo_prop line for '
+          . 'it, so its lift above the slot uses df_model_rest_z("skull") = ' . $skull_rest
+          . ' the same way the orb\'s own hover does, since it is the same base-pivot-free meteor-piece model. Pitch/roll/yaw '
+          . 'all 0 per its df_model_def. The GSC export gives relay_coil / relay_mast offsets relative to the relay part, '
+          . 'plus a separate "table layout" block for the three slots\' own positions.',
+        parts => [
+            { kind => 'table',      model => $model_def{table}{name},      x => 0, y => 0, z => 0, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw },
+            { kind => 'relay',      model => $model_def{relay}{name},      x => $relay_pos[0],      y => $relay_pos[1],      z => $relay_pos[2],      pitch => $model_def{relay}{pitch},      roll => $model_def{relay}{roll},      yaw => $relay_yaw, slot => 0 },
+            { kind => 'relay_coil', model => $model_def{relay_coil}{name}, x => $relay_coil_pos[0], y => $relay_coil_pos[1], z => $relay_coil_pos[2], pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => $relay_coil_yaw },
+            { kind => 'relay_mast', model => $model_def{relay_mast}{name}, x => $relay_mast_pos[0], y => $relay_mast_pos[1], z => $relay_mast_pos[2], pitch => $model_def{relay_mast}{pitch}, roll => $model_def{relay_mast}{roll}, yaw => $relay_mast_yaw },
+            { kind => 'skull',      model => $model_def{skull}{name},      x => $skull_pos[0],      y => $skull_pos[1],      z => $skull_pos[2],      pitch => $model_def{skull}{pitch},      roll => $model_def{skull}{roll},      yaw => $skull_yaw, slot => 1 },
+            { kind => 'orb',        model => $model_def{orb}{name},        x => $orb_pos[0],        y => $orb_pos[1],        z => $orb_pos[2],        pitch => $model_def{orb}{pitch},        roll => $model_def{orb}{roll},        yaw => $orb_yaw, slot => 2 },
         ],
     },
     tombstone => {
@@ -244,6 +366,8 @@ __LIST__
 <option value="">Load a preset...</option>
 <option value="relay">Relay (roof and table)</option>
 <option value="table">Table with three slots</option>
+<option value="table_rich">Table, Richtofen loaded</option>
+<option value="table_maxis">Table, Maxis loaded</option>
 <option value="tombstone">Tombstone + ember</option>
 <option value="empty">Empty</option>
 </select></div>
@@ -277,7 +401,7 @@ __SCRIPTS__
 <script>
 (function(){
   var PRESETS = __PRESETS_JSON__;
-  var VERSION = 'v1';
+  var VERSION = 'v2';
   var STORE_KEY = 'df_composer_transit';
 
   function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(e){ return null; } }
@@ -607,10 +731,27 @@ __SCRIPTS__
   function gscText(){
     if (!parts.length) return '';
     var base = parts[0];
-    return parts.map(function(p){
-      var dx = round05(p.x - base.x), dy = round05(p.y - base.y), dz = round05(p.z - base.z);
+    // The relay's own sub-parts (relay_coil, relay_mast, relay_top) are registered relative to the RELAY, not
+    // whatever part[0] happens to be (e.g. the table in the "Table, Richtofen/Maxis loaded" presets): find the
+    // relay part, if any, and use it as their reference so these lines match df_model_offset's own convention.
+    var relay = null;
+    parts.forEach(function(p){ if (p.kind === 'relay') relay = p; });
+    var lines = parts.map(function(p){
+      var ref = (relay && (p.kind === 'relay_coil' || p.kind === 'relay_mast' || p.kind === 'relay_top')) ? relay : base;
+      var dx = round05(p.x - ref.x), dy = round05(p.y - ref.y), dz = round05(p.z - ref.z);
       return 'df_model_def( "' + p.kind + '", "' + p.model + '", ' + p.pitch + ', ' + p.roll + ', ' + p.yaw + ', ( ' + dx + ', ' + dy + ', ' + dz + ' ) );';
-    }).join('\n');
+    });
+    // Table-slot occupants (a part carrying .slot, 0/1/2) are code (df_table_slot in df_coords.gsc), not registry
+    // entries, so they get their own plain-text block of absolute positions instead of a df_model_def line.
+    var slotted = parts.filter(function(p){ return typeof p.slot === 'number'; }).slice().sort(function(a, b){ return a.slot - b.slot; });
+    if (slotted.length) {
+      lines.push('');
+      lines.push('// table layout (df_table_slot( n ) in df_coords.gsc -- code, not registry entries)');
+      slotted.forEach(function(p){
+        lines.push('slot ' + p.slot + ' = ' + p.kind + ' at ( ' + round05(p.x) + ', ' + round05(p.y) + ', ' + round05(p.z) + ' )');
+      });
+    }
+    return lines.join('\n');
   }
   function sceneText(){
     return parts.map(function(p){ return p.kind + ' | ' + p.model + ' | ' + p.x + ' ' + p.y + ' ' + p.z + ' | ' + p.pitch + ' ' + p.yaw + ' ' + p.roll; }).join('\n');
