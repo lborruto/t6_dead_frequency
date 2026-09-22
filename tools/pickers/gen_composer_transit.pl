@@ -116,7 +116,7 @@ $table_front_yaw = defined($table_front_yaw) ? $table_front_yaw + 0 : 0;
 my ($card_lift) = $gsc =~ /df_table_demo_prop\(\s*"card"\s*,\s*df_table_slot\(\s*1\s*\)\s*,\s*\(\s*0\s*,\s*0\s*,\s*(-?[\d.]+)\s*\)\s*\)/;
 $card_lift = defined($card_lift) ? $card_lift + 0 : 8;
 
-for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a)) {
+for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a portal spool)) {
     die "df_model_def for kind \"$kind\" not found in $coords -- needed for a preset\n" unless $model_def{$kind};
 }
 
@@ -143,7 +143,7 @@ printf STDERR "df_coords.gsc: table=%s top_z=%s front_yaw=%s card=%s(pitch %s, l
 printf STDERR "df_coords.gsc: %d df_fx_point_def(...) points parsed from df_fx_points_init()\n", scalar @fx_order;
 
 # The preset's own models must be embedded no matter what the size budget below does to the general list.
-my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a);
+my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool);
 
 # ---- 16 MB page budget: if the embedded glTF payload would push the page over it, drop the largest
 #      glTF files first (never a model any preset needs) and remember how many were dropped. -------------
@@ -361,8 +361,8 @@ add_preset(
 
 add_preset(
     'spool_pickup', 'Spool (pickup)',
-    'Kind "spool" has no model of its own for this composer (marker: ' . $anchor_model . '). pickup_glint sits at the anchor origin plus its registry offset.',
-    anchor_part('spool'),
+    'Kind "spool" (' . $model_def{spool}{name} . ') at (0,0,0), a real df_model_def entry -- moving it exports a normal df_model_def line, not a marker. pickup_glint sits at the prop\'s origin plus its registry offset.',
+    model_part( kind => 'spool', model => $model_def{spool}{name}, pitch => $model_def{spool}{pitch}, roll => $model_def{spool}{roll} ),
     fx_part( name => 'pickup_glint', parent => 'spool' ),
 );
 
@@ -522,10 +522,9 @@ add_preset(
 
 add_preset(
     'portal', 'Portal',
-    'Kind "portal" has no model for this composer (marker: ' . $anchor_model . '; df_coords.gsc itself also registers a real model, ' . $model_def{portal}{name}
-      . ', for spawning -- this preset only visualises the registry\'s effect points). portal_orbit has a horizontal registry offset (' . $fx_def{portal_orbit}{x} . ',0,' . $fx_def{portal_orbit}{z}
-      . '); the rest are vertical only.',
-    anchor_part('portal'),
+    'Kind "portal" (' . $model_def{portal}{name} . ') at (0,0,0), a real df_model_def entry -- moving it exports a normal df_model_def line, not a marker. '
+      . 'portal_orbit has a horizontal registry offset (' . $fx_def{portal_orbit}{x} . ',0,' . $fx_def{portal_orbit}{z} . '); the rest are vertical only.',
+    model_part( kind => 'portal', model => $model_def{portal}{name}, pitch => $model_def{portal}{pitch}, roll => $model_def{portal}{roll} ),
     fx_part( name => 'portal_light',       parent => 'portal' ),
     fx_part( name => 'portal_orbit',       parent => 'portal' ),
     fx_part( name => 'portal_burst_ash',   parent => 'portal' ),
