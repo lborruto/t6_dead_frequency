@@ -10,9 +10,10 @@ use JSON::PP ();
 # line of the Magmagat Prop Picker (t6_motd_magmagat/tools/pickers/gen_mdl_motd.pl, functions mgStrip/mgDiag).
 #
 # Reads the OpenAssetTools glTF viewer dump (model_dump/viewer/<zone>/*.gltf + SIZES.txt) for the same four
-# always-loaded zones the Prop Picker uses, and df_coords.gsc (df_models_init / df_model_def / df_table_slot* /
-# df_fx_points_init / df_fx_point_def) for the preset assemblies' exact offsets. Nothing here writes to
-# df_coords.gsc or any other repo file; it only reads them to build the static HTML page.
+# always-loaded zones the Prop Picker uses, and df_coords.gsc (df_models_init / df_model_def /
+# df_table_slots_init / df_table_slot_def / df_fx_points_init / df_fx_point_def) for the preset assemblies'
+# exact offsets. Nothing here writes to df_coords.gsc or any other repo file; it only reads them to build the
+# static HTML page.
 #
 # Every effect / sound attach point df_fx_points_init() registers is drawn as a named cross (a dot for sounds,
 # name containing "snd" or "hum") next to its parent prop: a third kind of "part" (ptype "fx") alongside the
@@ -64,7 +65,7 @@ for my $zone ( 'zm_transit', 'so_zclassic_zm_transit', 'common_zm', 'patch_zm' )
 @models = sort { $a->{name} cmp $b->{name} } @models;
 
 # ---- parse df_coords.gsc: df_model_def( kind, name, pitch, roll, yawoff [, ( x, y, z ) ] ); and
-#      df_table_slot_spacing() { return N; } -- these feed the preset assemblies below. -------------------
+#      the slot registry df_table_slot_def( n, ( x, y, z ) ); -- these feed the preset assemblies below. ----
 open my $cf, '<', $coords or die "$coords: $!";
 local $/;
 my $gsc = <$cf>;
@@ -94,8 +95,17 @@ die "df_fx_points_init(): no df_fx_point_def(...) lines found in $coords\n" unle
 die sprintf( "df_fx_points_init(): expected 44 df_fx_point_def(...) lines, found %d in $coords\n", scalar @fx_order )
     unless @fx_order == 44;
 
-my ($table_spacing) = $gsc =~ /df_table_slot_spacing\(\)\s*\{\s*return\s+(-?[\d.]+)\s*;/;
-$table_spacing = defined($table_spacing) ? $table_spacing + 0 : 18;
+# ---- parse df_table_slots_init(): df_table_slot_def( n, ( x, y, z ) ); the three deposit slots of the table
+#      in the TABLE's own frame, z measured from the table TOP (df_model_top_z("table")). This is the owner's
+#      own layout since 2026-09-22 (it replaced the old "three slots 18 apart" rule), so the presets below draw
+#      exactly what the game does and the page exports these very lines back. -------------------------------
+my %slot_def;   # n -> [ x, y, z ]
+while ( $gsc =~ /df_table_slot_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)\s*;/g ) {
+    $slot_def{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0 ];
+}
+for my $n ( 0, 1, 2 ) {
+    die "df_table_slots_init(): no df_table_slot_def( $n, ( x, y, z ) ); line found in $coords\n" unless $slot_def{$n};
+}
 
 # df_model_top_z()'s "tops" lookup and df_model_rest_z()'s "rest" lookup (both keyed by MODEL NAME, not kind)
 # -- read here the same way df_model_def(...) is, so the table presets' slot Z, the card/skull/orb lift, and
@@ -111,10 +121,8 @@ while ( $gsc =~ /rest\[\s*"([^"]+)"\s*\]\s*=\s*(-?[\d.]+)\s*;/g ) {
 # DF_TABLE's own front yaw (df_apply_overrides' df_coord_override_ground_front( "DF_TABLE", ..., front_yaw, "table" )).
 my ($table_front_yaw) = $gsc =~ /df_coord_override_ground_front\(\s*"DF_TABLE"\s*,\s*\([^)]*\)\s*,\s*(-?[\d.]+)\s*,\s*"table"\s*\)/;
 $table_front_yaw = defined($table_front_yaw) ? $table_front_yaw + 0 : 0;
-# df_table_demo_spawn's own card lift ( df_table_demo_prop( "card", df_table_slot(1), ( 0, 0, <this> ) ) ); the
-# orb's lift is df_model_rest_z( "orb" ), already covered by %rest_z_by_model above.
-my ($card_lift) = $gsc =~ /df_table_demo_prop\(\s*"card"\s*,\s*df_table_slot\(\s*1\s*\)\s*,\s*\(\s*0\s*,\s*0\s*,\s*(-?[\d.]+)\s*\)\s*\)/;
-$card_lift = defined($card_lift) ? $card_lift + 0 : 8;
+# The card / skull / orb lifts are gone from the callers: each item's own lift is the z of its slot in the
+# registry above (df_table_slot( n ) returns the item's FINAL rest position).
 
 for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a portal spool)) {
     die "df_model_def for kind \"$kind\" not found in $coords -- needed for a preset\n" unless $model_def{$kind};
@@ -132,14 +140,16 @@ die "df_model_top_z: no tops[] entry for brazier model \"$model_def{brazier}{nam
 my $orb_rest   = $rest_z_by_model{ $model_def{orb}{name} }   // 0;
 my $skull_rest = $rest_z_by_model{ $model_def{skull}{name} } // 0;
 
-printf STDERR "df_coords.gsc: relay=%s relay_coil=%s(%s,%s,%s) relay_mast=%s(%s,%s,%s) relay_top=%s(%s,%s,%s) table_slot_spacing=%s brazier=%s(top %s) ember=%s\n",
+printf STDERR "df_coords.gsc: relay=%s relay_coil=%s(%s,%s,%s) relay_mast=%s(%s,%s,%s) relay_top=%s(%s,%s,%s) brazier=%s(top %s) ember=%s\n",
     $model_def{relay}{name}, $model_def{relay_coil}{name}, $model_def{relay_coil}{ox}, $model_def{relay_coil}{oy}, $model_def{relay_coil}{oz},
     $model_def{relay_mast}{name}, $model_def{relay_mast}{ox}, $model_def{relay_mast}{oy}, $model_def{relay_mast}{oz},
     $model_def{relay_top}{name}, $model_def{relay_top}{ox}, $model_def{relay_top}{oy}, $model_def{relay_top}{oz},
-    $table_spacing, $model_def{brazier}{name}, $brazier_top_z, $model_def{ember}{name};
-printf STDERR "df_coords.gsc: table=%s top_z=%s front_yaw=%s card=%s(pitch %s, lift %s) skull=%s(rest %s) orb=%s(rest %s) tv=%s(top %s)\n",
-    $model_def{table}{name}, $table_top_z, $table_front_yaw, $model_def{card}{name}, $model_def{card}{pitch}, $card_lift,
+    $model_def{brazier}{name}, $brazier_top_z, $model_def{ember}{name};
+printf STDERR "df_coords.gsc: table=%s top_z=%s front_yaw=%s card=%s(pitch %s) skull=%s(rest %s) orb=%s(rest %s) tv=%s(top %s)\n",
+    $model_def{table}{name}, $table_top_z, $table_front_yaw, $model_def{card}{name}, $model_def{card}{pitch},
     $model_def{skull}{name}, $skull_rest, $model_def{orb}{name}, $orb_rest, $model_def{tv}{name}, $tv_top_z;
+printf STDERR "df_coords.gsc: table slots (df_table_slot_def, z from the top %s): %s\n", $table_top_z,
+    join( ' | ', map { sprintf '%d = ( %s, %s, %s )', $_, @{ $slot_def{$_} } } ( 0, 1, 2 ) );
 printf STDERR "df_coords.gsc: %d df_fx_point_def(...) points parsed from df_fx_points_init()\n", scalar @fx_order;
 
 # The preset's own models must be embedded no matter what the size budget below does to the general list.
@@ -259,24 +269,23 @@ sub model_part {
 my $anchor_model = $model_def{orb}{name};
 sub anchor_part { my ($kind) = @_; return model_part( kind => $kind, model => $anchor_model, anchor => 1 ); }
 
-# df_table_slot( n ) in df_coords.gsc: c.origin + right * ( (n-1) * df_table_slot_spacing() ) + (0,0,df_model_top_z("table")),
-# where right = anglestoright( (0, df_table_yaw(), 0) ). At yaw 0 the engine's right vector is (0,-1,0) (X-forward,
-# Z-up, right-handed: forward x up = (1,0,0) x (0,0,1) = (0,-1,0)); df_rotate_offset() turns that with table_front_yaw
-# the same way it turns any other registered offset. "n=0 is on the left looking along the table's front"
-# (df_table_preview_slots) checks out: left = -right, so slot 0 = right * (-spacing) sits on the left.
-my ( $right_x, $right_y ) = df_rotate_offset( 0, -1, 0, $table_front_yaw );
+# df_table_slot( n ) in df_coords.gsc: c.origin + df_offset_rotate( (x,y,0), df_table_yaw() ) + (0,0,
+# df_model_top_z("table") + z), where (x,y,z) is the slot's own df_table_slot_def entry (z from the TOP).
+# The scene puts the table at (0,0,0) with its front yaw, so a slot's scene position is its registered offset
+# turned by table_front_yaw, at the table top plus its own z. df_rotate_offset() turns it the same way it
+# turns any other registered offset.
 sub table_slot_xyz {
     my ($n) = @_;
-    my $mult = ( $n - 1 ) * $table_spacing;
-    return ( r2( $right_x * $mult ), r2( $right_y * $mult ), $table_top_z );
+    my $d = $slot_def{$n};
+    my ( $sx, $sy ) = df_rotate_offset( $d->[0], $d->[1], 0, $table_front_yaw );
+    return ( r2($sx), r2($sy), r2( $table_top_z + $d->[2] ) );
 }
-# The same slot, but as a LOCAL (unrotated, table-frame) offset: right = (0,-1,0) at yaw 0, so slot n sits at
-# local (0, -mult, table_top_z). table_slot_glint attaches to the table part itself and is rendered/exported
-# through the normal parent-yaw rotation, so its own local offset must NOT already carry table_front_yaw.
+# The same slot as a LOCAL (unrotated, table-frame) offset. table_slot_glint attaches to the table part itself
+# and is rendered/exported through the normal parent-yaw rotation, so its own local offset must NOT already
+# carry table_front_yaw.
 sub table_slot_local_xy {
     my ($n) = @_;
-    my $mult = ( $n - 1 ) * $table_spacing;
-    return ( 0, -1 * $mult );
+    return ( $slot_def{$n}[0], $slot_def{$n}[1] );
 }
 my @slot0 = table_slot_xyz(0);
 my @slot1 = table_slot_xyz(1);
@@ -297,16 +306,17 @@ my @relay_mast_pos = ( r2( $slot0[0] + $mast_ox ),     r2( $slot0[1] + $mast_oy 
 my $relay_coil_yaw = $relay_yaw + $model_def{relay_coil}{yawoff};
 my $relay_mast_yaw = $relay_yaw + $model_def{relay_mast}{yawoff};
 
-# card / skull sit on slot 1, not turned with the relay (df_table_demo_prop only turns the relay kinds); their
-# own yaw is just the table's front yaw plus the kind's own df_model_def yaw offset (0 for both).
+# card / skull sit ON slot 1, not turned with the relay (df_table_demo_prop only turns the relay kinds); their
+# own yaw is the table's front yaw plus the kind's own df_model_def yaw offset. No lift of their own any more:
+# the slot IS the item's rest position (the owner drags the item, the slot's z follows it).
 my $card_yaw  = $table_front_yaw + $model_def{card}{yawoff};
 my $skull_yaw = $table_front_yaw + $model_def{skull}{yawoff};
-my @card_pos  = ( r2( $slot1[0] ), r2( $slot1[1] ), r2( $slot1[2] + $card_lift ) );
-my @skull_pos = ( r2( $slot1[0] ), r2( $slot1[1] ), r2( $slot1[2] + $skull_rest ) );
+my @card_pos  = @slot1;
+my @skull_pos = @slot1;
 
-# orb sits on slot 2 (both sides), hovering df_model_rest_z( "orb" ) above the slot (df_table_demo_prop's own orb line).
+# orb sits ON slot 2 (both sides), the slot's own z carrying the hover the owner gave it.
 my $orb_yaw  = $table_front_yaw + $model_def{orb}{yawoff};
-my @orb_pos  = ( r2( $slot2[0] ), r2( $slot2[1] ), r2( $slot2[2] + $orb_rest ) );
+my @orb_pos  = @slot2;
 
 # fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), a
 # table_slot_glint cross per slot (parent "table", base = that slot's own LOCAL offset), table_demo_step (parent
@@ -319,7 +329,7 @@ sub table_common_fx {
     );
     for my $n ( 0, 1, 2 ) {
         my ( $lx, $ly ) = table_slot_local_xy($n);
-        push @fx, fx_part( name => 'table_slot_glint', parent => 'table', bx => $lx, by => $ly, bz => $table_top_z );
+        push @fx, fx_part( name => 'table_slot_glint', parent => 'table', bx => $lx, by => $ly, bz => $table_top_z + $slot_def{$n}[2] );
     }
     push @fx, fx_part( name => 'table_demo_step', parent => 'table' );
     push @fx, fx_part( name => 'orb_aura', parent => 'orb' ), fx_part( name => 'orb_glint', parent => 'orb' );
@@ -431,18 +441,21 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
     my $is_rich = $key eq 'table_rich';
     my $note =
         'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw
-      . '. Slot Z = df_model_top_z("table") = ' . $table_top_z . ', spacing = df_table_slot_spacing() = ' . $table_spacing
-      . '. Slot 0: the plugged relay assembly (relay turned yaw - ' . $relay_turn . ' = ' . $relay_yaw . '); relay_coil / relay_mast at their '
+      . '. The three slots are the registry df_table_slots_init() in df_coords.gsc, one df_table_slot_def line each, '
+      . 'in the table\'s frame with z from the top (df_model_top_z("table") = ' . $table_top_z . '): '
+      . join( ', ', map { sprintf 'slot %d = ( %s, %s, %s )', $_, @{ $slot_def{$_} } } ( 0, 1, 2 ) )
+      . '. Each item sits exactly ON its slot (the lift is the slot\'s own z; no caller adds anything). '
+      . 'Slot 0: the plugged relay assembly (relay turned yaw - ' . $relay_turn . ' = ' . $relay_yaw . '); relay_coil / relay_mast at their '
       . 'df_model_offset, rotated the same way. Slot 1: '
       . ( $is_rich
-        ? 'kind "card" (' . $model_def{card}{name} . ') at slot 1 + (0,0,' . $card_lift . ') (df_table_demo_prop\'s own card lift).'
-        : 'kind "skull" (' . $model_def{skull}{name} . ') at slot 1 + df_model_rest_z("skull") = ' . $skull_rest . '.' )
-      . ' Slot 2: kind "orb" (' . $model_def{orb}{name} . ') at slot 2 + df_model_rest_z("orb") = ' . $orb_rest
+        ? 'kind "card" (' . $model_def{card}{name} . ').'
+        : 'kind "skull" (' . $model_def{skull}{name} . ').' )
+      . ' Slot 2: kind "orb" (' . $model_def{orb}{name} . ')'
       . '. fx: socket_spark/glow/marker (parent "table"), table_slot_glint per slot and table_demo_step (parent "table", base = TOP of the table), '
       . ( $is_rich ? 'card_glint/card_glow (parent "card")' : 'skull_table_glow/skull_glow (parent "skull")' )
       . ', orb_aura/orb_glint (parent "orb"). The GSC export gives every child part\'s offset in ITS PARENT\'s own frame (undoing that '
       . 'part\'s own yaw, e.g. relay_coil / relay_mast come back out at their exact df_model_offset despite the relay\'s -45 turn), '
-      . 'plus a separate "table layout" block for the three slots\' own positions.';
+      . 'plus a ready-to-paste "table layout" block of df_table_slot_def lines for the three slots.';
 
     my @occupant = $is_rich
       ? ( model_part( kind => 'card', model => $model_def{card}{name}, x => $card_pos[0], y => $card_pos[1], z => $card_pos[2], pitch => $model_def{card}{pitch}, roll => $model_def{card}{roll}, yaw => $card_yaw, slot => 1 ) )
@@ -702,7 +715,8 @@ __SCRIPTS__
 (function(){
   var PRESETS = __PRESETS_JSON__;
   var FX_REGISTRY = __FX_REGISTRY_JSON__;
-  var VERSION = 'v4';
+  var VERSION = 'v5';
+  var TABLE_TOP_Z = __TABLE_TOP_Z__;   // df_model_top_z( "table" ): the slot registry's z is measured from here
   var STORE_KEY = 'df_composer_transit';
 
   function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(e){ return null; } }
@@ -1155,14 +1169,22 @@ __SCRIPTS__
       return 'df_model_def( "' + p.kind + '", "' + p.model + '", ' + p.pitch + ', ' + p.roll + ', ' + yaw + ', ( ' + dx + ', ' + dy + ', ' + dz + ' ) );';
     });
 
-    // Table-slot occupants (a part carrying .slot, 0/1/2) are code (df_table_slot in df_coords.gsc), not
-    // registry entries, so they get their own plain-text block of absolute positions instead of a df_model_def line.
+    // Table-slot occupants (a part carrying .slot, 0/1/2) are the slot REGISTRY (df_table_slots_init in
+    // df_coords.gsc), so they export as ready-to-paste df_table_slot_def lines instead of a df_model_def line:
+    // the offset in the TABLE's own frame (the table's yaw undone, like any other child part) with z measured
+    // from the table TOP, which is exactly what df_table_slot( n ) adds back.
     var slotted = parts.filter(function(p){ return p.ptype !== 'fx' && typeof p.slot === 'number'; }).slice().sort(function(a, b){ return a.slot - b.slot; });
     if (slotted.length) {
+      var tablePart = findParentPart('table');
       lines.push('');
-      lines.push('// table layout (df_table_slot( n ) in df_coords.gsc -- code, not registry entries)');
+      lines.push('// table layout (df_table_slot_def in df_coords.gsc, df_table_slots_init(); z from the table top ' + TABLE_TOP_Z + ')');
       slotted.forEach(function(p){
-        lines.push('slot ' + p.slot + ' = ' + p.kind + ' at ( ' + round05(p.x) + ', ' + round05(p.y) + ', ' + round05(p.z) + ' )');
+        var lx = p.x, ly = p.y, lz = p.z - TABLE_TOP_Z;
+        if (tablePart) {
+          var loc = rotateXY(p.x - tablePart.x, p.y - tablePart.y, -tablePart.yaw);
+          lx = loc[0]; ly = loc[1]; lz = p.z - tablePart.z - TABLE_TOP_Z;
+        }
+        lines.push('df_table_slot_def( ' + p.slot + ', ( ' + round05(lx) + ', ' + round05(ly) + ', ' + round05(lz) + ' ) ); // ' + p.kind);
       });
     }
 
@@ -1266,6 +1288,7 @@ $template =~ s/\Q__LIST__\E/$list/;
 $template =~ s/\Q__SCRIPTS__\E/$scripts/;
 $template =~ s/\Q__PRESETS_JSON__\E/$presets_json/;
 $template =~ s/\Q__FX_REGISTRY_JSON__\E/$fx_registry_json/;
+$template =~ s/\Q__TABLE_TOP_Z__\E/$table_top_z/;
 $template =~ s/\Q__PRESET_OPTIONS__\E/$preset_options/;
 $template =~ s/\Q__FOOTER__\E/$footer_note/;
 

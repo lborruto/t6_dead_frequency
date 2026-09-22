@@ -827,12 +827,12 @@ df_r1_card_place( pos )
 // once he is captured the glint becomes a steady faint glow (fx_zmb_tranzit_light_glow_xsm,
 // zm_transit_fx.gsc:55). Only df_r1_skip_cleanup (`!df goto` past R1) removes it.
 
-// Slot 1 plus 8 units: the card pose is pitch 90 (df_coords: upright, face along the front), and its
-// origin sits mid-card (vanilla lays it flat with the origin ON the card, _zm_utility.gsc:4609
-// place_navcard), so half its length would be inside the table top without the lift. Tune here.
+// Slot 1, and nothing else: the slot registry (df_coords df_table_slots_init) already carries the lift the
+// owner gave the card in the Prop Composer (its origin sits mid-card, vanilla lays it flat with the origin
+// ON the card, _zm_utility.gsc:4609 place_navcard). Tune it there, not here.
 df_r1_card_table_pos()
 {
-    return df_table_slot( 1 ) + ( 0, 0, 2 ); // owner 2026-09-11: was 8, the card floated over the table
+    return df_table_slot( 1 );
 }
 
 df_r1_card_table_place()

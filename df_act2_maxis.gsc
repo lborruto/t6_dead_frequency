@@ -1393,7 +1393,7 @@ df_m1_skull_remove_floor()
     level.df_m1_skull_fx = undefined;
 }
 
-// Skull on table slot 1 (10 up: half the zombie_skull height, catalogue 16x23x21), slow spin like the hole,
+// Skull on table slot 1 (the slot registry, df_coords df_table_slots_init, already carries its lift), slow spin like the hole,
 // orange lamp light (zm_transit_fx.gsc:114) 8 above it. quiet = 1 (goto): no trail. The line (M1_DONE) is
 // df_m1_finish's; ITEM_SKULL_MAXIS moved to the drop. Any floor or carried skull is gone first (debug / goto
 // paths). The "df_m1_skull_placed" notify is LAST on purpose: it ends the poll (which may be the calling
@@ -1405,7 +1405,7 @@ df_m1_skull_place_table( quiet )
 
     df_m1_skull_remove_floor();
     df_m1_skull_clear_hands();
-    pos = df_table_slot( 1 ) + ( 0, 0, 10 );
+    pos = df_table_slot( 1 );
     level.df_m1_skull_table = spawn( "script_model", pos );
     level.df_m1_skull_table setmodel( df_m1_skull_model() );
     level.df_m1_skull_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos + df_fx_point( "skull_table_glow" ) );
@@ -2393,11 +2393,12 @@ df_m2_export_nodes()
 }
 
 // ---- the ember on the table (owner 2026-09-11 rework) --------------------------------------------
-// The flame waits on table slot 2 (empty until Step 6) with the "take me" glint. Take: df_m2_ember_take.
+// The flame waits ON table slot 2 (empty until Step 6) with the "take me" glint: the slot registry
+// (df_coords df_table_slots_init) gives the height, nothing is added here. Take: df_m2_ember_take.
 df_m2_ember_spawn_table()
 {
     df_m2_ember_table_remove();
-    level.df_m2_ember_pos = df_table_slot( 2 ) + df_fx_point( "table_slot_glint" );
+    level.df_m2_ember_pos = df_table_slot( 2 );
     level.df_m2_ember_on_table = 1;
     level.df_m2_ember_table_fx = [];
     f = df_fx_loop( "fx_zmb_tranzit_fire_med", level.df_m2_ember_pos );

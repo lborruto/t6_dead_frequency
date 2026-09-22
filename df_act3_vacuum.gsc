@@ -184,12 +184,12 @@ df_s6_socket_front_pos()
     return df_table_front() + df_s6_orb_rest_offset();
 }
 
-// The orb's own place ON the table: slot 2 (the right one seen from the front), next to the key card
-// (slot 1) and the plugged relay (slot 0). df_table_slot returns a point on the table TOP, so the same
-// rest offset that puts the ball on the floor puts it on the table.
+// The orb's own place ON the table: slot 2, next to the key card (slot 1) and the plugged relay (slot 0).
+// df_table_slot returns the final rest position registered for that slot (df_coords df_table_slots_init), so
+// nothing is added here; the floor spots below still take df_s6_orb_rest_offset().
 df_s6_table_pos()
 {
-    return df_table_slot( 2 ) + df_s6_orb_rest_offset();
+    return df_table_slot( 2 );
 }
 
 // Where a dropped orb flies home from `from`: the table front during a Step 7 restart cycle, else the NEARER

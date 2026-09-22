@@ -383,7 +383,7 @@ df_fin_orb_rise( top, real )
 
     if ( !isdefined( ent ) )
     {
-        ent = spawn( "script_model", df_table_slot( 2 ) + ( 0, 0, 16 ) );
+        ent = spawn( "script_model", df_table_slot( 2 ) ); // the slot already is the orb's rest position
         ent setmodel( df_model( "orb" ) );
         ent.angles = df_model_angles( "orb", df_table_yaw() );
         level.df_fin_orb_temp = 1;

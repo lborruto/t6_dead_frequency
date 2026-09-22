@@ -561,11 +561,12 @@ df_s7_orb_spawn()
     df_debug_print( "DF: s7 orb taken from the table, slot 2 (aura " + df_s7_aura_fx() + ")" );
 }
 
-// The orb's place on the table: slot 2 of DF_TABLE (df_coords), plus our rest offset - the same point
-// Step 6 rests its delivered ball on, so the wave starts exactly where the player left it.
+// The orb's place on the table: slot 2 of DF_TABLE (df_coords) and nothing else - the slot registry already
+// carries the orb's hover, and it is the same point Step 6 rests its delivered ball on, so the wave starts
+// exactly where the player left it.
 df_s7_orb_slot()
 {
-    return df_table_slot( 2 ) + df_s7_orb_rest_offset();
+    return df_table_slot( 2 );
 }
 
 // Ball, aura, hum and the burst riding it all go.

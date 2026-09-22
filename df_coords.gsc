@@ -26,8 +26,9 @@
 //
 // The table (owner 2026-09-08): everything the players build or deposit under the tower goes onto ONE
 // table, anchor DF_TABLE (kind "table"), instead of the old wall-mounted breaker panel. Its top carries
-// three slots left to right (df_table_slot 0/1/2 = relay, key card, orb) and df_table_front() is the floor
-// spot in front of it. DF_SOCKET stays the name every step uses for "the place at the tower" and is simply
+// three slots (df_table_slot 0/1/2 = relay, key card, orb), themselves a registry the owner lays out in
+// the Prop Composer (df_table_slots_init / df_table_slot_def, `!df dump` [SLOT] lines), and
+// df_table_front() is the floor spot in front of it. DF_SOCKET stays the name every step uses for "the place at the tower" and is simply
 // moved onto DF_TABLE (df_table_sync_socket), so no step file needed a new anchor for proximity or fx.
 #include common_scripts\utility;
 #include maps\mp\_utility;
@@ -49,6 +50,7 @@ df_coords_init()
         df_models_init();
 
     df_fx_points_init();
+    df_table_slots_init();
 
     // ---- Depot TVs (owner decision 2026-09-07): one inside on a wall of the phone room, three outside
     //      around the depot on dog spawn points (solid ground), facing the building. Audio stays on the phones.
@@ -341,19 +343,45 @@ df_coord_override_ground_front( key, pos, front_yaw, kind )
 // ------------------------------------------------------------------ table ----
 // The one place under the tower where things are deposited (owner 2026-09-08). DF_SOCKET is moved onto it
 // so every existing step keeps working: proximity checks, prompts, fx and the Step 7 orb all read
-// df_coord( "DF_SOCKET" ).origin. The three slots are on the table TOP (df_model_top_z), left to right as
-// seen by a player standing at the table looking along its front yaw (slot 0 = left):
+// df_coord( "DF_SOCKET" ).origin. The three slots are a REGISTRY (df_table_slots_init below), one
+// df_table_slot_def line each, in the table's own frame with z measured from the table TOP:
 //     slot 0  the relay plugged in at Step 4 (df_act1)
-//     slot 1  the key card, left on the table after R1 (df_act2_rich)
+//     slot 1  the key card, left on the table after R1 (df_act2_rich); the M1 skull on the Maxis side
 //     slot 2  the charged orb of Step 6, lifted by Step 7 and put back there (df_act3_vacuum / df_act3_hold)
-// A slot returns the point ON the top, so a caller adds the same rest offset it would add on the floor.
+// df_table_slot( n ) returns the FINAL rest position of the item on that slot: its own lift is part of the
+// registered offset, so a caller spawns its item AT the slot and adds nothing of its own.
 
-// Distance between two slots along the table's long side (the pap table is 54 long: 3 slots 18 apart fit
-// with a hand's width of margin). Change here if the owner swaps in a wider or narrower model; a NEGATIVE
-// value mirrors the order (slot 0 on the other end) without touching anything else.
-df_table_slot_spacing()
+// The three deposit slots, in the TABLE's frame (x forward, y left, z UP FROM THE TABLE TOP), exactly as
+// the owner arranged them in the Prop Composer: one df_table_slot_def line per slot, which the composer
+// exports ready to paste. z = 0 is standing on the top (the relay); a positive z is the item's own lift
+// (the card's origin sits mid-card, the orb hovers). The old "three slots 18 apart along the long side"
+// rule is gone: the owner places the items freely, the layout lives here.
+df_table_slots_init()
 {
-    return 18;
+    level.df_table_slots = [];
+
+    df_table_slot_def( 0, ( 0, 18, 0 ) );     // relay: on the top, its own pivot is at its base
+    df_table_slot_def( 1, ( 3, 8, 3.5 ) );    // key card (skull on the Maxis side): half the card below its origin
+    df_table_slot_def( 2, ( 9.5, 1, 2 ) );    // orb: hovers just over the top
+}
+
+df_table_slot_def( n, offset )
+{
+    level.df_table_slots[n] = offset;
+}
+
+// The registered offset of slot n in the table's frame (z from the table top). An unknown slot is
+// ( 0, 0, 0 ) plus a console warning (same rule as df_model / df_fx_point): a typo never throws.
+df_table_slot_offset( n )
+{
+    if ( !isdefined( level.df_table_slots ) )
+        df_table_slots_init();
+
+    if ( isdefined( level.df_table_slots[n] ) )
+        return level.df_table_slots[n];
+
+    df_debug_print( "DF: df_table_slot_offset: unknown slot " + n + ", using ( 0, 0, 0 )" );
+    return ( 0, 0, 0 );
 }
 
 // Front yaw of the table: the stored yaw minus the "table" kind's own yaw offset, so it stays right after
@@ -372,8 +400,9 @@ df_table_yaw()
     return yaw;
 }
 
-// World position of slot n (0, 1, 2) on the table top. n = 0 is on the left of a player looking along the
-// table's front yaw (anglestoright is the right-hand direction, so -right is their left).
+// World REST position of the item on slot n (0, 1, 2): the table origin, plus the slot's own horizontal
+// offset turned with the table's front yaw, plus the table top and the slot's own z. The item goes exactly
+// here - no caller adds a lift of its own any more. Slot 0 keeps z = top (its registered z is 0).
 df_table_slot( n )
 {
     c = df_coord( "DF_TABLE" );
@@ -381,8 +410,8 @@ df_table_slot( n )
     if ( !isdefined( c ) )
         return ( 7771, -448, -180 ); // the owner's spot plus a bench height, should never be needed
 
-    right = anglestoright( ( 0, df_table_yaw(), 0 ) );
-    return c.origin + right * ( ( n - 1 ) * df_table_slot_spacing() ) + ( 0, 0, df_model_top_z( "table" ) );
+    off = df_table_slot_offset( n );
+    return c.origin + df_offset_rotate( ( off[0], off[1], 0 ), df_table_yaw() ) + ( 0, 0, df_model_top_z( "table" ) + off[2] );
 }
 
 // The floor 40 units in front of the table: where a dropped or returned orb rests (Step 6 restart) and
@@ -873,10 +902,11 @@ df_table_demo_spawn()
     if ( isdefined( level.df_models["relay_coil"] ) )
         level.df_preview[key][level.df_preview[key].size] = df_table_demo_prop( "relay_coil", df_table_slot( 0 ), df_model_offset( "relay_coil" ) );
 
-    // the card stands upright (registry pose pitch 90), so half its length is below its own origin
-    level.df_preview[key][level.df_preview[key].size] = df_table_demo_prop( "card", df_table_slot( 1 ), ( 0, 0, 8 ) );
-    level.df_preview[key][level.df_preview[key].size] = df_table_demo_prop( "orb", df_table_slot( 2 ), ( 0, 0, df_model_rest_z( "orb" ) ) );
-    df_debug_print( "DF: table demo: relay + " + mast + " on slot 0, key card on slot 1, orb on slot 2 at rest +" + df_model_rest_z( "orb" ) + " (!df hide removes them)" );
+    // the card and the orb go straight on their slots: df_table_slot already carries the lift the owner
+    // gave each of them in the composer (slot registry, df_table_slots_init)
+    level.df_preview[key][level.df_preview[key].size] = df_table_demo_prop( "card", df_table_slot( 1 ), ( 0, 0, 0 ) );
+    level.df_preview[key][level.df_preview[key].size] = df_table_demo_prop( "orb", df_table_slot( 2 ), ( 0, 0, 0 ) );
+    df_debug_print( "DF: table demo: relay + " + mast + " on slot 0, key card on slot 1, orb on slot 2 (!df hide removes them)" );
 }
 
 // One demo prop of `kind` at a slot (plus an offset), front turned the way the table faces.
@@ -956,7 +986,17 @@ df_coords_dump()
         df_coords_console( "[FXPT] " + name + " -> " + df_fx_point_parent( name ) + " | offset " + int( off[0] ) + " " + int( off[1] ) + " " + int( off[2] ) );
     }
 
-    return "DF: " + keys.size + " anchors ([SPOT]), " + kinds.size + " models ([MODEL]) and " + points.size + " attach points ([FXPT]) listed in the console";
+    if ( !isdefined( level.df_table_slots ) )
+        df_table_slots_init();
+
+    // the slot registry: the offsets are the owner's composer numbers (halves matter), so no int() here
+    for ( n = 0; n < level.df_table_slots.size; n++ )
+    {
+        off = df_table_slot_offset( n );
+        df_coords_console( "[SLOT] " + n + " -> offset " + off[0] + " " + off[1] + " " + off[2] + " (from the table top)" );
+    }
+
+    return "DF: " + keys.size + " anchors ([SPOT]), " + kinds.size + " models ([MODEL]), " + points.size + " attach points ([FXPT]) and " + level.df_table_slots.size + " table slots ([SLOT]) listed in the console";
 }
 
 // Console-only line (copy-paste material), same "[DF] " prefix as df_out.
@@ -1667,7 +1707,8 @@ df_model_top_z( kind )
 // is at their centre, the measured pivot height for the skull. The one deliberate non-contact value is the
 // orb: the turbine disc has a base pivot (contact would be 0) but it hovers 5 above the slot / floor under the
 // steps' aura fx, so a spinning core never z-fights the table (requested in tools/requests_act3_orb.md and
-// requests_hold2.md; df_act3_vacuum / df_act3_hold add this to df_table_slot( 2 ), the floor and DF_ORB_SPAWN).
+// requests_hold2.md; df_act3_vacuum / df_act3_hold add this to the floor spots and DF_ORB_SPAWN - on the
+// table the hover is part of slot 2's own registered offset instead).
 // Numbers: glTF POSITION bounds of the model export.
 df_model_rest_z( kind )
 {
