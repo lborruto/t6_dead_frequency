@@ -10,9 +10,17 @@ use JSON::PP ();
 # line of the Magmagat Prop Picker (t6_motd_magmagat/tools/pickers/gen_mdl_motd.pl, functions mgStrip/mgDiag).
 #
 # Reads the OpenAssetTools glTF viewer dump (model_dump/viewer/<zone>/*.gltf + SIZES.txt) for the same four
-# always-loaded zones the Prop Picker uses, and df_coords.gsc (df_models_init / df_model_def / df_table_slot*)
-# for the three preset assemblies' exact offsets. Nothing here writes to df_coords.gsc or any other repo file;
-# it only reads them to build the static HTML page.
+# always-loaded zones the Prop Picker uses, and df_coords.gsc (df_models_init / df_model_def / df_table_slot* /
+# df_fx_points_init / df_fx_point_def) for the preset assemblies' exact offsets. Nothing here writes to
+# df_coords.gsc or any other repo file; it only reads them to build the static HTML page.
+#
+# Every effect / sound attach point df_fx_points_init() registers is drawn as a named cross (a dot for sounds,
+# name containing "snd" or "hum") next to its parent prop: a third kind of "part" (ptype "fx") alongside the
+# df_model_def model parts, attached to a parent part by KIND so it follows that part's position and yaw. The
+# panel edits its offset in the PARENT's own frame (undoing the parent's yaw, same convention df_model_offset_at
+# uses); export writes df_fx_point_def(...) lines the same way, minus the point's "base" (the parent's glTF top
+# bound for a "TOP of prop" / "RIM of the prop" point, or another point's own resolved offset for a "base is
+# fuse_led" / "on top of relay_array_node" point) so the line matches the registry's own convention exactly.
 
 my $viewer = $ENV{DF_MODEL_VIEWER} // 'C:/Games/t6/model_dump/viewer';
 
@@ -56,7 +64,7 @@ for my $zone ( 'zm_transit', 'so_zclassic_zm_transit', 'common_zm', 'patch_zm' )
 @models = sort { $a->{name} cmp $b->{name} } @models;
 
 # ---- parse df_coords.gsc: df_model_def( kind, name, pitch, roll, yawoff [, ( x, y, z ) ] ); and
-#      df_table_slot_spacing() { return N; } -- these feed the three preset assemblies below. -------------
+#      df_table_slot_spacing() { return N; } -- these feed the preset assemblies below. -------------------
 open my $cf, '<', $coords or die "$coords: $!";
 local $/;
 my $gsc = <$cf>;
@@ -68,12 +76,30 @@ while ( $gsc =~ /df_model_def\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*(-?[\d.]+)\s*,
 }
 die "df_models_init(): no df_model_def(...) lines found in $coords\n" unless %model_def;
 
+# ---- parse df_fx_points_init(): df_fx_point_def( "name", "parent_kind", ( x, y, z ) ); one line per effect /
+#      sound attach point, with a trailing "//" comment giving its base rule ("TOP of prop", "RIM of the
+#      prop", "base: fuse_led", "multiplied by ...", or nothing -- parent origin + offset). This is the one
+#      registry df_fx_points_init() documents; the composer draws every point it finds here. -----------------
+my %fx_def;   # name -> { parent, x, y, z, rule }
+my @fx_order;
+while ( $gsc =~ /df_fx_point_def\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)\s*;[ \t]*(\/\/[^\n]*)?/g ) {
+    my ( $name, $parent, $x, $y, $z, $comment ) = ( $1, $2, $3 + 0, $4 + 0, $5 + 0, $6 // '' );
+    $comment =~ s{^//\s*}{};
+    $comment =~ s/\s+$//;
+    die "df_fx_points_init(): duplicate df_fx_point_def(...) for \"$name\" in $coords\n" if $fx_def{$name};
+    $fx_def{$name} = { parent => $parent, x => $x, y => $y, z => $z, rule => $comment };
+    push @fx_order, $name;
+}
+die "df_fx_points_init(): no df_fx_point_def(...) lines found in $coords\n" unless %fx_def;
+die sprintf( "df_fx_points_init(): expected 44 df_fx_point_def(...) lines, found %d in $coords\n", scalar @fx_order )
+    unless @fx_order == 44;
+
 my ($table_spacing) = $gsc =~ /df_table_slot_spacing\(\)\s*\{\s*return\s+(-?[\d.]+)\s*;/;
 $table_spacing = defined($table_spacing) ? $table_spacing + 0 : 18;
 
 # df_model_top_z()'s "tops" lookup and df_model_rest_z()'s "rest" lookup (both keyed by MODEL NAME, not kind)
-# -- read here the same way df_model_def(...) is, so the "Table, Richtofen/Maxis loaded" presets' slot Z and
-# card/skull/orb lift stay correct if the table or item models are ever swapped in the registry.
+# -- read here the same way df_model_def(...) is, so the table presets' slot Z, the card/skull/orb lift, and
+# the "TOP of prop" / "RIM of the prop" fx bases stay correct if the table/tv/brazier models are ever swapped.
 my %top_z_by_model;
 while ( $gsc =~ /tops\[\s*"([^"]+)"\s*\]\s*=\s*(-?[\d.]+)\s*;/g ) {
     $top_z_by_model{$1} = $2 + 0;
@@ -90,25 +116,34 @@ $table_front_yaw = defined($table_front_yaw) ? $table_front_yaw + 0 : 0;
 my ($card_lift) = $gsc =~ /df_table_demo_prop\(\s*"card"\s*,\s*df_table_slot\(\s*1\s*\)\s*,\s*\(\s*0\s*,\s*0\s*,\s*(-?[\d.]+)\s*\)\s*\)/;
 $card_lift = defined($card_lift) ? $card_lift + 0 : 8;
 
-for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb)) {
+for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a)) {
     die "df_model_def for kind \"$kind\" not found in $coords -- needed for a preset\n" unless $model_def{$kind};
 }
 
 my $table_top_z = $top_z_by_model{ $model_def{table}{name} };
 die "df_model_top_z: no tops[] entry for table model \"$model_def{table}{name}\" in $coords -- needed for the table presets\n"
     unless defined $table_top_z;
+my $tv_top_z = $top_z_by_model{ $model_def{tv}{name} };
+die "df_model_top_z: no tops[] entry for tv model \"$model_def{tv}{name}\" in $coords -- needed for the pipe_glow base\n"
+    unless defined $tv_top_z;
+my $brazier_top_z = $top_z_by_model{ $model_def{brazier}{name} };
+die "df_model_top_z: no tops[] entry for brazier model \"$model_def{brazier}{name}\" in $coords -- needed for the brazier rim base\n"
+    unless defined $brazier_top_z;
 my $orb_rest   = $rest_z_by_model{ $model_def{orb}{name} }   // 0;
 my $skull_rest = $rest_z_by_model{ $model_def{skull}{name} } // 0;
 
-printf STDERR "df_coords.gsc: relay=%s(0,0,0) relay_coil=%s(0,0,%s) relay_mast=%s(0,0,%s) relay_top=%s(0,0,%s) table_slot_spacing=%s brazier=%s ember=%s(offset 0,0,0)\n",
-    $model_def{relay}{name}, $model_def{relay_coil}{name}, $model_def{relay_coil}{oz}, $model_def{relay_mast}{name}, $model_def{relay_mast}{oz},
-    $model_def{relay_top}{name}, $model_def{relay_top}{oz}, $table_spacing, $model_def{brazier}{name}, $model_def{ember}{name};
-printf STDERR "df_coords.gsc: table=%s top_z=%s front_yaw=%s card=%s(pitch %s, lift %s) skull=%s(rest %s) orb=%s(rest %s)\n",
+printf STDERR "df_coords.gsc: relay=%s relay_coil=%s(%s,%s,%s) relay_mast=%s(%s,%s,%s) relay_top=%s(%s,%s,%s) table_slot_spacing=%s brazier=%s(top %s) ember=%s\n",
+    $model_def{relay}{name}, $model_def{relay_coil}{name}, $model_def{relay_coil}{ox}, $model_def{relay_coil}{oy}, $model_def{relay_coil}{oz},
+    $model_def{relay_mast}{name}, $model_def{relay_mast}{ox}, $model_def{relay_mast}{oy}, $model_def{relay_mast}{oz},
+    $model_def{relay_top}{name}, $model_def{relay_top}{ox}, $model_def{relay_top}{oy}, $model_def{relay_top}{oz},
+    $table_spacing, $model_def{brazier}{name}, $brazier_top_z, $model_def{ember}{name};
+printf STDERR "df_coords.gsc: table=%s top_z=%s front_yaw=%s card=%s(pitch %s, lift %s) skull=%s(rest %s) orb=%s(rest %s) tv=%s(top %s)\n",
     $model_def{table}{name}, $table_top_z, $table_front_yaw, $model_def{card}{name}, $model_def{card}{pitch}, $card_lift,
-    $model_def{skull}{name}, $skull_rest, $model_def{orb}{name}, $orb_rest;
+    $model_def{skull}{name}, $skull_rest, $model_def{orb}{name}, $orb_rest, $model_def{tv}{name}, $tv_top_z;
+printf STDERR "df_coords.gsc: %d df_fx_point_def(...) points parsed from df_fx_points_init()\n", scalar @fx_order;
 
 # The preset's own models must be embedded no matter what the size budget below does to the general list.
-my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast table brazier ember card skull orb);
+my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a);
 
 # ---- 16 MB page budget: if the embedded glTF payload would push the page over it, drop the largest
 #      glTF files first (never a model any preset needs) and remember how many were dropped. -------------
@@ -136,13 +171,18 @@ for my $m (@models) {
 }
 my $scripts = join( '', map { qq~<script type="application/json" data-model="$_->{name}">$_->{json}</script>\n~ } @models );
 
-# ---- the three preset assemblies + Empty, as data for the page's PRESETS object -------------------------
+# ---- preset assemblies, as data for the page's PRESETS object -----------------------------------------
 # "table" and "tombstone" presets need the base model's own top bound (df_model_top_z equivalent), which is
-# only knowable from the glTF mesh bounds, so those parts carry snapTop:1 and the page resolves their Z at
-# load time from the base model's live bounds (mirrors df_model_top_z / df_m2_rim_height in df_coords.gsc /
-# df_act2_maxis.gsc, which likewise derive it from the measured glTF bounds, not a stored constant).
+# only knowable from the glTF mesh bounds for a live-swapped model, so those parts carry snapTop:1 and the
+# page resolves their Z at load time from the base model's live bounds (mirrors df_model_top_z / df_m2_rim_height
+# in df_coords.gsc / df_act2_maxis.gsc, which likewise derive it from the measured glTF bounds when a catalog
+# swap is in play). The fx crosses' own "TOP of prop" / "RIM of the prop" bases, by contrast, are resolved HERE,
+# numerically, from the exact same tops[] dict df_model_top_z() itself reads (parsed above into %top_z_by_model),
+# since df_fx_points_init() documents them against that same static registry, not a live re-measurement.
+#
 # Rotates an (x,y,z) stacking offset by a yaw in degrees -- the same 2D rotation df_offset_rotate() in
-# df_coords.gsc applies (via df_model_offset_at) to a piece's registered offset when its parent is turned.
+# df_coords.gsc applies (via df_model_offset_at / df_fx_point_at) to a piece's registered offset when its
+# parent is turned.
 sub df_rotate_offset {
     my ( $ox, $oy, $oz, $yaw_deg ) = @_;
     my $rad = $yaw_deg * 3.14159265358979323846 / 180;
@@ -151,6 +191,73 @@ sub df_rotate_offset {
     return ( $ox * $c - $oy * $s, $ox * $s + $oy * $c, $oz );
 }
 sub r2 { my $n = shift; return int( $n * 100 + ( $n >= 0 ? 0.5 : -0.5 ) ) / 100; }
+
+# ---- fx point helper: builds one "ptype":"fx" part for the PRESETS data. name must be a df_fx_point_def(...)
+#      name; parent overrides the registry's own parent_kind (only used for aliasing, never needed in practice
+#      since every preset attaches an fx point to the same kind the registry names); bx/by/bz override the
+#      point's "base" (the vector its export subtracts to recover the registry's raw offset -- 0,0,0 unless the
+#      point is one of the 7 "TOP of prop" / "RIM of the prop" / "base is X" / "on top of Y" points below);
+#      ox/oy/oz override the resulting LOCAL offset outright (used for tower_column_side's mirrored -60 cross,
+#      which is drawn but never exported). ------------------------------------------------------------------
+my %fx_base;   # name -> [bx,by,bz], default [0,0,0] (registry offset only, no base to undo on export)
+$fx_base{pipe_glow}        = [ 0, 0, $tv_top_z ];                       # TOP of the prop (tv)
+$fx_base{table_slot_glint} = [ 0, 0, $table_top_z ];                    # TOP of the prop (table); slot x overridden per instance
+$fx_base{table_demo_step}  = [ 0, 0, $table_top_z ];                    # "multiplied by the slot index": drawn once at slot 1 (x=0)
+$fx_base{brazier_rim_fire} = [ 0, 0, $brazier_top_z ];                  # RIM of the prop (brazier)
+$fx_base{brazier_ash}      = [ 0, 0, $brazier_top_z ];                  # RIM of the prop (brazier)
+$fx_base{fuse_focus}       = [ 0, 0, $fx_def{fuse_led}{z} ];            # base is fuse_led, not the box origin
+$fx_base{relay_array_step} = [ 0, 0, $fx_def{relay_array_node}{z} ];    # "multiplied by the array level, on top of relay_array_node"
+
+sub fx_part {
+    my (%o)  = @_;
+    my $name = $o{name} // die "fx_part: missing name\n";
+    my $d    = $fx_def{$name} // die "fx_part: unknown fx point \"$name\" (not in df_fx_points_init())\n";
+    my $base = $fx_base{$name} || [ 0, 0, 0 ];
+    my $bx   = defined $o{bx} ? $o{bx} : $base->[0];
+    my $by   = defined $o{by} ? $o{by} : $base->[1];
+    my $bz   = defined $o{bz} ? $o{bz} : $base->[2];
+    my $ox   = defined $o{ox} ? $o{ox} : $bx + $d->{x};
+    my $oy   = defined $o{oy} ? $o{oy} : $by + $d->{y};
+    my $oz   = defined $o{oz} ? $o{oz} : $bz + $d->{z};
+    return {
+        ptype  => 'fx',
+        name   => $name,
+        parent => ( $o{parent} // $d->{parent} ),
+        ox     => r2($ox), oy => r2($oy), oz => r2($oz),
+        baseX  => r2($bx), baseY => r2($by), baseZ => r2($bz),
+        sound  => ( $name =~ /snd|hum/ ? 1 : 0 ),
+        rule   => $d->{rule},
+    };
+}
+
+# ---- model part helper: builds one "ptype":"model" part. parent (a KIND string) marks a part whose
+#      df_model_def offset is genuinely relative to another part in the SAME preset (only relay_coil /
+#      relay_mast / relay_top, per df_model_offset's own registry -- everything else, even a piece that sits
+#      visually on top of another prop like the table, is placed by other GSC code, not a df_model_def offset,
+#      and stays root-level here); fxAlias lets an fx point's registry parent_kind (e.g. the generic "part")
+#      resolve to a concrete part carrying a more specific kind (e.g. "part_a"); anchor marks a neutral stand-in
+#      for a kind with no model of its own in df_models_init() (drawn translucent, labelled "<kind> (anchor)",
+#      and never exported as a df_model_def line). ------------------------------------------------------------
+sub model_part {
+    my (%o) = @_;
+    my %p = (
+        ptype => 'model', kind => $o{kind}, model => $o{model},
+        x => $o{x} // 0, y => $o{y} // 0, z => $o{z} // 0,
+        pitch => $o{pitch} // 0, roll => $o{roll} // 0, yaw => $o{yaw} // 0,
+    );
+    $p{parent}  = $o{parent}  if $o{parent};
+    $p{fxAlias} = $o{fxAlias} if $o{fxAlias};
+    $p{anchor}  = 1           if $o{anchor};
+    $p{snapTop} = 1           if $o{snapTop};
+    $p{slot}    = $o{slot}    if defined $o{slot};
+    return \%p;
+}
+
+# Kinds with no model of their own in df_models_init() (per the owner spec for this composer): drawn with a
+# small neutral marker (the same always-loaded meteor piece kind "orb" already uses) instead of a real prop,
+# and never exported as a df_model_def line -- only their fx points are.
+my $anchor_model = $model_def{orb}{name};
+sub anchor_part { my ($kind) = @_; return model_part( kind => $kind, model => $anchor_model, anchor => 1 ); }
 
 # df_table_slot( n ) in df_coords.gsc: c.origin + right * ( (n-1) * df_table_slot_spacing() ) + (0,0,df_model_top_z("table")),
 # where right = anglestoright( (0, df_table_yaw(), 0) ). At yaw 0 the engine's right vector is (0,-1,0) (X-forward,
@@ -162,6 +269,14 @@ sub table_slot_xyz {
     my ($n) = @_;
     my $mult = ( $n - 1 ) * $table_spacing;
     return ( r2( $right_x * $mult ), r2( $right_y * $mult ), $table_top_z );
+}
+# The same slot, but as a LOCAL (unrotated, table-frame) offset: right = (0,-1,0) at yaw 0, so slot n sits at
+# local (0, -mult, table_top_z). table_slot_glint attaches to the table part itself and is rendered/exported
+# through the normal parent-yaw rotation, so its own local offset must NOT already carry table_front_yaw.
+sub table_slot_local_xy {
+    my ($n) = @_;
+    my $mult = ( $n - 1 ) * $table_spacing;
+    return ( 0, -1 * $mult );
 }
 my @slot0 = table_slot_xyz(0);
 my @slot1 = table_slot_xyz(1);
@@ -190,103 +305,289 @@ my @skull_pos = ( r2( $slot1[0] ), r2( $slot1[1] ), r2( $slot1[2] + $skull_rest 
 my $orb_yaw  = $table_front_yaw + $model_def{orb}{yawoff};
 my @orb_pos  = ( r2( $slot2[0] ), r2( $slot2[1] ), r2( $slot2[2] + $orb_rest ) );
 
-my %presets = (
-    relay => {
-        label => 'Relay (roof and table)',
-        note  => 'From df_models_init() in df_coords.gsc: base = kind "relay" ('
-          . $model_def{relay}{name}
-          . ') at (0,0,0); coil = kind "relay_coil" (' . $model_def{relay_coil}{name} . '), df_model_offset (0,0,' . $model_def{relay_coil}{oz}
-          . '); mast = kind "relay_mast" (' . $model_def{relay_mast}{name} . '), df_model_offset (0,0,' . $model_def{relay_mast}{oz}
-          . ') -- the same offset (0,0,' . $model_def{relay_top}{oz} . ') is registered for kind "relay_top" (the roof placement of the same mast).',
-        parts => [
-            { kind => 'relay',      model => $model_def{relay}{name},      x => 0, y => 0, z => 0,                        pitch => $model_def{relay}{pitch},      roll => $model_def{relay}{roll},      yaw => 0 },
-            { kind => 'relay_coil', model => $model_def{relay_coil}{name}, x => 0, y => 0, z => $model_def{relay_coil}{oz}, pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => 0 },
-            { kind => 'relay_mast', model => $model_def{relay_mast}{name}, x => 0, y => 0, z => $model_def{relay_mast}{oz}, pitch => $model_def{relay_mast}{pitch}, roll => $model_def{relay_mast}{roll}, yaw => 0 },
-        ],
-    },
-    table => {
-        label => 'Table with three slots',
-        note  => 'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0). Three slot markers ('
-          . 'p6_zm_buildable_sq_meteor) at X = (n-1) * df_table_slot_spacing() = -' . $table_spacing . ', 0, +' . $table_spacing
-          . ' (df_table_slot_spacing() in df_coords.gsc returns ' . $table_spacing
-          . '); Z is the table model\'s own top bound, computed live from its glTF bounds when this preset loads (what df_model_top_z("table") '
-          . 'computes at runtime from the same glTF). Yaw is 0 here: df_table_yaw() depends on the placed table\'s in-level angle, not on a standalone preview.',
-        parts => [
-            { kind => 'table', model => $model_def{table}{name},        x => 0,                y => 0, z => 0, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => 0 },
-            { kind => 'slot_0', model => 'p6_zm_buildable_sq_meteor', x => -1 * $table_spacing, y => 0, z => 0, pitch => 0, roll => 0, yaw => 0, snapTop => 1 },
-            { kind => 'slot_1', model => 'p6_zm_buildable_sq_meteor', x => 0,                    y => 0, z => 0, pitch => 0, roll => 0, yaw => 0, snapTop => 1 },
-            { kind => 'slot_2', model => 'p6_zm_buildable_sq_meteor', x => 1 * $table_spacing,  y => 0, z => 0, pitch => 0, roll => 0, yaw => 0, snapTop => 1 },
-        ],
-    },
-    table_rich => {
-        label => 'Table, Richtofen loaded',
-        note  => 'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw
-          . ' (df_apply_overrides\' df_coord_override_ground_front for DF_TABLE). Slot Z = df_model_top_z("table") = '
-          . $table_top_z . ', spacing = df_table_slot_spacing() = ' . $table_spacing
-          . '; slot 0 is on the left looking along the table\'s front (right = (0,-1,0) at yaw 0), so slot 0 = ('
-          . $slot0[0] . ',' . $slot0[1] . ',' . $slot0[2] . '), slot 1 = (' . $slot1[0] . ',' . $slot1[1] . ',' . $slot1[2]
-          . '), slot 2 = (' . $slot2[0] . ',' . $slot2[1] . ',' . $slot2[2] . '). Slot 0: the plugged relay assembly, same '
-          . 'math as df_table_demo_prop / df_a1_relay_spawn -- relay turned yaw - 45 = ' . $relay_yaw
-          . '; relay_coil at its df_model_offset (' . $model_def{relay_coil}{ox} . ',' . $model_def{relay_coil}{oy} . ',' . $model_def{relay_coil}{oz}
-          . ') rotated by that -45 to (' . $coil_ox . ',' . $coil_oy . ',' . $coil_oz . '); relay_mast at its df_model_offset ('
-          . $model_def{relay_mast}{ox} . ',' . $model_def{relay_mast}{oy} . ',' . $model_def{relay_mast}{oz} . ') rotated the same way to ('
-          . $mast_ox . ',' . $mast_oy . ',' . $mast_oz . '). Slot 1: kind "card" (' . $model_def{card}{name}
-          . ') at slot 1 + (0,0,' . $card_lift . ') (df_table_demo_prop\'s own card lift), pitch ' . $model_def{card}{pitch}
-          . ' per its df_model_def. Slot 2: kind "orb" (' . $model_def{orb}{name} . ') at slot 2 + (0,0,df_model_rest_z("orb")='
-          . $orb_rest . '). The GSC export gives relay_coil / relay_mast offsets relative to the relay part (matching how '
-          . 'they are registered), plus a separate "table layout" block for the three slots\' own positions.',
-        parts => [
-            { kind => 'table',      model => $model_def{table}{name},      x => 0, y => 0, z => 0, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw },
-            { kind => 'relay',      model => $model_def{relay}{name},      x => $relay_pos[0],      y => $relay_pos[1],      z => $relay_pos[2],      pitch => $model_def{relay}{pitch},      roll => $model_def{relay}{roll},      yaw => $relay_yaw, slot => 0 },
-            { kind => 'relay_coil', model => $model_def{relay_coil}{name}, x => $relay_coil_pos[0], y => $relay_coil_pos[1], z => $relay_coil_pos[2], pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => $relay_coil_yaw },
-            { kind => 'relay_mast', model => $model_def{relay_mast}{name}, x => $relay_mast_pos[0], y => $relay_mast_pos[1], z => $relay_mast_pos[2], pitch => $model_def{relay_mast}{pitch}, roll => $model_def{relay_mast}{roll}, yaw => $relay_mast_yaw },
-            { kind => 'card',       model => $model_def{card}{name},       x => $card_pos[0],       y => $card_pos[1],       z => $card_pos[2],       pitch => $model_def{card}{pitch},       roll => $model_def{card}{roll},       yaw => $card_yaw, slot => 1 },
-            { kind => 'orb',        model => $model_def{orb}{name},        x => $orb_pos[0],        y => $orb_pos[1],        z => $orb_pos[2],        pitch => $model_def{orb}{pitch},        roll => $model_def{orb}{roll},        yaw => $orb_yaw, slot => 2 },
-        ],
-    },
-    table_maxis => {
-        label => 'Table, Maxis loaded',
-        note  => 'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw
-          . '. Same slot 0 relay assembly and slot 2 orb as "Table, Richtofen loaded" (see that preset\'s note for the '
-          . 'relay math); slot 1 here is kind "skull" (' . $model_def{skull}{name}
-          . ', the same model as "orb") instead of the card -- df_coords.gsc has no dedicated df_table_demo_prop line for '
-          . 'it, so its lift above the slot uses df_model_rest_z("skull") = ' . $skull_rest
-          . ' the same way the orb\'s own hover does, since it is the same base-pivot-free meteor-piece model. Pitch/roll/yaw '
-          . 'all 0 per its df_model_def. The GSC export gives relay_coil / relay_mast offsets relative to the relay part, '
-          . 'plus a separate "table layout" block for the three slots\' own positions.',
-        parts => [
-            { kind => 'table',      model => $model_def{table}{name},      x => 0, y => 0, z => 0, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw },
-            { kind => 'relay',      model => $model_def{relay}{name},      x => $relay_pos[0],      y => $relay_pos[1],      z => $relay_pos[2],      pitch => $model_def{relay}{pitch},      roll => $model_def{relay}{roll},      yaw => $relay_yaw, slot => 0 },
-            { kind => 'relay_coil', model => $model_def{relay_coil}{name}, x => $relay_coil_pos[0], y => $relay_coil_pos[1], z => $relay_coil_pos[2], pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => $relay_coil_yaw },
-            { kind => 'relay_mast', model => $model_def{relay_mast}{name}, x => $relay_mast_pos[0], y => $relay_mast_pos[1], z => $relay_mast_pos[2], pitch => $model_def{relay_mast}{pitch}, roll => $model_def{relay_mast}{roll}, yaw => $relay_mast_yaw },
-            { kind => 'skull',      model => $model_def{skull}{name},      x => $skull_pos[0],      y => $skull_pos[1],      z => $skull_pos[2],      pitch => $model_def{skull}{pitch},      roll => $model_def{skull}{roll},      yaw => $skull_yaw, slot => 1 },
-            { kind => 'orb',        model => $model_def{orb}{name},        x => $orb_pos[0],        y => $orb_pos[1],        z => $orb_pos[2],        pitch => $model_def{orb}{pitch},        roll => $model_def{orb}{roll},        yaw => $orb_yaw, slot => 2 },
-        ],
-    },
-    tombstone => {
-        label => 'Tombstone + ember',
-        note  => 'Base = kind "brazier" (' . $model_def{brazier}{name} . ') at (0,0,0). Ember = kind "ember" ('
-          . $model_def{ember}{name} . '), df_model_def offset (0,0,0) -- it already has its own model in df_coords.gsc, so no substitute was '
-          . 'needed. Its height on the tombstone (the "rim") is computed at runtime in df_act2_maxis.gsc (df_m2_rim_height -> df_model_top_z("brazier")) '
-          . 'from the tombstone\'s own top glTF bound, not a stored df_model_offset, so this preset places it at the base model\'s live top bound too.',
-        parts => [
-            { kind => 'brazier', model => $model_def{brazier}{name}, x => 0, y => 0, z => 0, pitch => $model_def{brazier}{pitch}, roll => $model_def{brazier}{roll}, yaw => 0 },
-            { kind => 'ember',   model => $model_def{ember}{name},   x => 0, y => 0, z => 0, pitch => $model_def{ember}{pitch},   roll => $model_def{ember}{roll},   yaw => 0, snapTop => 1 },
-        ],
-    },
+# fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), a
+# table_slot_glint cross per slot (parent "table", base = that slot's own LOCAL offset), table_demo_step (parent
+# "table", drawn once at slot 1 / x=0, "+step"), and orb_aura/orb_glint (parent "orb").
+sub table_common_fx {
+    my @fx = (
+        fx_part( name => 'socket_spark',  parent => 'table' ),
+        fx_part( name => 'socket_glow',   parent => 'table' ),
+        fx_part( name => 'socket_marker', parent => 'table' ),
+    );
+    for my $n ( 0, 1, 2 ) {
+        my ( $lx, $ly ) = table_slot_local_xy($n);
+        push @fx, fx_part( name => 'table_slot_glint', parent => 'table', bx => $lx, by => $ly, bz => $table_top_z );
+    }
+    push @fx, fx_part( name => 'table_demo_step', parent => 'table' );
+    push @fx, fx_part( name => 'orb_aura', parent => 'orb' ), fx_part( name => 'orb_glint', parent => 'orb' );
+    return @fx;
+}
+
+my @preset_order;
+my %presets;
+
+sub add_preset {
+    my ( $key, $label, $note, @parts ) = @_;
+    push @preset_order, $key;
+    $presets{$key} = { label => $label, note => $note, parts => \@parts };
+}
+
+add_preset(
+    'pipe1', 'Pipe (Step 1)',
+    'Kind "tv" (' . $model_def{tv}{name} . ') at (0,0,0). pipe_glow: base = TOP of the prop, df_model_top_z("tv") = '
+      . $tv_top_z . ', registry offset (0,0,' . $fx_def{pipe_glow}{z} . ') on top of that.',
+    model_part( kind => 'tv', model => $model_def{tv}{name}, pitch => $model_def{tv}{pitch}, roll => $model_def{tv}{roll} ),
+    fx_part( name => 'pipe_glow', parent => 'tv' ),
 );
+
+add_preset(
+    'signal', 'Signal light',
+    'Kind "signal" has no model of its own in df_models_init(): the marker below is a neutral stand-in (' . $anchor_model
+      . '). signal_flash and signal_hum both sit at the anchor origin plus their own registry offset (no top/rim base); signal_hum is a 3D sound (dot).',
+    anchor_part('signal'),
+    fx_part( name => 'signal_flash', parent => 'signal' ),
+    fx_part( name => 'signal_hum',   parent => 'signal' ),
+);
+
+add_preset(
+    'part_ground', 'Part on the ground',
+    'Kind "part_a" (' . $model_def{part_a}{name}
+      . ') at (0,0,0): the concrete prop the generic registry parent "part" attaches to here (fx points still export parent "part", not "part_a"). '
+      . 'part_glint = the ground spot, part_roof_glint = the same point\'s bus-roof variant; both registry offset only.',
+    model_part( kind => 'part_a', model => $model_def{part_a}{name}, pitch => $model_def{part_a}{pitch}, roll => $model_def{part_a}{roll}, fxAlias => 'part' ),
+    fx_part( name => 'part_glint',      parent => 'part' ),
+    fx_part( name => 'part_roof_glint', parent => 'part' ),
+);
+
+add_preset(
+    'spool_pickup', 'Spool (pickup)',
+    'Kind "spool" has no model of its own for this composer (marker: ' . $anchor_model . '). pickup_glint sits at the anchor origin plus its registry offset.',
+    anchor_part('spool'),
+    fx_part( name => 'pickup_glint', parent => 'spool' ),
+);
+
+add_preset(
+    'coil_drop', 'Coil drop',
+    'Kind "receiver" (' . $model_def{receiver}{name} . ') at (0,0,0). part_spark = where the part lands, registry offset only.',
+    model_part( kind => 'receiver', model => $model_def{receiver}{name}, pitch => $model_def{receiver}{pitch}, roll => $model_def{receiver}{roll} ),
+    fx_part( name => 'part_spark', parent => 'receiver' ),
+);
+
+add_preset(
+    'relay_roof', 'Relay (bus roof)',
+    'Base = kind "relay" (' . $model_def{relay}{name} . ') at (0,0,0); coil = kind "relay_coil" (' . $model_def{relay_coil}{name}
+      . '), df_model_offset (' . $model_def{relay_coil}{ox} . ',' . $model_def{relay_coil}{oy} . ',' . $model_def{relay_coil}{oz}
+      . '); top = kind "relay_top" (' . $model_def{relay_top}{name} . '), df_model_offset (' . $model_def{relay_top}{ox} . ',' . $model_def{relay_top}{oy} . ',' . $model_def{relay_top}{oz}
+      . '). The six fx points (relay_dust/spark/burst_low/burst_mid/glow/glint) all take parent "relay", registry offset only.',
+    model_part( kind => 'relay', model => $model_def{relay}{name}, pitch => $model_def{relay}{pitch}, roll => $model_def{relay}{roll} ),
+    model_part(
+        kind => 'relay_coil', model => $model_def{relay_coil}{name},
+        x => $model_def{relay_coil}{ox}, y => $model_def{relay_coil}{oy}, z => $model_def{relay_coil}{oz},
+        pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => $model_def{relay_coil}{yawoff},
+        parent => 'relay',
+    ),
+    model_part(
+        kind => 'relay_top', model => $model_def{relay_top}{name},
+        x => $model_def{relay_top}{ox}, y => $model_def{relay_top}{oy}, z => $model_def{relay_top}{oz},
+        pitch => $model_def{relay_top}{pitch}, roll => $model_def{relay_top}{roll}, yaw => $model_def{relay_top}{yawoff},
+        parent => 'relay',
+    ),
+    fx_part( name => 'relay_dust',      parent => 'relay' ),
+    fx_part( name => 'relay_spark',     parent => 'relay' ),
+    fx_part( name => 'relay_burst_low', parent => 'relay' ),
+    fx_part( name => 'relay_burst_mid', parent => 'relay' ),
+    fx_part( name => 'relay_glow',      parent => 'relay' ),
+    fx_part( name => 'relay_glint',     parent => 'relay' ),
+);
+
+add_preset(
+    'relay_table', 'Relay (table, plugged)',
+    'The relay assembly as it stands on the table before the table\'s own front yaw is applied (see "Table, ... loaded" for the full -45 turn). '
+      . 'mast = kind "relay_mast" (' . $model_def{relay_mast}{name} . '), df_model_offset (' . $model_def{relay_mast}{ox} . ',' . $model_def{relay_mast}{oy} . ',' . $model_def{relay_mast}{oz}
+      . '). relay_array_node marks slot 0\'s own array position (registry offset (0,0,' . $fx_def{relay_array_node}{z}
+      . ')); relay_array_step is drawn ONCE here (node + 1 step, "+step") though the game code multiplies its registry offset by the live array level.',
+    model_part( kind => 'relay', model => $model_def{relay}{name}, pitch => $model_def{relay}{pitch}, roll => $model_def{relay}{roll} ),
+    model_part(
+        kind => 'relay_coil', model => $model_def{relay_coil}{name},
+        x => $model_def{relay_coil}{ox}, y => $model_def{relay_coil}{oy}, z => $model_def{relay_coil}{oz},
+        pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => $model_def{relay_coil}{yawoff},
+        parent => 'relay',
+    ),
+    model_part(
+        kind => 'relay_mast', model => $model_def{relay_mast}{name},
+        x => $model_def{relay_mast}{ox}, y => $model_def{relay_mast}{oy}, z => $model_def{relay_mast}{oz},
+        pitch => $model_def{relay_mast}{pitch}, roll => $model_def{relay_mast}{roll}, yaw => $model_def{relay_mast}{yawoff},
+        parent => 'relay',
+    ),
+    fx_part( name => 'relay_array_node', parent => 'relay' ),
+    fx_part( name => 'relay_array_step', parent => 'relay' ),
+);
+
+for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 'Table, Maxis loaded' ] ) {
+    my ( $key, $label ) = @$variant;
+    my $is_rich = $key eq 'table_rich';
+    my $note =
+        'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw
+      . '. Slot Z = df_model_top_z("table") = ' . $table_top_z . ', spacing = df_table_slot_spacing() = ' . $table_spacing
+      . '. Slot 0: the plugged relay assembly (relay turned yaw - 45 = ' . $relay_yaw . '); relay_coil / relay_mast at their '
+      . 'df_model_offset, rotated the same way. Slot 1: '
+      . ( $is_rich
+        ? 'kind "card" (' . $model_def{card}{name} . ') at slot 1 + (0,0,' . $card_lift . ') (df_table_demo_prop\'s own card lift).'
+        : 'kind "skull" (' . $model_def{skull}{name} . ') at slot 1 + df_model_rest_z("skull") = ' . $skull_rest . '.' )
+      . ' Slot 2: kind "orb" (' . $model_def{orb}{name} . ') at slot 2 + df_model_rest_z("orb") = ' . $orb_rest
+      . '. fx: socket_spark/glow/marker (parent "table"), table_slot_glint per slot and table_demo_step (parent "table", base = TOP of the table), '
+      . ( $is_rich ? 'card_glint/card_glow (parent "card")' : 'skull_table_glow/skull_glow (parent "skull")' )
+      . ', orb_aura/orb_glint (parent "orb"). The GSC export gives every child part\'s offset in ITS PARENT\'s own frame (undoing that '
+      . 'part\'s own yaw, e.g. relay_coil / relay_mast come back out at their exact df_model_offset despite the relay\'s -45 turn), '
+      . 'plus a separate "table layout" block for the three slots\' own positions.';
+
+    my @occupant = $is_rich
+      ? ( model_part( kind => 'card', model => $model_def{card}{name}, x => $card_pos[0], y => $card_pos[1], z => $card_pos[2], pitch => $model_def{card}{pitch}, roll => $model_def{card}{roll}, yaw => $card_yaw, slot => 1 ) )
+      : ( model_part( kind => 'skull', model => $model_def{skull}{name}, x => $skull_pos[0], y => $skull_pos[1], z => $skull_pos[2], pitch => $model_def{skull}{pitch}, roll => $model_def{skull}{roll}, yaw => $skull_yaw, slot => 1 ) );
+
+    my @occupant_fx = $is_rich
+      ? ( fx_part( name => 'card_glint', parent => 'card' ), fx_part( name => 'card_glow', parent => 'card' ) )
+      : ( fx_part( name => 'skull_table_glow', parent => 'skull' ), fx_part( name => 'skull_glow', parent => 'skull' ) );
+
+    add_preset(
+        $key, $label, $note,
+        model_part( kind => 'table', model => $model_def{table}{name}, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw ),
+        model_part( kind => 'relay', model => $model_def{relay}{name}, x => $relay_pos[0], y => $relay_pos[1], z => $relay_pos[2], pitch => $model_def{relay}{pitch}, roll => $model_def{relay}{roll}, yaw => $relay_yaw, slot => 0 ),
+        model_part(
+            kind => 'relay_coil', model => $model_def{relay_coil}{name},
+            x => $relay_coil_pos[0], y => $relay_coil_pos[1], z => $relay_coil_pos[2],
+            pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => $relay_coil_yaw,
+            parent => 'relay',
+        ),
+        model_part(
+            kind => 'relay_mast', model => $model_def{relay_mast}{name},
+            x => $relay_mast_pos[0], y => $relay_mast_pos[1], z => $relay_mast_pos[2],
+            pitch => $model_def{relay_mast}{pitch}, roll => $model_def{relay_mast}{roll}, yaw => $relay_mast_yaw,
+            parent => 'relay',
+        ),
+        @occupant,
+        model_part( kind => 'orb', model => $model_def{orb}{name}, x => $orb_pos[0], y => $orb_pos[1], z => $orb_pos[2], pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll}, yaw => $orb_yaw, slot => 2 ),
+        table_common_fx(),
+        @occupant_fx,
+    );
+}
+
+add_preset(
+    'fuse', 'Fuse box',
+    'Kind "fuse" (' . $model_def{fuse}{name} . ') at (0,0,0). fuse_led = the LED face (registry offset only, z=' . $fx_def{fuse_led}{z}
+      . '); fuse_focus\'s base is fuse_led itself (registry offset (0,0,' . $fx_def{fuse_focus}{z} . ') on top of it); fuse_aim = registry offset only.',
+    model_part( kind => 'fuse', model => $model_def{fuse}{name}, pitch => $model_def{fuse}{pitch}, roll => $model_def{fuse}{roll} ),
+    fx_part( name => 'fuse_led',   parent => 'fuse' ),
+    fx_part( name => 'fuse_focus', parent => 'fuse' ),
+    fx_part( name => 'fuse_aim',   parent => 'fuse' ),
+);
+
+add_preset(
+    'core', 'Core block',
+    'Kind "core" has no model of its own (marker: ' . $anchor_model . '). core_node: registry offset only.',
+    anchor_part('core'),
+    fx_part( name => 'core_node', parent => 'core' ),
+);
+
+add_preset(
+    'lamp', 'Lamp post',
+    'Kind "lamp" has no model of its own (marker: ' . $anchor_model . '). lamp_bulb_glow: registry offset only (the fallback bulb height when the map exploder is not found).',
+    anchor_part('lamp'),
+    fx_part( name => 'lamp_bulb_glow', parent => 'lamp' ),
+);
+
+add_preset(
+    'tombstone', 'Tombstone',
+    'Base = kind "brazier" (' . $model_def{brazier}{name} . ') at (0,0,0). Ember = kind "ember" (' . $model_def{ember}{name}
+      . ') snapped to its own live top bound. brazier_rim_fire / brazier_ash: base = RIM of the prop, df_model_top_z("brazier") = ' . $brazier_top_z
+      . '. brazier_ember, ember_glow, node_aim, node_beam, node_glow: registry offset only.',
+    model_part( kind => 'brazier', model => $model_def{brazier}{name}, pitch => $model_def{brazier}{pitch}, roll => $model_def{brazier}{roll} ),
+    model_part( kind => 'ember', model => $model_def{ember}{name}, pitch => $model_def{ember}{pitch}, roll => $model_def{ember}{roll}, snapTop => 1 ),
+    fx_part( name => 'brazier_rim_fire', parent => 'brazier' ),
+    fx_part( name => 'brazier_ash',      parent => 'brazier' ),
+    fx_part( name => 'brazier_ember',    parent => 'brazier' ),
+    fx_part( name => 'ember_glow',       parent => 'ember' ),
+    fx_part( name => 'node_aim',         parent => 'brazier' ),
+    fx_part( name => 'node_beam',        parent => 'brazier' ),
+    fx_part( name => 'node_glow',        parent => 'brazier' ),
+);
+
+add_preset(
+    'orb', 'Orb',
+    'Kind "orb" (' . $model_def{orb}{name} . ') at (0,0,0); df_model_rest_z("orb") = ' . $orb_rest . ' of hover is handled by the step code, not shown here. orb_aura / orb_glint: registry offset only.',
+    model_part( kind => 'orb', model => $model_def{orb}{name}, pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll} ),
+    fx_part( name => 'orb_aura',  parent => 'orb' ),
+    fx_part( name => 'orb_glint', parent => 'orb' ),
+);
+
+add_preset(
+    'portal', 'Portal',
+    'Kind "portal" has no model for this composer (marker: ' . $anchor_model . '; df_coords.gsc itself also registers a real model, ' . $model_def{portal}{name}
+      . ', for spawning -- this preset only visualises the registry\'s effect points). portal_orbit has a horizontal registry offset (' . $fx_def{portal_orbit}{x} . ',0,' . $fx_def{portal_orbit}{z}
+      . '); the rest are vertical only.',
+    anchor_part('portal'),
+    fx_part( name => 'portal_light',       parent => 'portal' ),
+    fx_part( name => 'portal_orbit',       parent => 'portal' ),
+    fx_part( name => 'portal_burst_ash',   parent => 'portal' ),
+    fx_part( name => 'portal_burst_light', parent => 'portal' ),
+);
+
+add_preset(
+    'tower', 'Tower',
+    'Kind "tower" has no model of its own (marker: ' . $anchor_model . '). tower_column_side is registered once (' . $fx_def{tower_column_side}{x}
+      . ',0,0) and mirrored +/- at runtime: drawn here as two crosses but exported once. tower_power_snd is a 3D sound (dot).',
+    anchor_part('tower'),
+    fx_part( name => 'tower_column_side', parent => 'tower' ),                                                     # +60, first occurrence: what gets exported
+    fx_part( name => 'tower_column_side', parent => 'tower', ox => -1 * $fx_def{tower_column_side}{x} ),           # -60, display only
+    fx_part( name => 'tower_power_snd', parent => 'tower' ),
+);
+
+# ---- sanity check: every one of the 44 registry fx points must appear in the presets above exactly once
+#      (by name; a point may be DRAWN more than once, like tower_column_side or table_slot_glint, but must
+#      still be reachable), and nothing unknown must have snuck in. ---------------------------------------
+my %used_fx;
+for my $key (@preset_order) {
+    for my $p ( @{ $presets{$key}{parts} } ) {
+        $used_fx{ $p->{name} } = 1 if $p->{ptype} eq 'fx';
+    }
+}
+my @missing_fx = grep { !$used_fx{$_} } @fx_order;
+die "Composer presets are missing fx points: @missing_fx\n" if @missing_fx;
+my @unknown_fx = grep { !exists $fx_def{$_} } keys %used_fx;
+die "Composer presets reference unknown fx points: @unknown_fx\n" if @unknown_fx;
+printf STDERR "presets cover all %d registry fx points across %d presets\n", scalar( keys %used_fx ), scalar(@preset_order);
+
 my $presets_json = JSON::PP->new->canonical->encode( \%presets );
 
-my $footer_note = "$count TranZit models embedded (glTF under 420 KB each, zones zm_transit / so_zclassic_zm_transit / common_zm / patch_zm); $dropped dropped to stay under the 16 MB page budget.";
+# ---- FX_REGISTRY: the full 44-point registry, embedded so the page's "Import scene" can round-trip a
+#      pasted `fx | name | parent | x y z` line without the preset that first drew it (sound flag, base rule
+#      text, and the base vector its export subtracts). -----------------------------------------------------
+my %fx_registry_out;
+for my $name (@fx_order) {
+    my $base = $fx_base{$name} || [ 0, 0, 0 ];
+    $fx_registry_out{$name} = {
+        parent => $fx_def{$name}{parent},
+        rule   => $fx_def{$name}{rule},
+        sound  => ( $name =~ /snd|hum/ ? 1 : 0 ),
+        baseX  => $base->[0], baseY => $base->[1], baseZ => $base->[2],
+    };
+}
+my $fx_registry_json = JSON::PP->new->canonical->encode( \%fx_registry_out );
+
+my $preset_options = join( '', map { qq~<option value="$_">$presets{$_}{label}</option>\n~ } @preset_order );
+$preset_options .= qq~<option value="empty">Empty</option>\n~;
+
+my $footer_note = "$count TranZit models embedded (glTF under 420 KB each, zones zm_transit / so_zclassic_zm_transit / common_zm / patch_zm); $dropped dropped to stay under the 16 MB page budget. "
+  . scalar(@fx_order) . " effect/sound attach points from df_fx_points_init() across " . scalar(@preset_order) . " presets.";
 
 # ---- the page -----------------------------------------------------------------------------------------
 my $template = <<'HTMLEOF';
 <title>Dead Frequency Prop Composer</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-:root{--bg:#efece6;--panel:#ffffff;--ink:#1b1e23;--muted:#5d6673;--line:#d9d4ca;--accent:#c96f14;--elec:#1f78b8;--good:#3f8f46;--bar:#e6dfd2;--sel:#fff3e4;--canvas:#dcd7cc}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15171b;--panel:#1e2227;--ink:#ece6d9;--muted:#8d96a3;--line:#2c3138;--accent:#e5892f;--elec:#4aa8e8;--good:#7bc47f;--bar:#2a2f36;--sel:#2b2419;--canvas:#23272d}}
-:root[data-theme="dark"]{--bg:#15171b;--panel:#1e2227;--ink:#ece6d9;--muted:#8d96a3;--line:#2c3138;--accent:#e5892f;--elec:#4aa8e8;--good:#7bc47f;--bar:#2a2f36;--sel:#2b2419;--canvas:#23272d}
+:root{--bg:#efece6;--panel:#ffffff;--ink:#1b1e23;--muted:#5d6673;--line:#d9d4ca;--accent:#c96f14;--elec:#1f78b8;--good:#3f8f46;--bar:#e6dfd2;--sel:#fff3e4;--canvas:#dcd7cc;--fx:#a5238f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15171b;--panel:#1e2227;--ink:#ece6d9;--muted:#8d96a3;--line:#2c3138;--accent:#e5892f;--elec:#4aa8e8;--good:#7bc47f;--bar:#2a2f36;--sel:#2b2419;--canvas:#23272d;--fx:#e469cf}}
+:root[data-theme="dark"]{--bg:#15171b;--panel:#1e2227;--ink:#ece6d9;--muted:#8d96a3;--line:#2c3138;--accent:#e5892f;--elec:#4aa8e8;--good:#7bc47f;--bar:#2a2f36;--sel:#2b2419;--canvas:#23272d;--fx:#e469cf}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif;margin:0}
 .wrap{max-width:1440px;margin:0 auto;padding:22px 20px 40px}
 .top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:6px}
@@ -318,11 +619,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .parts{max-height:52vh;overflow:auto;padding-right:2px}
 .part-row{border:1px solid var(--line);padding:8px 10px;margin-bottom:8px;background:var(--panel)}
 .part-row.selected{outline:2px solid var(--elec);outline-offset:-2px;background:var(--sel)}
-.part-row .kindrow{display:flex;gap:6px;margin-bottom:6px}
+.part-row.fxrow{border-left:3px solid var(--fx)}
+.part-row .kindrow{display:flex;gap:6px;margin-bottom:6px;align-items:center}
 .part-row input[type=text],.part-row select{background:var(--panel);color:var(--ink);border:1px solid var(--line);font:12px "IBM Plex Mono",monospace;padding:4px 5px;min-width:0}
 .part-row .kindrow input[type=text]{flex:1}
 .part-row .kindrow select{flex:1.4}
 .part-row .nums{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:6px}
+.part-row.fxrow .nums{grid-template-columns:repeat(3,1fr)}
 .part-row .nums label{display:block;font:10px "IBM Plex Sans",sans-serif;color:var(--muted);text-transform:uppercase}
 .part-row .nums input{width:100%;box-sizing:border-box;background:var(--panel);color:var(--ink);border:1px solid var(--line);font:12px "IBM Plex Mono",monospace;padding:3px}
 .part-row .btnrow{display:flex;gap:4px;flex-wrap:wrap}
@@ -339,7 +642,7 @@ footer.note{color:var(--muted);font-size:12px;margin-top:24px;border-top:1px sol
 </style>
 <div class="wrap">
 <div class="top"><h1>Dead Frequency Prop Composer</h1></div>
-<p class="lede">Pick TranZit models on the left, add them as parts, position each part in the viewer (drag to turn, wheel to zoom, right-drag to pan), then export df_model_def(...) lines for df_coords.gsc. Grid cells are 10 units, the post is a 70-unit player.</p>
+<p class="lede">Pick TranZit models on the left, add them as parts, position each part in the viewer (drag to turn, wheel to zoom, right-drag to pan), then export df_model_def(...) lines for df_coords.gsc. A preset also loads its registry effect / sound attach points as named crosses (a dot for a 3D sound) next to their prop; they follow their parent part's position and yaw, and export as df_fx_point_def(...) lines. Grid cells are 10 units, the post is a 70-unit player.</p>
 <div class="composer">
 
 <div class="left">
@@ -354,7 +657,7 @@ __LIST__
 <div class="mid">
 <div class="viewer" id="viewer"><canvas id="c"></canvas>
 <div class="vbar"><code id="vname">nothing previewed</code><span class="dims" id="vdims"></span><button class="pickbtn" type="button" id="addBtn" disabled>Add as part</button></div>
-<div class="hint">Click a model on the left to preview it; "Add as part" drops it into the scene at the origin. Arrows = X/Y by 1, PageUp/PageDown = Z by 1, Q/E = yaw 5&deg; (Shift = 5 units / 15&deg;, Alt = 0.25 unit / 1&deg;) on the selected part.</div>
+<div class="hint">Click a model on the left to preview it; "Add as part" drops it into the scene at the origin. Arrows = X/Y by 1, PageUp/PageDown = Z by 1, Q/E = yaw 5&deg; (Shift = 5 units / 15&deg;, Alt = 0.25 unit / 1&deg;) on the selected part -- for a selected fx cross, arrows/PageUp/PageDown move its offset in its PARENT's frame instead (it has no yaw of its own: it turns with its parent).</div>
 <div class="diag" id="diag"></div>
 </div>
 <div class="readout" id="readout">nothing selected</div>
@@ -364,12 +667,7 @@ __LIST__
 <div class="card"><div class="eyebrow">Presets</div>
 <div class="presets"><select id="presetSel">
 <option value="">Load a preset...</option>
-<option value="relay">Relay (roof and table)</option>
-<option value="table">Table with three slots</option>
-<option value="table_rich">Table, Richtofen loaded</option>
-<option value="table_maxis">Table, Maxis loaded</option>
-<option value="tombstone">Tombstone + ember</option>
-<option value="empty">Empty</option>
+__PRESET_OPTIONS__
 </select></div>
 <p class="preset-note" id="presetNote"></p>
 </div>
@@ -379,14 +677,14 @@ __LIST__
 
 <div class="section-h">Export</div>
 <div class="export">
-<p class="hint" style="padding:0 0 4px">GSC for Dead Frequency (offsets relative to the base part, rounded to 0.5):</p>
+<p class="hint" style="padding:0 0 4px">GSC for Dead Frequency (model offsets relative to the parent part's own frame, fx offsets minus their base, rounded to 0.5):</p>
 <pre id="gscOut"></pre>
 <button class="ghost" type="button" id="copyGsc">Copy GSC</button>
 <p class="hint" style="padding:8px 0 4px">Scene text (paste back into "Import scene" below, on this page or another session):</p>
 <pre id="sceneOut"></pre>
 <button class="ghost" type="button" id="copyScene">Copy scene</button>
 <p class="hint" style="padding:8px 0 4px">Import scene:</p>
-<textarea id="importIn" placeholder="kind | model | x y z | p y r"></textarea>
+<textarea id="importIn" placeholder="kind | model | x y z | p y r&#10;fx | name | parent | x y z"></textarea>
 <button class="ghost" type="button" id="importBtn">Import scene</button>
 </div>
 </div>
@@ -401,19 +699,35 @@ __SCRIPTS__
 <script>
 (function(){
   var PRESETS = __PRESETS_JSON__;
-  var VERSION = 'v2';
+  var FX_REGISTRY = __FX_REGISTRY_JSON__;
+  var VERSION = 'v3';
   var STORE_KEY = 'df_composer_transit';
 
   function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(e){ return null; } }
   function saveStore(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({parts:parts, sel:selected})); }catch(e){} }
 
-  var parts = [];      // {kind,model,x,y,z,pitch,yaw,roll}
+  // parts is a mix of two part shapes:
+  //   model: {ptype:'model', kind, model, x,y,z, pitch,yaw,roll, parent?, fxAlias?, anchor?, snapTop?, slot?}
+  //   fx:    {ptype:'fx', name, parent, ox,oy,oz, baseX,baseY,baseZ, sound, rule}
+  // an fx part's parent is a KIND string matched against a model part's own kind, or its fxAlias.
+  var parts = [];
   var selected = -1;
   var viewingModel = null;
   var previewGroup = null;
 
   function newPart(model){
-    return { kind: model, model: model, x: 0, y: 0, z: 0, pitch: 0, yaw: 0, roll: 0 };
+    return { ptype: 'model', kind: model, model: model, x: 0, y: 0, z: 0, pitch: 0, yaw: 0, roll: 0 };
+  }
+  function findParentPart(parentKind){
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      if (p.ptype !== 'fx' && (p.kind === parentKind || p.fxAlias === parentKind)) return p;
+    }
+    return null;
+  }
+  function rotateXY(ox, oy, yawDeg){
+    var r = yawDeg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    return [ ox * c - oy * s, ox * s + oy * c ];
   }
 
   // ---------- left model list (DOM-driven, like the Prop Picker) ----------
@@ -431,7 +745,7 @@ __SCRIPTS__
   var ok = !!(window.THREE && THREE.GLTFLoader && THREE.OrbitControls);
   var renderer, scene, camera, controls;
   var loader = ok ? new THREE.GLTFLoader() : null;
-  var GREY = 0xb8b0a2, ACCENT = 0xe5892f;
+  var GREY = 0xb8b0a2, ACCENT = 0xe5892f, ANCHOR_GREY = 0x7c8794, FX_COLOR = 0xd83bd8, FX_SEL = 0xffe14d;
   var modelCache = {};   // name -> { tmpl: THREE.Group, bounds: {minx,maxx,miny,maxy,minz,maxz} }
   var partGroups = [];   // parallel to parts[]
   var ghostBox = null;
@@ -529,6 +843,37 @@ __SCRIPTS__
     obj.quaternion.setFromEuler(e);
   }
 
+  // A 3-axis cross (6 units, +/-3 on each local axis) for an fx point, and a filled dot for a 3D sound point
+  // (name containing "snd" or "hum"). Built directly in three.js space (X stays X, logical Y -> three Z,
+  // logical Z(vertical) -> three Y) so the group's own setPose() rotation (parent yaw) turns it correctly.
+  function makeCross(color){
+    var pts = new Float32Array([ -3,0,0, 3,0,0,  0,0,-3, 0,0,3,  0,-3,0, 0,3,0 ]);
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+    return new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: color }));
+  }
+  function makeDot(color){
+    return new THREE.Mesh(new THREE.SphereGeometry(2, 10, 8), new THREE.MeshBasicMaterial({ color: color }));
+  }
+  // A small always-visible floating text label (a canvas-texture sprite always faces the camera).
+  function makeLabel(text, fg, bg){
+    var cnv = document.createElement('canvas'); cnv.width = 256; cnv.height = 64;
+    var ctx = cnv.getContext('2d');
+    ctx.font = '30px "IBM Plex Sans", sans-serif';
+    var w = Math.max(24, Math.min(246, ctx.measureText(text).width + 16));
+    ctx.fillStyle = bg || 'rgba(20,20,24,0.78)';
+    ctx.fillRect(0, 10, w, 44);
+    ctx.fillStyle = fg || '#fff';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 6, 32, w - 10);
+    var tex = new THREE.CanvasTexture(cnv);
+    tex.needsUpdate = true;
+    var spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, depthWrite: false, transparent: true }));
+    spr.scale.set(w / 64 * 8, 44 / 64 * 8, 1);
+    spr.renderOrder = 999;
+    return spr;
+  }
+
   function clearGroups(){
     for (var i = 0; i < partGroups.length; i++) { if (partGroups[i]) scene.remove(partGroups[i]); }
     partGroups = [];
@@ -537,7 +882,7 @@ __SCRIPTS__
 
   function updateGhost(bounds){
     if (ghostBox) { scene.remove(ghostBox); ghostBox = null; }
-    if (!ok || !parts.length) return;
+    if (!ok || !parts.length || parts[0].ptype === 'fx') return;
     var base = parts[0];
     var sx = Math.max(bounds.maxx - bounds.minx, 0.01);
     var sy = Math.max(bounds.maxz - bounds.minz, 0.01);
@@ -557,13 +902,35 @@ __SCRIPTS__
     clearGroups();
     parts.forEach(function(p, i){
       partGroups[i] = null;
+      if (p.ptype === 'fx') {
+        var parent = findParentPart(p.parent);
+        var px = parent ? parent.x : 0, py = parent ? parent.y : 0, pz = parent ? parent.z : 0, pyaw = parent ? parent.yaw : 0;
+        var rot = rotateXY(p.ox, p.oy, pyaw);
+        var wx = px + rot[0], wy = py + rot[1], wz = pz + p.oz;
+        var selFlag = (i === selected);
+        var color = selFlag ? FX_SEL : FX_COLOR;
+        var grp = new THREE.Group();
+        grp.add(p.sound ? makeDot(color) : makeCross(color));
+        var label = makeLabel(p.name, selFlag ? '#1b1e23' : '#fff', selFlag ? '#ffe14d' : 'rgba(20,20,24,0.78)');
+        label.position.set(0, 6, 0);
+        grp.add(label);
+        setPose(grp, { x: wx, y: wy, z: wz, pitch: 0, yaw: pyaw, roll: 0 });
+        scene.add(grp);
+        partGroups[i] = grp;
+        return;
+      }
       ensureModel(p.model, function(entry){
         if (!entry || !parts[i] || parts[i] !== p) return;
         var grp = new THREE.Group();
         var clone = entry.tmpl.clone(true);
-        var color = (i === selected) ? ACCENT : GREY;
-        clone.traverse(function(o){ if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.85, metalness: 0.05, side: THREE.DoubleSide }); });
+        var color = (i === selected) ? ACCENT : (p.anchor ? ANCHOR_GREY : GREY);
+        clone.traverse(function(o){ if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ color: color, roughness: 0.85, metalness: 0.05, side: THREE.DoubleSide, transparent: !!p.anchor, opacity: p.anchor ? 0.4 : 1 }); });
         grp.add(clone);
+        if (p.anchor) {
+          var lab = makeLabel(p.kind + ' (anchor)', '#fff', 'rgba(60,72,86,0.85)');
+          lab.position.set(0, 10, 0);
+          grp.add(lab);
+        }
         setPose(grp, p);
         scene.add(grp);
         partGroups[i] = grp;
@@ -630,6 +997,22 @@ __SCRIPTS__
     var html = '';
     parts.forEach(function(p, i){
       var sel = i === selected ? ' selected' : '';
+      if (p.ptype === 'fx') {
+        html += '<div class="part-row fxrow' + sel + '" data-i="' + i + '">';
+        html += '<div class="kindrow"><code>' + escAttr(p.name) + '</code><span class="dims">parent: ' + escAttr(p.parent) + (p.sound ? ' (sound)' : '') + '</span></div>';
+        html += '<div class="nums">';
+        ['ox', 'oy', 'oz'].forEach(function(f){
+          html += '<label>' + f + '<input type="number" step="0.5" class="fld" data-i="' + i + '" data-f="' + f + '" value="' + p[f] + '"></label>';
+        });
+        html += '</div>';
+        html += '<p class="hint" style="padding:0 0 6px">' + escAttr(p.rule || 'parent origin + offset (no top/rim base)') + '</p>';
+        html += '<div class="btnrow">';
+        html += '<button type="button" class="sel" data-i="' + i + '">Select</button>';
+        html += '<button type="button" class="dup" data-i="' + i + '">Duplicate</button>';
+        html += '<button type="button" class="rm" data-i="' + i + '">Remove</button>';
+        html += '</div></div>';
+        return;
+      }
       html += '<div class="part-row' + sel + '" data-i="' + i + '">';
       html += '<div class="kindrow"><input type="text" class="kind" data-i="' + i + '" value="' + escAttr(p.kind) + '">';
       html += '<select class="modelsel" data-i="' + i + '">' + modelOptions(p.model) + '</select></div>';
@@ -672,7 +1055,7 @@ __SCRIPTS__
   function selectPart(i){ selected = i; saveStore(); renderParts(); rebuildScene(); }
   function duplicatePart(i){
     var src = parts[i], copy = {}; for (var k in src) copy[k] = src[k];
-    copy.x += 2; copy.y += 2;
+    if (copy.ptype === 'fx') { copy.ox += 2; copy.oy += 2; } else { copy.x += 2; copy.y += 2; }
     parts.splice(i + 1, 0, copy); selected = i + 1; saveStore(); renderParts(); rebuildScene();
   }
   function removePart(i){
@@ -682,7 +1065,7 @@ __SCRIPTS__
   }
   function round2(n){ return Math.round(n * 100) / 100; }
   function snapPart(i){
-    if (i < 1) return;
+    if (i < 1 || parts[i].ptype === 'fx') return;
     var below = parts[i - 1], target = parts[i];
     var mb = modelCache[below.model], mt = modelCache[target.model];
     if (!mb || !mt) { mgDiag('snap: model bounds not loaded yet for ' + below.model + ' or ' + target.model + ' -- try again in a moment'); return; }
@@ -690,7 +1073,7 @@ __SCRIPTS__
     saveStore(); renderParts(); rebuildScene();
   }
   function setAsBase(i){
-    if (i < 1) return;
+    if (i < 1 || parts[i].ptype === 'fx') return;
     var p = parts.splice(i, 1)[0];
     parts.unshift(p);
     selected = 0;
@@ -704,16 +1087,16 @@ __SCRIPTS__
     if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
     var unit = ev.shiftKey ? 5 : (ev.altKey ? 0.25 : 1);
     var deg = ev.shiftKey ? 15 : (ev.altKey ? 1 : 5);
-    var p = parts[selected], used = true;
+    var p = parts[selected], used = true, isFx = p.ptype === 'fx';
     switch (ev.key) {
-      case 'ArrowLeft': p.x -= unit; break;
-      case 'ArrowRight': p.x += unit; break;
-      case 'ArrowUp': p.y += unit; break;
-      case 'ArrowDown': p.y -= unit; break;
-      case 'PageUp': p.z += unit; break;
-      case 'PageDown': p.z -= unit; break;
-      case 'q': case 'Q': p.yaw -= deg; break;
-      case 'e': case 'E': p.yaw += deg; break;
+      case 'ArrowLeft': if (isFx) p.ox -= unit; else p.x -= unit; break;
+      case 'ArrowRight': if (isFx) p.ox += unit; else p.x += unit; break;
+      case 'ArrowUp': if (isFx) p.oy += unit; else p.y += unit; break;
+      case 'ArrowDown': if (isFx) p.oy -= unit; else p.y -= unit; break;
+      case 'PageUp': if (isFx) p.oz += unit; else p.z += unit; break;
+      case 'PageDown': if (isFx) p.oz -= unit; else p.z -= unit; break;
+      case 'q': case 'Q': if (!isFx) p.yaw -= deg; else used = false; break;
+      case 'e': case 'E': if (!isFx) p.yaw += deg; else used = false; break;
       default: used = false;
     }
     if (used) { ev.preventDefault(); saveStore(); renderParts(); rebuildScene(); }
@@ -723,27 +1106,39 @@ __SCRIPTS__
     var el = document.getElementById('readout');
     if (selected < 0 || !parts[selected]) { el.textContent = 'nothing selected'; return; }
     var p = parts[selected];
-    el.textContent = p.kind + ' | ' + p.model + ' | ' + p.x + ' ' + p.y + ' ' + p.z + ' | ' + p.pitch + ' ' + p.yaw + ' ' + p.roll;
+    if (p.ptype === 'fx') {
+      el.textContent = p.name + ' | parent ' + p.parent + ' | ' + p.ox + ' ' + p.oy + ' ' + p.oz + (p.rule ? ('  -- ' + p.rule) : '');
+    } else {
+      el.textContent = p.kind + ' | ' + p.model + ' | ' + p.x + ' ' + p.y + ' ' + p.z + ' | ' + p.pitch + ' ' + p.yaw + ' ' + p.roll;
+    }
   }
 
   // ---------- export / import ----------
   function round05(n){ return Math.round(n * 2) / 2; }
   function gscText(){
     if (!parts.length) return '';
-    var base = parts[0];
-    // The relay's own sub-parts (relay_coil, relay_mast, relay_top) are registered relative to the RELAY, not
-    // whatever part[0] happens to be (e.g. the table in the "Table, Richtofen/Maxis loaded" presets): find the
-    // relay part, if any, and use it as their reference so these lines match df_model_offset's own convention.
-    var relay = null;
-    parts.forEach(function(p){ if (p.kind === 'relay') relay = p; });
-    var lines = parts.map(function(p){
-      var ref = (relay && (p.kind === 'relay_coil' || p.kind === 'relay_mast' || p.kind === 'relay_top')) ? relay : base;
-      var dx = round05(p.x - ref.x), dy = round05(p.y - ref.y), dz = round05(p.z - ref.z);
-      return 'df_model_def( "' + p.kind + '", "' + p.model + '", ' + p.pitch + ', ' + p.roll + ', ' + p.yaw + ', ( ' + dx + ', ' + dy + ', ' + dz + ' ) );';
+    var modelParts = parts.filter(function(p){ return p.ptype !== 'fx' && !p.anchor; });
+    var lines = modelParts.map(function(p){
+      var dx = 0, dy = 0, dz = 0, yaw = p.yaw;
+      // A part's own df_model_def offset is only meaningful relative to ANOTHER part when it carries an
+      // explicit .parent (relay_coil / relay_mast / relay_top, per df_model_offset's own registry): undo the
+      // parent's yaw the same way df_model_offset_at() rotates the stored offset BY the parent's yaw, so the
+      // exported numbers match the registry regardless of how the parent itself is turned in this scene
+      // (e.g. the relay sitting at -45 on a loaded table).
+      if (p.parent) {
+        var parent = findParentPart(p.parent);
+        if (parent) {
+          var loc = rotateXY(p.x - parent.x, p.y - parent.y, -parent.yaw);
+          dx = round05(loc[0]); dy = round05(loc[1]); dz = round05(p.z - parent.z);
+          yaw = round2(p.yaw - parent.yaw);
+        }
+      }
+      return 'df_model_def( "' + p.kind + '", "' + p.model + '", ' + p.pitch + ', ' + p.roll + ', ' + yaw + ', ( ' + dx + ', ' + dy + ', ' + dz + ' ) );';
     });
-    // Table-slot occupants (a part carrying .slot, 0/1/2) are code (df_table_slot in df_coords.gsc), not registry
-    // entries, so they get their own plain-text block of absolute positions instead of a df_model_def line.
-    var slotted = parts.filter(function(p){ return typeof p.slot === 'number'; }).slice().sort(function(a, b){ return a.slot - b.slot; });
+
+    // Table-slot occupants (a part carrying .slot, 0/1/2) are code (df_table_slot in df_coords.gsc), not
+    // registry entries, so they get their own plain-text block of absolute positions instead of a df_model_def line.
+    var slotted = parts.filter(function(p){ return p.ptype !== 'fx' && typeof p.slot === 'number'; }).slice().sort(function(a, b){ return a.slot - b.slot; });
     if (slotted.length) {
       lines.push('');
       lines.push('// table layout (df_table_slot( n ) in df_coords.gsc -- code, not registry entries)');
@@ -751,10 +1146,30 @@ __SCRIPTS__
         lines.push('slot ' + p.slot + ' = ' + p.kind + ' at ( ' + round05(p.x) + ', ' + round05(p.y) + ', ' + round05(p.z) + ' )');
       });
     }
+
+    // Every fx point, offset in its parent's own frame minus its base (the parent's glTF top/rim bound, or
+    // another point's own resolved offset -- see baseX/baseY/baseZ), so the export matches df_fx_point_def's
+    // own registry convention. A point drawn more than once (tower_column_side, table_slot_glint) exports once.
+    var fxParts = parts.filter(function(p){ return p.ptype === 'fx'; });
+    var seen = {}, fxLines = [];
+    fxParts.forEach(function(p){
+      if (seen[p.name]) return;
+      seen[p.name] = true;
+      var rx = round05(p.ox - (p.baseX || 0)), ry = round05(p.oy - (p.baseY || 0)), rz = round05(p.oz - (p.baseZ || 0));
+      fxLines.push('df_fx_point_def( "' + p.name + '", "' + p.parent + '", ( ' + rx + ', ' + ry + ', ' + rz + ' ) );');
+    });
+    if (fxLines.length) {
+      lines.push('');
+      lines.push('// effect / sound attach points (df_fx_point_def in df_coords.gsc, df_fx_points_init())');
+      lines.push.apply(lines, fxLines);
+    }
     return lines.join('\n');
   }
   function sceneText(){
-    return parts.map(function(p){ return p.kind + ' | ' + p.model + ' | ' + p.x + ' ' + p.y + ' ' + p.z + ' | ' + p.pitch + ' ' + p.yaw + ' ' + p.roll; }).join('\n');
+    return parts.map(function(p){
+      if (p.ptype === 'fx') return 'fx | ' + p.name + ' | ' + p.parent + ' | ' + p.ox + ' ' + p.oy + ' ' + p.oz;
+      return p.kind + ' | ' + p.model + ' | ' + p.x + ' ' + p.y + ' ' + p.z + ' | ' + p.pitch + ' ' + p.yaw + ' ' + p.roll;
+    }).join('\n');
   }
   function updateExport(){
     document.getElementById('gscOut').textContent = gscText();
@@ -772,9 +1187,21 @@ __SCRIPTS__
     var np = [];
     lines.forEach(function(l){
       var seg = l.split('|').map(function(s){ return s.trim(); });
+      if (seg[0] === 'fx') {
+        if (seg.length < 4) return;
+        var fxyz = seg[3].split(/\s+/).map(Number);
+        var reg = FX_REGISTRY[seg[1]] || {};
+        np.push({
+          ptype: 'fx', name: seg[1], parent: seg[2] || reg.parent || '',
+          ox: fxyz[0] || 0, oy: fxyz[1] || 0, oz: fxyz[2] || 0,
+          baseX: reg.baseX || 0, baseY: reg.baseY || 0, baseZ: reg.baseZ || 0,
+          sound: reg.sound || 0, rule: reg.rule || ''
+        });
+        return;
+      }
       if (seg.length < 4) return;
       var xyz = seg[2].split(/\s+/).map(Number), pyr = seg[3].split(/\s+/).map(Number);
-      np.push({ kind: seg[0], model: seg[1], x: xyz[0] || 0, y: xyz[1] || 0, z: xyz[2] || 0, pitch: pyr[0] || 0, yaw: pyr[1] || 0, roll: pyr[2] || 0 });
+      np.push({ ptype: 'model', kind: seg[0], model: seg[1], x: xyz[0] || 0, y: xyz[1] || 0, z: xyz[2] || 0, pitch: pyr[0] || 0, yaw: pyr[1] || 0, roll: pyr[2] || 0 });
     });
     if (np.length) { parts = np; selected = 0; saveStore(); renderParts(); rebuildScene(); }
   });
@@ -787,12 +1214,12 @@ __SCRIPTS__
     selected = parts.length ? 0 : -1;
     var note = document.getElementById('presetNote'); if (note) note.textContent = preset.note || '';
     saveStore(); renderParts(); rebuildScene();
-    var baseModel = parts.length ? parts[0].model : null;
-    var needsTop = parts.some(function(p){ return p.snapTop; });
+    var baseModel = parts.length && parts[0].ptype !== 'fx' ? parts[0].model : null;
+    var needsTop = parts.some(function(p){ return p.ptype !== 'fx' && p.snapTop; });
     if (needsTop && baseModel) {
       ensureModel(baseModel, function(entry){
         var topZ = entry ? entry.bounds.maxz : 0;
-        parts.forEach(function(p){ if (p.snapTop) p.z = topZ; });
+        parts.forEach(function(p){ if (p.ptype !== 'fx' && p.snapTop) p.z = topZ; });
         saveStore(); renderParts(); rebuildScene();
       });
     }
@@ -819,6 +1246,8 @@ HTMLEOF
 $template =~ s/\Q__LIST__\E/$list/;
 $template =~ s/\Q__SCRIPTS__\E/$scripts/;
 $template =~ s/\Q__PRESETS_JSON__\E/$presets_json/;
+$template =~ s/\Q__FX_REGISTRY_JSON__\E/$fx_registry_json/;
+$template =~ s/\Q__PRESET_OPTIONS__\E/$preset_options/;
 $template =~ s/\Q__FOOTER__\E/$footer_note/;
 
 print $template;
