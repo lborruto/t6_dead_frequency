@@ -144,7 +144,7 @@ df_rich_pickup_place( kind, pos, link )
     p.model = spawn( "script_model", pos );
     p.model setmodel( df_model( kind ) );
     p.model.angles = df_model_angles( kind, randomint( 360 ) );
-    p.fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + ( 0, 0, 14 ) );
+    p.fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "pickup_glint" ) );
 
     if ( isdefined( link ) )
     {
@@ -298,7 +298,7 @@ df_r1_spawn_fuses()
         fuse = spawnstruct();
         fuse.idx = i;
         fuse.origin = c.origin;
-        fuse.led_origin = c.origin + ( 0, 0, 10 );
+        fuse.led_origin = c.origin + df_fx_point( "fuse_led" );
         fuse.souls = 0;
         fuse.model = spawn( "script_model", c.origin );
         fuse.model setmodel( df_model( "fuse" ) );
@@ -791,7 +791,7 @@ df_r1_card_spawn_fx( pos )
 df_r1_focus_pos()
 {
     if ( isdefined( level.df_fuses ) && level.df_fuses.size > 0 && isdefined( level.df_fuses[0].led_origin ) )
-        return level.df_fuses[0].led_origin + ( 0, 0, 6 );
+        return level.df_fuses[0].led_origin + df_fx_point( "fuse_focus" );
 
     return df_r1_boxes_center() + ( 0, 0, 40 );
 }
@@ -813,7 +813,7 @@ df_r1_card_place( pos )
     level.df_card = spawn( "script_model", pos );
     level.df_card setmodel( df_model( "card" ) );
     level.df_card.angles = ( 0, randomint( 360 ), 0 );
-    level.df_card_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + ( 0, 0, 10 ) );
+    level.df_card_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "card_glint" ) );
     level.df_card_carrier = undefined;
 
     if ( !isdefined( level.df_card_float ) || level.df_card_float != 0 )
@@ -842,7 +842,7 @@ df_r1_card_table_place()
     level.df_card_table = spawn( "script_model", pos );
     level.df_card_table setmodel( df_model( "card" ) );
     level.df_card_table.angles = df_model_angles( "card", df_table_yaw() );
-    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + ( 0, 0, 10 ) );
+    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "card_glint" ) );
     df_debug_print( "DF: key card on the table, slot 1" );
 }
 
@@ -853,7 +853,7 @@ df_r1_card_table_glow()
         return;
 
     df_fx_stop( level.df_card_table_fx );
-    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_card_table.origin + ( 0, 0, 6 ) );
+    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_card_table.origin + df_fx_point( "card_glow" ) );
 }
 
 df_r1_card_table_remove()
@@ -900,7 +900,7 @@ df_r1_wait_card_inserted()
 
     socket = df_coord( "DF_SOCKET" ).origin;
     df_fx_stop( level.df_socket_marker );
-    level.df_socket_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", socket + ( 0, 0, 40 ) );
+    level.df_socket_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", socket + df_fx_point( "socket_marker" ) );
 
     while ( true )
     {
@@ -1351,7 +1351,7 @@ df_r1_wait_capture()
     df_debug_print( "DF: avogadro captured at the tower" );
     socket_pos = df_coord( "DF_SOCKET" ).origin;
     df_fx_once( "avogadro_ascend", socket_pos );
-    phasing = df_fx_loop( "avogadro_phasing", socket_pos + ( 0, 0, 30 ) );
+    phasing = df_fx_loop( "avogadro_phasing", socket_pos + df_fx_point( "socket_glow" ) );
     level thread df_fx_stop_after( phasing, 10 );
     df_say( "R1_RICH_CAPTURED" );
     df_say( "R1_MAXIS_TAUNT" );
@@ -2307,7 +2307,7 @@ df_r2_array_set( n )
         level.df_r2_array_fx = [];
 
     for ( i = level.df_r2_array_fx.size; i < n; i++ )
-        level.df_r2_array_fx[i] = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", df_table_slot( 0 ) + ( 0, 0, 40 + 16 * i ) );
+        level.df_r2_array_fx[i] = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", df_table_slot( 0 ) + df_fx_point( "relay_array_node" ) + df_fx_point( "relay_array_step" ) * i );
 }
 
 // "!df goto" past r2: the listener, beams, spools and carrier state go; the set stays (one set per game)

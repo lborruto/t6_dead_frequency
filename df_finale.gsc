@@ -129,7 +129,7 @@ df_fin_socket_watch()
     level endon( "df_fin_started" );
 
     c = df_coord( "DF_SOCKET" );
-    level.df_fin_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", c.origin + ( 0, 0, 30 ) );
+    level.df_fin_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", c.origin + df_fx_point( "socket_glow" ) );
 
     while ( true )
     {
@@ -308,7 +308,7 @@ df_fin_spectacle( side, base, socket, real )
     if ( side == "maxis" )
         playsoundatposition( "zmb_phdflop_explo", top );                       // fire whoosh ("ignite" is in no TranZit bank)
 
-    playsoundatposition( "zmb_turn_on", base + ( 0, 0, 100 ) );               // zm_transit_power.gsc:60
+    playsoundatposition( "zmb_turn_on", base + df_fx_point( "tower_power_snd" ) );               // zm_transit_power.gsc:60
     wait 0.3;
 
     // thunder: the Avogadro arrival crack (_zm_ai_avogadro.gsc:810), verified loud by the owner; the cue
@@ -566,12 +566,12 @@ df_fin_pulses( socket, seconds, side )
     {
         if ( side == "maxis" )
         {
-            df_fx_burst( "fx_zmb_tranzit_fire_lrg", socket + ( 0, 0, 30 ), 0.4 );   // df_systems, self-cleaning
+            df_fx_burst( "fx_zmb_tranzit_fire_lrg", socket + df_fx_point( "socket_glow" ), 0.4 );   // df_systems, self-cleaning
             df_snd_loop_burst( "zmb_fire_loop", socket, 0.6 ); // owner pick 2026-09-11: puff = fire loop burst
         }
         else
         {
-            df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", socket + ( 0, 0, 30 ) );
+            df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", socket + df_fx_point( "socket_glow" ) );
             playsoundatposition( "zmb_zombie_arc", socket ); // zmb_elec_arc is in no TranZit bank (silent)
         }
 
@@ -914,7 +914,7 @@ df_fin_reward_sting( socket )
         return;
     }
 
-    playsoundatposition( "zmb_whoosh", socket + ( 0, 0, 30 ) ); // owner pick 2026-09-11: the sting = the box whoosh
+    playsoundatposition( "zmb_whoosh", socket + df_fx_point( "socket_glow" ) ); // owner pick 2026-09-11: the sting = the box whoosh
     df_debug_print( "DF: finale sting played" );
 }
 
@@ -1072,7 +1072,7 @@ df_fin_slot_glow( n )
     if ( isdefined( level.df_fin_slot_fx[n] ) )
         return;
 
-    fx = df_fx_loop( df_fin_slot_glow_fx(), df_table_slot( n ) + ( 0, 0, 6 ) );
+    fx = df_fx_loop( df_fin_slot_glow_fx(), df_table_slot( n ) + df_fx_point( "table_slot_glint" ) );
 
     if ( isdefined( fx ) )
         level.df_fin_slot_fx[n] = fx;

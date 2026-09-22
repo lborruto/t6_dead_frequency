@@ -13,6 +13,12 @@
 // df_model_offset( kind ) = stacking offset of a piece on its parent (relay_top / relay_mast on the relay).
 // Every number is measured on the glTF export (C:\Games\t6\model_dump\<zone>\model_export, POSITION bounds).
 //
+// Effect and sound ATTACH POINTS live in the same place: df_fx_points_init() below is the one registry of
+// every offset an fx or a 3D sound takes from its prop (pipe_glow, fuse_led, orb_aura, brazier_rim_fire...).
+// Step files never write "+ ( 0, 0, 30 )" any more: they call df_fx_point( "<name>" ) (or df_fx_point_at
+// with the parent's yaw when the point has a horizontal part). `!df dump` prints them as [FXPT] lines and
+// the Prop Composer shows each one as a named cross beside its prop and exports the df_fx_point_def lines.
+//
 // Check in game: `!df show` (prints the model per anchor), `!df tp <KEY>`, `!df dump`, then tune live
 // with `!df ang|lift|move` and paste the printed [SPOT] line into df_apply_overrides(). Overrides always win.
 // Compare candidate models side by side with `!df catalog <keyword>` (df_catalog_models below) and put one
@@ -36,6 +42,13 @@ df_coords_init()
         return;
 
     level.df_coords = [];
+
+    // the model registry first (the anchors below read df_model_rest_z / df_model_top_z), then the effect
+    // attach points, which are expressed against those same props
+    if ( !isdefined( level.df_models ) )
+        df_models_init();
+
+    df_fx_points_init();
 
     // ---- Depot TVs (owner decision 2026-09-07): one inside on a wall of the phone room, three outside
     //      around the depot on dog spawn points (solid ground), facing the building. Audio stays on the phones.
@@ -785,7 +798,7 @@ df_table_preview_slots( key )
 {
     for ( n = 0; n < 3; n++ )
     {
-        g = df_fx_loop( "fx_zmb_tranzit_light_glow", df_table_slot( n ) + ( 0, 0, 6 + n * 10 ) );
+        g = df_fx_loop( "fx_zmb_tranzit_light_glow", df_table_slot( n ) + df_fx_point( "table_slot_glint" ) + df_fx_point( "table_demo_step" ) * n );
 
         if ( isdefined( g ) )
             level.df_preview[key][level.df_preview[key].size] = g;
@@ -932,7 +945,18 @@ df_coords_dump()
         df_coords_console( "[MODEL] " + kind + " -> " + level.df_models[kind] + " | pitch/roll " + int( level.df_model_base[kind][0] ) + "/" + int( level.df_model_base[kind][2] ) + " | wall yaw +" + int( level.df_model_yawoff[kind] ) + " | offset " + int( off[0] ) + " " + int( off[1] ) + " " + int( off[2] ) );
     }
 
-    return "DF: " + keys.size + " anchors ([SPOT]) and " + kinds.size + " models ([MODEL]) listed in the console";
+    if ( !isdefined( level.df_fx_points ) )
+        df_fx_points_init();
+
+    points = getarraykeys( level.df_fx_points );
+
+    foreach ( name in points )
+    {
+        off = level.df_fx_points[name];
+        df_coords_console( "[FXPT] " + name + " -> " + df_fx_point_parent( name ) + " | offset " + int( off[0] ) + " " + int( off[1] ) + " " + int( off[2] ) );
+    }
+
+    return "DF: " + keys.size + " anchors ([SPOT]), " + kinds.size + " models ([MODEL]) and " + points.size + " attach points ([FXPT]) listed in the console";
 }
 
 // Console-only line (copy-paste material), same "[DF] " prefix as df_out.
@@ -1341,6 +1365,207 @@ df_models_init_items()
     // "tag_part_04"), 5 x 5 x 6: a small glowing rock; the step wraps it in fire fx (lava_burning / lava glow).
     // No other always-loaded coal-like prop exists (zombie_meteor_chunk_sml2 is gump_busstation).
     df_model_def( "ember", "p6_zm_buildable_sq_meteor", 0, 0, 0 );
+}
+
+// =========================================================================================
+// effect / sound attach points
+// =========================================================================================
+//
+// INVENTORY (2026-09-22, the refactor that created this registry). Every effect or sound whose position
+// was a literal "<prop or anchor origin> + ( x, y, z )" in a step file, with the file:line it lived on,
+// the prop it hangs on, the fx / sound key and the offset. All of them now read their offset from
+// df_fx_point() below; the numbers did not change.
+//
+//   file:line                   parent  fx / sound key                          offset          point
+//   df_act1.gsc:183             tv      df_a1_fx_pipe_flash (flasher)           top +1          pipe_glow
+//   df_act1.gsc:417             tv      switch_sparks                           top +1          pipe_glow
+//   df_act1.gsc:460             tv      fx_zmb_tranzit_light_bulb_xsm           top +1          pipe_glow
+//   df_act1.gsc:2596            tv      df_a1_fx_pipe_flash                     top +1          pipe_glow
+//   df_act1.gsc:2603            tv      df_a1_fx_pipe_locator                   top +1          pipe_glow
+//   df_act1.gsc:2626            signal  df_a1_fx_signal (flasher + locator)     ( 0, 0, 70 )    signal_flash
+//   df_act1.gsc:2668            signal  df_a1_signal_hum_alias (playloopsound)  ( 0, 0, 20 )    signal_hum
+//   df_act1.gsc:260             receiver fx_zmb_tranzit_spark_blue_lg_os        ( 0, 0, 20 )    part_spark
+//   df_act1.gsc:261             receiver elec_md                                ( 0, 0, 20 )    part_spark
+//   df_act1.gsc:597             part    fx_zmb_tranzit_light_glow               ( 0, 0, 24 )    part_glint
+//   df_act1.gsc:1388            part    fx_zmb_tranzit_light_glow               ( 0, 0, 20 )    part_roof_glint
+//   df_act1.gsc:730             relay   building_dust                           ( 0, 0, 10 )    relay_dust
+//   df_act1.gsc:731             relay   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 20 )    relay_spark
+//   df_act1.gsc:1037            relay   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 20 )    relay_spark
+//   df_act1.gsc:1361            relay   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 20 )    relay_spark
+//   df_act1.gsc:1362            relay   elec_md (df_a1_burst_at)                ( 0, 0, 20 )    relay_spark
+//   df_act1.gsc:910             relay   fx_zmb_tranzit_light_glow (key glint)   ( 0, 0, 34 )    relay_glint
+//   df_act1.gsc:1442            relay   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 30 )    relay_glow
+//   df_act1.gsc:1702            relay   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 30 )    relay_glow
+//   df_act1.gsc:1456/1703       relay   elec_sm (df_a1_idle_pulse z)            ( 0, 0, 30 )    relay_glow
+//   df_act1.gsc:1302            relay   df_side_burst_fx (df_a1_burst z)        ( 0, 0, 10 )    relay_burst_low
+//   df_act1.gsc:1249/1468       relay   elec_sm / df_side_burst_fx (burst z)    ( 0, 0, 24 )    relay_burst_mid
+//   df_act1.gsc:1482            relay   fx_zmb_tranzit_spark_int_runner (z)     ( 0, 0, 30 )    relay_glow
+//   df_act1.gsc:1985            table   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 20 )    socket_spark
+//   df_act1.gsc:1638            table   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 30 )    socket_glow
+//   df_act1.gsc:1924            table   fx_zmb_tranzit_light_glow               ( 0, 0, 40 )    socket_marker
+//   df_act2_rich.gsc:147        spool   fx_zmb_tranzit_light_glow               ( 0, 0, 14 )    pickup_glint
+//   df_act2_rich.gsc:301        fuse    (led_origin: glow / spark / Simon)      ( 0, 0, 10 )    fuse_led
+//   df_act2_rich.gsc:794        fuse    AVAILABLE glint over the LED            ( 0, 0, 6 )     fuse_focus
+//   df_act2_rich.gsc:816        card    fx_zmb_tranzit_light_glow               ( 0, 0, 10 )    card_glint
+//   df_act2_rich.gsc:845        card    fx_zmb_tranzit_light_glow               ( 0, 0, 10 )    card_glint
+//   df_act2_rich.gsc:856        card    fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 6 )     card_glow
+//   df_act2_rich.gsc:903        table   fx_zmb_tranzit_light_glow               ( 0, 0, 40 )    socket_marker
+//   df_act2_rich.gsc:1354       table   avogadro_phasing                        ( 0, 0, 30 )    socket_glow
+//   df_act2_rich.gsc:2310       relay   fx_zmb_tranzit_light_glow_xsm (array)   ( 0, 0, 40 )    relay_array_node
+//                                       + 16 per array level                    ( 0, 0, 16 )    relay_array_step
+//   df_act2_maxis.gsc:487       portal  fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 40 )    portal_light
+//   df_act2_maxis.gsc:488/493   portal  fx_zmb_tranzit_light_glow_xsm (orbit)   ( 28, 0, 30 )   portal_orbit
+//   df_act2_maxis.gsc:778       portal  screecher_death                         ( 0, 0, 10 )    portal_burst_ash
+//   df_act2_maxis.gsc:779       portal  fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 50 )    portal_burst_light
+//   df_act2_maxis.gsc:1177      skull   fx_zmb_tranzit_light_glow               ( 0, 0, 20 )    skull_glow
+//   df_act2_maxis.gsc:1411      skull   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 8 )     skull_table_glow
+//   df_act2_maxis.gsc:2396      ember   fx_zmb_tranzit_light_glow               ( 0, 0, 14 )    ember_glow
+//   df_act2_maxis.gsc:2108      brazier zmb_phdflop_explo                       rim + 0         brazier_rim_fire
+//   df_act2_maxis.gsc:1798      brazier fx_zmb_tranzit_fire_med (stage fx)      rim + 0         brazier_rim_fire
+//   df_act2_maxis.gsc:1815      brazier zmb_fire_loop (crackle, playloopsound)  rim + 0         brazier_rim_fire
+//   df_act2_maxis.gsc:2181      brazier zmb_fire_loop (puff)                    rim + 0         brazier_rim_fire
+//   df_act2_maxis.gsc:2241/2250 brazier fx_zmb_tranzit_fire_lrg / zmb_explo_swt rim + 0         brazier_rim_fire
+//   df_act2_maxis.gsc:2109      brazier fx_zmb_ash_rising_md                    rim + 10        brazier_ash
+//   df_act2_maxis.gsc:2161      brazier maxis_sparks trail target               rim + 10        brazier_ash
+//   df_act2_maxis.gsc:2183      brazier fx_zmb_ash_rising_md                    rim + 10        brazier_ash
+//   df_act2_maxis.gsc:2249      brazier fx_zmb_ash_rising_md                    rim + 10        brazier_ash
+//   df_act2_maxis.gsc:2259      brazier fx_zmb_lava_crevice_glow_50 (scorch)    ( 0, 0, 2 )     brazier_ember
+//   df_act2_maxis.gsc:2450      table   fx_zmb_tranzit_fire_lrg                 ( 0, 0, 30 )    socket_glow
+//   df_act2_maxis.gsc:2451      table   fx_zmb_ash_rising_md                    ( 0, 0, 40 )    socket_marker
+//   df_act3_vacuum.gsc:137      orb     df_s6_aura_fx / charge bursts           ( 0, 0, 0 )     orb_aura
+//   df_act3_vacuum.gsc:151      lamp    orb hum / aim (no exploder found)       ( 0, 0, 148 )   lamp_bulb_glow
+//   df_act3_vacuum.gsc:157/170  fuse    zmb_avogadro_loop hum / beam aim        ( 0, 0, 20 )    fuse_aim
+//   df_act3_vacuum.gsc:158/173  core    zmb_avogadro_loop hum / beam aim        ( 0, 0, 30 )    core_node
+//   df_act3_vacuum.gsc:161      brazier zmb_avogadro_loop hum aim               ( 0, 0, 60 )    node_aim
+//   df_act3_vacuum.gsc:175      brazier beam aim                               ( 0, 0, 40 )    node_beam
+//   df_act3_vacuum.gsc:662      brazier fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 40 )    node_glow
+//   df_act3_vacuum.gsc:826/827  orb     df_beam_start / key glint               ( 0, 0, 20 )    orb_glint
+//   df_act3_vacuum.gsc:1633     table   fx_zmb_tranzit_spark_int_runner         ( 0, 0, 30 )    socket_glow
+//   df_act3_vacuum.gsc:464/465  tower   fx_zmb_ash_rising_md (side columns)     ( 60, 0, 0 )    tower_column_side
+//   df_act3_hold.gsc:503/504    tower   fx_zmb_ash_rising_md (side columns)     ( 60, 0, 0 )    tower_column_side
+//   df_finale.gsc:132           table   fx_zmb_tranzit_light_glow               ( 0, 0, 30 )    socket_glow
+//   df_finale.gsc:569           table   fx_zmb_tranzit_fire_lrg                 ( 0, 0, 30 )    socket_glow
+//   df_finale.gsc:574           table   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 30 )    socket_glow
+//   df_finale.gsc:917           table   zmb_whoosh                              ( 0, 0, 30 )    socket_glow
+//   df_finale.gsc:311           tower   zmb_turn_on                             ( 0, 0, 100 )   tower_power_snd
+//   df_finale.gsc:1075          table   df_fin_slot_glow_fx                     ( 0, 0, 6 )     table_slot_glint
+//   df_act2_maxis.gsc:2385      table   fx_zmb_tranzit_fire_med (ember on slot) ( 0, 0, 6 )     table_slot_glint
+//   df_coords.gsc:788           table   fx_zmb_tranzit_light_glow (demo glints) ( 0, 0, 6 )     table_slot_glint
+//                                       + 10 per slot index                     ( 0, 0, 10 )    table_demo_step
+//   df_lamps.gsc:60             lamp    every lamp fx / hum (bulb fallback)     ( 0, 0, 148 )   lamp_bulb_glow
+//
+// Left as literals on purpose (not prop-relative): the player-carried bursts (df_act1:1810,
+// df_act2_maxis:2006/2048, df_act3_vacuum:1042), the zombie burst (df_act2_maxis:2159), the soul-trail lift
+// (df_act2_maxis:1076), the Nacht room fog on the spawn structs (df_act2_maxis:704) and the bus / tower
+// geometry.
+
+// Effect / sound attach points, in the PARENT PROP'S frame (x forward, y left, z up at yaw 0), turned with the parent
+// by df_fx_point_at. One df_fx_point_def line per point; the Prop Composer exports these lines.
+df_fx_points_init()
+{
+    level.df_fx_points = [];
+    level.df_fx_point_parent = [];
+
+    // ---- Step 1 pipes and the far signal light
+    df_fx_point_def( "pipe_glow", "tv", ( 0, 0, 1 ) );              // base: TOP of the prop, df_model_top_z( "tv" ); the registry holds the extra
+    df_fx_point_def( "signal_flash", "signal", ( 0, 0, 70 ) );      // base: anchor origin; the dvar df_signal_lift still overrides it live
+    df_fx_point_def( "signal_hum", "signal", ( 0, 0, 20 ) );        // base: DF_SIGNAL_SND origin
+
+    // ---- the relay and its loose parts
+    df_fx_point_def( "part_spark", "receiver", ( 0, 0, 20 ) );      // base: where the part lands
+    df_fx_point_def( "part_glint", "part", ( 0, 0, 24 ) );          // base: the part's spot on the ground
+    df_fx_point_def( "part_roof_glint", "part", ( 0, 0, 20 ) );     // base: the part's spot on the bus roof
+    df_fx_point_def( "pickup_glint", "spool", ( 0, 0, 14 ) );       // base: the pickup's spot
+    df_fx_point_def( "relay_dust", "relay", ( 0, 0, 10 ) );
+    df_fx_point_def( "relay_spark", "relay", ( 0, 0, 20 ) );
+    df_fx_point_def( "relay_burst_low", "relay", ( 0, 0, 10 ) );    // df_a1_burst takes the z only
+    df_fx_point_def( "relay_burst_mid", "relay", ( 0, 0, 24 ) );    // df_a1_burst takes the z only
+    df_fx_point_def( "relay_glow", "relay", ( 0, 0, 30 ) );         // idle glow, roof and plugged, and the idle pulse z
+    df_fx_point_def( "relay_glint", "relay", ( 0, 0, 34 ) );
+    df_fx_point_def( "relay_array_node", "relay", ( 0, 0, 40 ) );   // base: table slot 0 (the plugged relay)
+    df_fx_point_def( "relay_array_step", "relay", ( 0, 0, 16 ) );   // multiplied by the array level, on top of relay_array_node
+
+    // ---- the table under the tower (DF_SOCKET sits on DF_TABLE)
+    df_fx_point_def( "socket_spark", "table", ( 0, 0, 20 ) );
+    df_fx_point_def( "socket_glow", "table", ( 0, 0, 30 ) );        // the table light, the pulses, the finale stings
+    df_fx_point_def( "socket_marker", "table", ( 0, 0, 40 ) );      // the AVAILABLE marker over the table
+    df_fx_point_def( "table_slot_glint", "table", ( 0, 0, 6 ) );    // base: TOP of the table, df_table_slot( n ) already carries it
+    df_fx_point_def( "table_demo_step", "table", ( 0, 0, 10 ) );    // `!df show DF_TABLE` only: multiplied by the slot index
+
+    // ---- the things that sit on the table
+    df_fx_point_def( "card_glint", "card", ( 0, 0, 10 ) );
+    df_fx_point_def( "card_glow", "card", ( 0, 0, 6 ) );
+    df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
+    df_fx_point_def( "skull_table_glow", "skull", ( 0, 0, 8 ) );
+    df_fx_point_def( "ember_glow", "ember", ( 0, 0, 14 ) );
+
+    // ---- the barn fuse boxes and the Step 6 nodes
+    df_fx_point_def( "fuse_led", "fuse", ( 0, 0, 10 ) );            // the LED face: glow, spark and Simon flash
+    df_fx_point_def( "fuse_focus", "fuse", ( 0, 0, 6 ) );           // base: fuse_led, not the box origin
+    df_fx_point_def( "fuse_aim", "fuse", ( 0, 0, 20 ) );            // where the orb hum and the guide beam land
+    df_fx_point_def( "core_node", "core", ( 0, 0, 30 ) );
+    df_fx_point_def( "lamp_bulb_glow", "lamp", ( 0, 0, 148 ) );     // fallback bulb height when the map exploder is not found
+    df_fx_point_def( "node_aim", "brazier", ( 0, 0, 60 ) );         // generic Step 6 node: the orb hum
+    df_fx_point_def( "node_beam", "brazier", ( 0, 0, 40 ) );        // generic Step 6 node: the guide beam
+    df_fx_point_def( "node_glow", "brazier", ( 0, 0, 40 ) );        // generic Step 6 node: its own glow
+
+    // ---- the M2 braziers (tombstones): the rim is measured per brazier (df_m2_rim_height), the registry holds the extra
+    df_fx_point_def( "brazier_rim_fire", "brazier", ( 0, 0, 0 ) );  // base: the RIM of the prop (b.rim); fire, crackle, whoosh, puff
+    df_fx_point_def( "brazier_ash", "brazier", ( 0, 0, 10 ) );      // base: the RIM of the prop (b.rim)
+    df_fx_point_def( "brazier_ember", "brazier", ( 0, 0, 2 ) );     // base: brazier origin, the scorched glow of a spent stone
+
+    // ---- the orb
+    df_fx_point_def( "orb_aura", "orb", ( 0, 0, 0 ) );              // the aura and the charge bursts ride the orb's own origin
+    df_fx_point_def( "orb_glint", "orb", ( 0, 0, 20 ) );            // the key glint and the guide beam over a loose orb
+
+    // ---- the M1 burrow portal
+    df_fx_point_def( "portal_light", "portal", ( 0, 0, 40 ) );
+    df_fx_point_def( "portal_orbit", "portal", ( 28, 0, 30 ) );     // horizontal: the orbiting light, linked with this very offset
+    df_fx_point_def( "portal_burst_ash", "portal", ( 0, 0, 10 ) );  // base: the return point
+    df_fx_point_def( "portal_burst_light", "portal", ( 0, 0, 50 ) );
+
+    // ---- the tower
+    df_fx_point_def( "tower_column_side", "tower", ( 60, 0, 0 ) );  // horizontal: the two side ash columns, mirrored (+ and -)
+    df_fx_point_def( "tower_power_snd", "tower", ( 0, 0, 100 ) );   // base: the tower base
+}
+
+df_fx_point_def( name, parent_kind, offset )
+{
+    level.df_fx_points[name] = offset;
+    level.df_fx_point_parent[name] = parent_kind;
+}
+
+// The attach point of `name` in its parent's frame. An unknown name is ( 0, 0, 0 ) plus a console warning
+// (same rule as df_model): a typo never throws, it just puts the fx on the prop's origin.
+df_fx_point( name )
+{
+    if ( !isdefined( level.df_fx_points ) )
+        df_fx_points_init();
+
+    if ( isdefined( level.df_fx_points[name] ) )
+        return level.df_fx_points[name];
+
+    df_debug_print( "DF: df_fx_point: unknown point " + name + ", using ( 0, 0, 0 )" );
+    return ( 0, 0, 0 );
+}
+
+// The same point turned with a parent standing at world yaw `yaw` (df_model_offset_at does this for the
+// stacked models). Points with no horizontal part are unchanged by it, so a caller may always use it.
+df_fx_point_at( name, yaw )
+{
+    return df_offset_rotate( df_fx_point( name ), yaw );
+}
+
+// Which prop kind a point hangs on ("" for an unknown name): what the Prop Composer draws the cross next to.
+df_fx_point_parent( name )
+{
+    if ( !isdefined( level.df_fx_points ) )
+        df_fx_points_init();
+
+    if ( isdefined( level.df_fx_point_parent[name] ) )
+        return level.df_fx_point_parent[name];
+
+    return "";
 }
 
 // One registry entry: model plus its upright pitch/roll, the yaw offset that points its front away from a

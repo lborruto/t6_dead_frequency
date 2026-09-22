@@ -500,8 +500,8 @@ df_s7_column_start()
     }
 
     level.df_s7_column[0] = df_fx_loop( "fx_zmb_ash_rising_md", top );
-    level.df_s7_column[1] = df_fx_loop( "fx_zmb_ash_rising_md", top + ( 60, 0, 0 ) );
-    level.df_s7_column[2] = df_fx_loop( "fx_zmb_ash_rising_md", top + ( -60, 0, 0 ) );
+    level.df_s7_column[1] = df_fx_loop( "fx_zmb_ash_rising_md", top + df_fx_point( "tower_column_side" ) );
+    level.df_s7_column[2] = df_fx_loop( "fx_zmb_ash_rising_md", top - df_fx_point( "tower_column_side" ) );
 }
 
 // The tower-top column off (safe when none runs).

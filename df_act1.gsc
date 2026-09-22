@@ -130,7 +130,7 @@ df_a1_table_follow()
 // top. df_model_top_z( "tv" ) + 1 stays right if the model changes again.
 df_a1_screen_z()
 {
-    return df_model_top_z( "tv" ) + 1;
+    return df_model_top_z( "tv" ) + df_fx_point( "pipe_glow" )[2]; // the extra above the pipe top lives in the registry
 }
 
 // Spawns the four dead screens (df_model "tv") and the one phone spot, runs the poll until the order is solved.
@@ -257,8 +257,8 @@ df_a1_receiver_drop()
         return;
 
     df_snd_near( "zmb_switch_flip", pos, 900 ); // owner pick 2026-09-11: the coil drops = switch flip
-    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + ( 0, 0, 20 ) );
-    df_fx_burst( "elec_md", pos + ( 0, 0, 20 ), 1.0 ); // the one-shot spark alone was not seen (owner 2026-09-09)
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + df_fx_point( "part_spark" ) );
+    df_fx_burst( "elec_md", pos + df_fx_point( "part_spark" ), 1.0 ); // the one-shot spark alone was not seen (owner 2026-09-09)
     df_say( "ITEM_RECEIVER" );
 }
 
@@ -594,7 +594,7 @@ df_a1_part_place( idx, pos, yaw, name )
     part.model = spawn( "script_model", pos + ( 0, 0, df_model_rest_z( df_a1_part_model( idx ) ) ) ); // centre-pivot parts (the coil box) rest ON the ground
     part.model setmodel( df_model( df_a1_part_model( idx ) ) );
     part.model.angles = df_model_angles( df_a1_part_model( idx ), yaw );
-    part.fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + ( 0, 0, 24 ) );
+    part.fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "part_glint" ) );
     part.trig = df_spawn_use_trigger( pos, 56, 72, "Press [{+activate}] to take the " + name );
     level.df_parts[idx] = part;
     level thread df_part_watch( part );
@@ -727,8 +727,8 @@ df_step2_build_relay()
     if ( !is_true( level.df_relay_power_watching ) )
         level thread df_relay_power_watch();
 
-    df_fx_once( "building_dust", pos + ( 0, 0, 10 ) );
-    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + ( 0, 0, 20 ) );
+    df_fx_once( "building_dust", pos + df_fx_point( "relay_dust" ) );
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + df_fx_point( "relay_spark" ) );
 
     if ( !is_true( level.df_goto_busy ) )
         df_cue_tick( pos );
@@ -907,7 +907,7 @@ df_a1_relay_glint_set( on )
     if ( !on || !isdefined( level.df_relay ) || is_true( level.df_relay_locked ) )
         return;
 
-    level.df_relay_glint = df_fx_loop( "fx_zmb_tranzit_light_glow", level.df_relay.origin + ( 0, 0, 34 ) );
+    level.df_relay_glint = df_fx_loop( "fx_zmb_tranzit_light_glow", level.df_relay.origin + df_fx_point( "relay_glint" ) );
 
     if ( isdefined( level.df_relay_glint ) )
         level.df_relay_glint linkto( level.df_relay );
@@ -1034,7 +1034,7 @@ df_step3_stop_counted()
 {
     level.df_segments_done++;
     playsoundatposition( "zmb_bus_horn_leave", level.the_bus.origin );
-    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", level.df_relay.origin + ( 0, 0, 20 ) );
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", level.df_relay.origin + df_fx_point( "relay_spark" ) );
     df_tower_fx_start( "none" );
     level thread df_tower_fx_stop_after( 8 );
     df_debug_print( "DF: stop " + level.df_segments_done + "/" + df_a1_stops_needed() + " counted at " + df_a1_stop_name() + ", relay hp " + level.df_relay_hp );
@@ -1246,7 +1246,7 @@ df_relay_damage( amount )
 
     level.df_relay_hp -= amount;
     df_debug_print( "DF: relay hit, hp " + level.df_relay_hp );
-    level thread df_a1_burst( "elec_sm", level.df_relay, 24, 0.6 );
+    level thread df_a1_burst( "elec_sm", level.df_relay, df_fx_point( "relay_burst_mid" )[2], 0.6 );
 
     if ( level.df_relay_hp > 0 )
     {
@@ -1299,7 +1299,7 @@ df_a1_relay_sick_pulse()
 
     while ( isdefined( level.df_relay ) && is_true( level.df_relay_sick ) )
     {
-        level thread df_a1_burst( df_side_burst_fx(), level.df_relay, 10, 0.6 );
+        level thread df_a1_burst( df_side_burst_fx(), level.df_relay, df_fx_point( "relay_burst_low" )[2], 0.6 );
         wait( randomfloatrange( 0.8, 1.4 ) );
     }
 }
@@ -1358,8 +1358,8 @@ df_step3_break_relay()
     df_a1_relay_delete( level.df_relay );
     level.df_relay = undefined;
     level.df_relay_hp = 0;
-    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + ( 0, 0, 20 ) );
-    level thread df_a1_burst_at( "elec_md", pos + ( 0, 0, 20 ), 0.7 );
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + df_fx_point( "relay_spark" ) );
+    level thread df_a1_burst_at( "elec_md", pos + df_fx_point( "relay_spark" ), 0.7 );
     playsoundatposition( "zmb_explo", pos );
 
     level.df_parts_collected = 0;
@@ -1385,7 +1385,7 @@ df_step3_roof_part( idx, origin, name )
     part.model setmodel( df_model( df_a1_part_model( idx ) ) );
     part.model.angles = df_model_angles( df_a1_part_model( idx ), level.the_bus.angles[1] );
     part.model linkto( level.the_bus );
-    part.fx = df_fx_loop( "fx_zmb_tranzit_light_glow", origin + ( 0, 0, 20 ) );
+    part.fx = df_fx_loop( "fx_zmb_tranzit_light_glow", origin + df_fx_point( "part_roof_glint" ) );
 
     if ( isdefined( part.fx ) )
         part.fx linkto( level.the_bus );
@@ -1439,7 +1439,7 @@ df_relay_fx_set( mode )
         return;
     }
 
-    fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_relay.origin + ( 0, 0, 30 ) );
+    fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_relay.origin + df_fx_point( "relay_glow" ) );
 
     if ( isdefined( fx ) )
         fx linkto( level.df_relay );
@@ -1453,7 +1453,7 @@ df_relay_fx_set( mode )
     }
 
     // "idle": the antenna is powered
-    level thread df_a1_idle_pulse( level.df_relay, "relay", 30 );
+    level thread df_a1_idle_pulse( level.df_relay, "relay", df_fx_point( "relay_glow" )[2] );
 }
 
 // Sweep intensity: a side burst (df_side_burst_fx, pre-fork = the electric one, 0.6 s) on the relay every
@@ -1465,7 +1465,7 @@ df_a1_sweep_pulse()
 
     while ( isdefined( level.df_relay ) )
     {
-        level thread df_a1_burst( df_side_burst_fx(), level.df_relay, 24, 0.6 );
+        level thread df_a1_burst( df_side_burst_fx(), level.df_relay, df_fx_point( "relay_burst_mid" )[2], 0.6 );
         wait 1.5;
     }
 }
@@ -1479,7 +1479,7 @@ df_relay_lock_pulse()
 
     while ( isdefined( level.df_relay ) )
     {
-        level thread df_a1_burst( "fx_zmb_tranzit_spark_int_runner", level.df_relay, 30, 1.0 );
+        level thread df_a1_burst( "fx_zmb_tranzit_spark_int_runner", level.df_relay, df_fx_point( "relay_glow" )[2], 1.0 );
         wait( randomfloatrange( 1.5, 2.5 ) );
     }
 }
@@ -1635,7 +1635,7 @@ df_step4_socket_light( side )
     if ( side == "rich" )
         fxname = "fx_zmb_tranzit_light_glow_xsm";
 
-    level.df_socket_fx = df_fx_loop( fxname, level.df_socket.origin + ( 0, 0, 30 ) );
+    level.df_socket_fx = df_fx_loop( fxname, level.df_socket.origin + df_fx_point( "socket_glow" ) );
 }
 
 // The plugged relay: the antenna stands ON THE TABLE, slot 0 (the left one seen from the front), for the
@@ -1699,8 +1699,8 @@ df_a1_plugged_fx( on )
     if ( !on || !isdefined( level.df_socket_relay ) )
         return;
 
-    level.df_socket_relay_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_socket_relay.origin + ( 0, 0, 30 ) );
-    level thread df_a1_idle_pulse( level.df_socket_relay, "plugged", 30 );
+    level.df_socket_relay_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_socket_relay.origin + df_fx_point( "relay_glow" ) );
+    level thread df_a1_idle_pulse( level.df_socket_relay, "plugged", df_fx_point( "relay_glow" )[2] );
 }
 
 // Relay on the roof (or dropped on the ground): stand within 120 units, one press to carry it.
@@ -1921,7 +1921,7 @@ df_a1_socket_marker_set( on )
         return;
 
     c = df_coord( "DF_SOCKET" );
-    level.df_socket_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", c.origin + ( 0, 0, 40 ) );
+    level.df_socket_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", c.origin + df_fx_point( "socket_marker" ) );
 }
 
 // The side the power switch would lock right now: on = Richtofen, off = Maxis (Step 4 rule).
@@ -1982,7 +1982,7 @@ df_step4_plug( who )
     level.df_a1_preview = undefined; // the preview light becomes the final one
     df_step4_socket_light( side );
     df_step4_plugged_relay_spawn();
-    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", level.df_socket.origin + ( 0, 0, 20 ) );
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", level.df_socket.origin + df_fx_point( "socket_spark" ) );
     df_cue_tick( level.df_socket.origin + ( 0, 0, 30 ) );
     playsoundatposition( "zmb_buildable_complete", level.df_socket.origin ); // 1.4 s "built" (zmb_turn_on = 14 s)
     df_tower_fx_start( side );
@@ -2655,7 +2655,7 @@ df_step1_signal_hum()
 
     // its own spot since 2026-09-11 (owner): DF_SIGNAL_SND, 20 above the anchor; the far light spot as fallback
     c = df_coord( "DF_SIGNAL_SND" );
-    lift = 20;
+    lift = df_fx_point( "signal_hum" )[2];
 
     if ( !isdefined( c ) )
     {
@@ -2684,7 +2684,7 @@ df_a1_signal_lift()
     if ( v != "" )
         return int( v );
 
-    return 70;
+    return df_fx_point( "signal_flash" )[2]; // the default lives in the df_coords attach-point registry
 }
 
 // The hum alias at the far light: dvar df_signal_hum, default zmb_power_on_loop (streamed, 3D 525-750; if it stays

@@ -484,12 +484,12 @@ df_m1_portal_open()
     level.df_m1_hole playloopsound( "zmb_screecher_portal_loop", 2 );
     level thread df_m1_portal_spin();
 
-    level.df_m1_portal_light = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos + ( 0, 0, 40 ) );
-    level.df_m1_portal_orbit = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos + ( 28, 0, 30 ) );
+    level.df_m1_portal_light = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos + df_fx_point( "portal_light" ) );
+    level.df_m1_portal_orbit = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos + df_fx_point( "portal_orbit" ) );
 
     // linkto( ent, tag, origin offset, angles offset ) as _zm_buildables.gsc:641: the light orbits the hole
     if ( isdefined( level.df_m1_portal_orbit ) )
-        level.df_m1_portal_orbit linkto( level.df_m1_hole, "tag_origin", ( 28, 0, 30 ), ( 0, 0, 0 ) );
+        level.df_m1_portal_orbit linkto( level.df_m1_hole, "tag_origin", df_fx_point( "portal_orbit" ), ( 0, 0, 0 ) );
 
     // the step's focus (AVAILABLE glint) moves from the table to the hole: "walk in here"
     df_step_focus( "m1", pos + ( 0, 0, 20 ) );
@@ -775,8 +775,8 @@ df_m1_return_burst( origin )
 {
     level endon( "end_game" );
 
-    df_fx_once( "screecher_death", origin + ( 0, 0, 10 ) );
-    light = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", origin + ( 0, 0, 50 ) );
+    df_fx_once( "screecher_death", origin + df_fx_point( "portal_burst_ash" ) );
+    light = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", origin + df_fx_point( "portal_burst_light" ) );
     wait 2.0;
     df_fx_stop( light );
 }
@@ -1174,7 +1174,7 @@ df_m1_skull_drop( ground )
     df_m1_skull_remove_floor();
     level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, 8 ) );
     level.df_m1_skull setmodel( df_m1_skull_model() );
-    level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", ground + ( 0, 0, 20 ) );
+    level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", ground + df_fx_point( "skull_glow" ) );
     playsoundatposition( "zmb_buildable_piece_add", ground );
     level thread df_m1_skull_poll();
     df_debug_print( "DF: m1 skull on the floor at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", one press takes it" );
@@ -1408,7 +1408,7 @@ df_m1_skull_place_table( quiet )
     pos = df_table_slot( 1 ) + ( 0, 0, 10 );
     level.df_m1_skull_table = spawn( "script_model", pos );
     level.df_m1_skull_table setmodel( df_m1_skull_model() );
-    level.df_m1_skull_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos + ( 0, 0, 8 ) );
+    level.df_m1_skull_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos + df_fx_point( "skull_table_glow" ) );
     level thread df_m1_skull_spin();
     df_debug_print( "DF: m1 skull on the table, slot 1 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
 
@@ -1772,6 +1772,21 @@ df_m2_rim_height( model )
     return 28;
 }
 
+// The two brazier attach points. The BASE is the measured rim of this brazier's model (b.rim =
+// df_m2_rim_height, which follows a live `!df model brazier <name>` swap); the extra above it lives in the
+// df_coords attach-point registry as "brazier_rim_fire" (the fire, the crackle, the whoosh, the puff, the
+// spent burst: 0 above the rim) and "brazier_ash" (the rising ash: 10 above the rim). The Prop Composer
+// draws both crosses against the brazier with "rim" as their base.
+df_m2_rim_pos( b )
+{
+    return b.origin + ( 0, 0, b.rim ) + df_fx_point( "brazier_rim_fire" );
+}
+
+df_m2_ash_pos( b )
+{
+    return b.origin + ( 0, 0, b.rim ) + df_fx_point( "brazier_ash" );
+}
+
 // Stage FX (spec 5, M2), all relative to the rim (b.rim = the model top): 0 ember glow 6 below the rim (unlit;
 // on the 16-tall cairn it shows between the rocks), 1 medium fire at the rim (lit), 2 large fire, 3 two large
 // fires 10 apart plus rising ash 20 above (zm_transit_fx.gsc:90, 99, 100, 81). From stage 1 the brazier crackles.
@@ -1786,7 +1801,7 @@ df_m2_set_stage( b, stage )
         df_fx_stop( fx );
 
     b.fx = [];
-    top = b.origin + ( 0, 0, b.rim );
+    top = df_m2_rim_pos( b );
 
     // owner 2026-09-11: an unlit tombstone shows nothing; a lit one carries one small flame; a spent one is gone
     // (df_m2_fill deletes the model and leaves the scorched glow itself)
@@ -1813,7 +1828,7 @@ df_m2_crackle_start( b )
     if ( isdefined( b.snd ) )
         return;
 
-    b.snd = spawn( "script_model", b.origin + ( 0, 0, b.rim ) );
+    b.snd = spawn( "script_model", df_m2_rim_pos( b ) );
     b.snd setmodel( "tag_origin" );
     b.snd playloopsound( "zmb_fire_loop" );
 }
@@ -2105,8 +2120,8 @@ df_m2_light( b, player )
         df_hint_now( "m2", 2 );
     // fire whoosh, 1.4 s, 750 range: the closest thing to an ignition in the banks (zmb_firetrap_start and
     // "ignite" are Buried / lava-script aliases that no TranZit bank carries: both were silent)
-    playsoundatposition( "zmb_phdflop_explo", b.origin + ( 0, 0, b.rim ) );
-    df_fx_once( "fx_zmb_ash_rising_md", b.origin + ( 0, 0, b.rim + 10 ) );
+    playsoundatposition( "zmb_phdflop_explo", df_m2_rim_pos( b ) );
+    df_fx_once( "fx_zmb_ash_rising_md", df_m2_ash_pos( b ) );
     who = "m2";
     left = 4 - df_m2_lit_count();
     tail = "";
@@ -2158,7 +2173,7 @@ df_m2_on_zombie_death( zombie )
     // the soul leaves the burning body as it bursts (owner 2026-09-11): a fire burst at the zombie, then the trail
     df_fx_burst( "fx_zmb_tranzit_fire_med", zombie.origin + ( 0, 0, 30 ), 0.6 );
     df_snd_near( "evt_player_swiped", zombie.origin, 600 );
-    level thread df_act2_maxis_trail( zombie.origin, best.origin + ( 0, 0, best.rim + 10 ) );
+    level thread df_act2_maxis_trail( zombie.origin, df_m2_ash_pos( best ) );
     level thread df_m2_kill_cue( best );
     df_m2_update( best );
     level notify( "df_m2_check" );
@@ -2172,15 +2187,15 @@ df_m2_kill_cue( b )
     level endon( "end_game" );
 
     wait 0.5;
-    df_cue_tick( b.origin + ( 0, 0, b.rim ), 1 );
+    df_cue_tick( df_m2_rim_pos( b ), 1 );
     df_m2_puff( b );
 }
 
 df_m2_puff( b )
 {
-    top = b.origin + ( 0, 0, b.rim );
+    top = df_m2_rim_pos( b );
     df_snd_loop_burst( "zmb_fire_loop", top, 1.2 ); // owner pick 2026-09-11: puff = fire loop burst
-    df_fx_once( "fx_zmb_ash_rising_md", top + ( 0, 0, 10 ) );
+    df_fx_once( "fx_zmb_ash_rising_md", df_m2_ash_pos( b ) );
 }
 
 // Audit 4 cue: a burning zombie (zombie.is_on_fire) entering 250 of a lit unfinished brazier makes it puff
@@ -2238,7 +2253,7 @@ df_m2_fill( b, quiet )
     b.lit = 1;
     b.done = 1;
     b.count = level.df_m2_target;
-    top = b.origin + ( 0, 0, b.rim );
+    top = df_m2_rim_pos( b );
 
     // the stone is spent: a small burst, the model goes, a scorched glow marks the spot (Step 6 node)
     df_m2_set_stage( b, 0 );
@@ -2246,7 +2261,7 @@ df_m2_fill( b, quiet )
     if ( !is_true( quiet ) )
     {
         df_fx_burst( "fx_zmb_tranzit_fire_lrg", top, 0.8 );
-        df_fx_once( "fx_zmb_ash_rising_md", top + ( 0, 0, 10 ) );
+        df_fx_once( "fx_zmb_ash_rising_md", df_m2_ash_pos( b ) );
         playsoundatposition( "zmb_explo_sweet", top );
     }
 
@@ -2256,7 +2271,7 @@ df_m2_fill( b, quiet )
     if ( isdefined( b.clip ) )
         b.clip delete();
 
-    g = df_fx_loop( "fx_zmb_lava_crevice_glow_50", b.origin + ( 0, 0, 2 ) );
+    g = df_fx_loop( "fx_zmb_lava_crevice_glow_50", b.origin + df_fx_point( "brazier_ember" ) );
 
     if ( isdefined( g ) )
     {
@@ -2341,7 +2356,7 @@ df_m2_power_drop()
         b.count = 0;
 
         dropped++;
-        rim = b.origin + ( 0, 0, b.rim );
+        rim = df_m2_rim_pos( b );
 
         if ( !isdefined( first ) )
         {
@@ -2382,7 +2397,7 @@ df_m2_export_nodes()
 df_m2_ember_spawn_table()
 {
     df_m2_ember_table_remove();
-    level.df_m2_ember_pos = df_table_slot( 2 ) + ( 0, 0, 6 );
+    level.df_m2_ember_pos = df_table_slot( 2 ) + df_fx_point( "table_slot_glint" );
     level.df_m2_ember_on_table = 1;
     level.df_m2_ember_table_fx = [];
     f = df_fx_loop( "fx_zmb_tranzit_fire_med", level.df_m2_ember_pos );
@@ -2393,7 +2408,7 @@ df_m2_ember_spawn_table()
         level thread df_fx_keepalive( f );
     }
 
-    g = df_fx_loop( "fx_zmb_tranzit_light_glow", level.df_m2_ember_pos + ( 0, 0, 14 ) );
+    g = df_fx_loop( "fx_zmb_tranzit_light_glow", level.df_m2_ember_pos + df_fx_point( "ember_glow" ) );
 
     if ( isdefined( g ) )
         level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = g;
@@ -2447,8 +2462,8 @@ df_m2_ember_return( player )
     df_m2_ember_table_remove();
     level.df_m2_ember_returned = 1;
     socket = df_coord( "DF_SOCKET" ).origin;
-    df_fx_burst( "fx_zmb_tranzit_fire_lrg", socket + ( 0, 0, 30 ), 1.0 );
-    df_fx_once( "fx_zmb_ash_rising_md", socket + ( 0, 0, 40 ) );
+    df_fx_burst( "fx_zmb_tranzit_fire_lrg", socket + df_fx_point( "socket_glow" ), 1.0 );
+    df_fx_once( "fx_zmb_ash_rising_md", socket + df_fx_point( "socket_marker" ) );
     playsoundatposition( "zmb_buildable_complete", socket );
     df_debug_print( "DF: m2 the charged ember is back in the table" );
     level notify( "df_m2_check" );

@@ -135,7 +135,7 @@ df_s6_orb_spin()
 // Where the aura and the charge bursts ride relative to the orb's origin (the sphere's centre).
 df_s6_orb_fx_offset()
 {
-    return ( 0, 0, 0 );
+    return df_fx_point( "orb_aura" );
 }
 
 // The aim point sits where players naturally look: the real bulb for set lamps (df_lamp_bulb_pos; the
@@ -148,16 +148,16 @@ df_s6_orb_pos( node )
         if ( isdefined( node.lamp ) )
             return df_lamp_bulb_pos( node.lamp );
 
-        return node.origin + ( 0, 0, 148 );
+        return node.origin + df_fx_point( "lamp_bulb_glow" );
     }
 
     if ( isdefined( node.kind ) && node.kind == "fuse" )
-        return node.origin + ( 0, 0, 20 );
+        return node.origin + df_fx_point( "fuse_aim" );
 
     if ( isdefined( node.kind ) && node.kind == "core" )
-        return node.origin + ( 0, 0, 30 ); // the reactor core nodes (owner 2026-09-11)
+        return node.origin + df_fx_point( "core_node" ); // the reactor core nodes (owner 2026-09-11)
 
-    return node.origin + ( 0, 0, 60 );
+    return node.origin + df_fx_point( "node_aim" );
 }
 
 // Where the guiding beam points for a node without a lamp look of its own (fuse boxes, braziers, fallback nodes).
@@ -167,12 +167,12 @@ df_s6_beam_pos( node )
         return df_s6_orb_pos( node );
 
     if ( isdefined( node.kind ) && node.kind == "fuse" )
-        return node.origin + ( 0, 0, 20 );
+        return node.origin + df_fx_point( "fuse_aim" );
 
     if ( isdefined( node.kind ) && node.kind == "core" )
-        return node.origin + ( 0, 0, 30 );
+        return node.origin + df_fx_point( "core_node" );
 
-    return node.origin + ( 0, 0, 40 );
+    return node.origin + df_fx_point( "node_beam" );
 }
 
 // The floor in front of the table (df_coords df_table_front: 40 units out along the table's front) plus
@@ -461,8 +461,8 @@ df_s6_arrival_fx_start( top )
     }
 
     level.df_s6_arrival_fx[0] = df_fx_loop( "fx_zmb_ash_rising_md", top );
-    level.df_s6_arrival_fx[1] = df_fx_loop( "fx_zmb_ash_rising_md", top + ( 60, 0, 0 ) );
-    level.df_s6_arrival_fx[2] = df_fx_loop( "fx_zmb_ash_rising_md", top + ( -60, 0, 0 ) );
+    level.df_s6_arrival_fx[1] = df_fx_loop( "fx_zmb_ash_rising_md", top + df_fx_point( "tower_column_side" ) );
+    level.df_s6_arrival_fx[2] = df_fx_loop( "fx_zmb_ash_rising_md", top - df_fx_point( "tower_column_side" ) );
 }
 
 // Every build-up fx ent off (safe when none is running).
@@ -659,7 +659,7 @@ df_s6_node_fx_on( node )
     df_s6_beam_on( node );
 
     if ( isdefined( node.src ) && is_true( node.src.fallback ) && !isdefined( node.own_fx ) )
-        node.own_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", node.origin + ( 0, 0, 40 ) );
+        node.own_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", node.origin + df_fx_point( "node_glow" ) );
 
     // a charged fuse box / brazier is HEARD (owner 2026-09-09: no visual instruction): the meteor hum at the
     // draw point, the same hum a charged lamp carries (zm_transit.gsc:3349)
@@ -823,8 +823,8 @@ df_s6_orb_show( pos )
     orb.ent setmodel( df_model( "orb" ) );
     orb.ent.angles = df_model_angles( "orb", randomint( 360 ) );
     orb.ent thread df_s6_orb_spin();
-    orb.beam = df_beam_start( pos + ( 0, 0, 20 ) );
-    orb.glint = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + ( 0, 0, 20 ) );
+    orb.beam = df_beam_start( pos + df_fx_point( "orb_glint" ) );
+    orb.glint = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "orb_glint" ) );
     df_s6_orb_aura_sync();
     orb.ent thread df_s6_orb_charge_fx();
 }
@@ -1630,7 +1630,7 @@ df_s6_place( player )
     if ( isdefined( level.df_socket ) )
         socket_pos = level.df_socket.origin;
 
-    pulse = df_fx_loop( "fx_zmb_tranzit_spark_int_runner", socket_pos + ( 0, 0, 30 ) );
+    pulse = df_fx_loop( "fx_zmb_tranzit_spark_int_runner", socket_pos + df_fx_point( "socket_glow" ) );
     level thread df_s6_fx_stop_after( pulse, 3 );
     df_cue_side_flash( socket_pos + ( 0, 0, 30 ), undefined );
     df_snd_near( "zmb_buildable_piece_add", socket_pos, 700 );

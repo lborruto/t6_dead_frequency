@@ -57,7 +57,7 @@ df_lamps_init()
         return;
 
     level.df_lamps_ready = 1;
-    level.df_lamp_bulb_fallback = ( 0, 0, 148 );
+    level.df_lamp_bulb_fallback = df_fx_point( "lamp_bulb_glow" ); // the bulb height lives in the df_coords attach-point registry
     level thread df_lamp_debug_hook();
     level thread df_lamp_keeper();
     df_lamp_set_get();
