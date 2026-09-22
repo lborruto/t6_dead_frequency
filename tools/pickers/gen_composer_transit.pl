@@ -20,7 +20,6 @@ my $viewer = $ENV{DF_MODEL_VIEWER} // 'C:/Games/t6/model_dump/viewer';
 # be overridden (e.g. while this script still sits in a scratch folder rather than tools/pickers/).
 my $DF_ROOT = $ENV{DF_ROOT} // "$FindBin::Bin/../..";
 my $coords  = "$DF_ROOT/df_coords.gsc";
-$coords = 'C:/Users/Luca/AppData/Local/Plutonium/storage/t6/git/t6_dead_frequency/df_coords.gsc' unless -f $coords;
 die "df_coords.gsc not found (looked at $coords)\n" unless -f $coords;
 
 # ---- SIZES.txt (model -> zone/w/h/d), same parse as gen_wizard_mdl.pl ----------------------------------
