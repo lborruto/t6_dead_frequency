@@ -1541,7 +1541,7 @@ df_fx_points_init()
     df_fx_point_def( "card_glow", "card", ( 0, -0.5, 0.5 ) );       // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
     df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
     df_fx_point_def( "skull_table_glow", "skull", ( 0, 0, 8 ) );
-    df_fx_point_def( "ember_glow", "ember", ( 0, 0, 14 ) );
+    df_fx_point_def( "ember_glow", "ember", ( 0, 0, 0.5 ) );        // owner composer 2026-09-22
 
     // ---- the barn fuse boxes and the Step 6 nodes
     df_fx_point_def( "fuse_led", "fuse", ( 0, 0, 5 ) );             // owner composer 2026-09-22; the LED face: glow, spark and Simon flash
@@ -1549,18 +1549,22 @@ df_fx_points_init()
     df_fx_point_def( "fuse_aim", "fuse", ( 0, 0, 5 ) );             // owner composer 2026-09-22; where the orb hum and the guide beam land
     df_fx_point_def( "core_node", "core", ( 0, 0, 30 ) );
     df_fx_point_def( "lamp_bulb_glow", "lamp", ( 0, 0, 148 ) );     // fallback bulb height when the map exploder is not found
-    df_fx_point_def( "node_aim", "brazier", ( 0, 0, 60 ) );         // generic Step 6 node: the orb hum
-    df_fx_point_def( "node_beam", "brazier", ( 0, 0, 40 ) );        // generic Step 6 node: the guide beam
-    df_fx_point_def( "node_glow", "brazier", ( 0, 0, 40 ) );        // generic Step 6 node: its own glow
+    df_fx_point_def( "node_aim", "brazier", ( 0, 0, 30 ) );         // owner composer 2026-09-22; generic Step 6 node: the orb hum
+    df_fx_point_def( "node_beam", "brazier", ( 0, 0, 0.5 ) );       // owner composer 2026-09-22; generic Step 6 node: the guide beam
+    df_fx_point_def( "node_glow", "brazier", ( 0, 0, 0.5 ) );       // owner composer 2026-09-22; generic Step 6 node: its own glow
 
-    // ---- the M2 braziers (tombstones): the rim is measured per brazier (df_m2_rim_height), the registry holds the extra
-    df_fx_point_def( "brazier_rim_fire", "brazier", ( 0, 0, 0 ) );  // base: the RIM of the prop (b.rim); fire, crackle, whoosh, puff
-    df_fx_point_def( "brazier_ash", "brazier", ( 0, 0, 10 ) );      // base: the RIM of the prop (b.rim)
-    df_fx_point_def( "brazier_ember", "brazier", ( 0, 0, 2 ) );     // base: brazier origin, the scorched glow of a spent stone
+    // ---- the M2 braziers (tombstones): the rim is measured per brazier (df_m2_rim_height), the registry holds the extra.
+    //      The composer page that produced the two numbers below drew the RIM at the tombstone's glTF top (31) while
+    //      the game burns the grave from its base (df_m2_rim_height returns 2 for a "tombstone" model), so the owner's
+    //      exports ( 0, 0, -30.5 ) and ( 3, 0, -6 ) were converted to the b.rim = 2 base, keeping the WORLD heights the
+    //      owner chose (fire 0.5 above the grave origin, ash 25 above it). The page mirrors df_m2_rim_height since [v6].
+    df_fx_point_def( "brazier_rim_fire", "brazier", ( 0, 0, -1.5 ) ); // owner composer 2026-09-22 (converted to the b.rim = 2 the game uses); fire, crackle, whoosh, puff
+    df_fx_point_def( "brazier_ash", "brazier", ( 3, 0, 23 ) );      // owner composer 2026-09-22 (same conversion); base: the RIM of the prop (b.rim); horizontal: df_fx_point_at with the grave yaw at the call site
+    df_fx_point_def( "brazier_ember", "brazier", ( 0, 0, 0.5 ) );   // owner composer 2026-09-22; base: brazier origin, the scorched glow of a spent stone
 
     // ---- the orb
-    df_fx_point_def( "orb_aura", "orb", ( 0, 0, -0.5 ) );           // owner composer 2026-09-22; the aura and the charge bursts ride the orb's own origin
-    df_fx_point_def( "orb_glint", "orb", ( 0, 0, -0.5 ) );          // owner composer 2026-09-22; the key glint and the guide beam over a loose orb
+    df_fx_point_def( "orb_aura", "orb", ( 0, 0, 0 ) );              // owner composer 2026-09-22 (pass 3); the aura and the charge bursts ride the orb's own origin
+    df_fx_point_def( "orb_glint", "orb", ( 0, 0, 0 ) );             // owner composer 2026-09-22 (pass 3); the key glint and the guide beam over a loose orb
 
     // ---- the M1 burrow portal
     df_fx_point_def( "portal_light", "portal", ( 0, 0, 40 ) );

@@ -1682,6 +1682,7 @@ df_m2_place_braziers()
         b.idx = i;
         b.name = "brazier_" + ( i + 1 );
         b.origin = df_ground( c.origin + ( 0, 0, 20 ) ); // on the ground (owner 2026-09-11: they hovered)
+        b.angles = c.angles; // the grave's own yaw: df_m2_ash_pos turns the horizontal ash offset with it
         b.count = 0;
         b.stage = -1;
         b.lit = 0;
@@ -1775,8 +1776,9 @@ df_m2_rim_height( model )
 // The two brazier attach points. The BASE is the measured rim of this brazier's model (b.rim =
 // df_m2_rim_height, which follows a live `!df model brazier <name>` swap); the extra above it lives in the
 // df_coords attach-point registry as "brazier_rim_fire" (the fire, the crackle, the whoosh, the puff, the
-// spent burst: 0 above the rim) and "brazier_ash" (the rising ash: 10 above the rim). The Prop Composer
-// draws both crosses against the brazier with "rim" as their base.
+// spent burst) and "brazier_ash" (the rising ash, which has a horizontal part and is therefore turned with
+// the grave's own yaw). The Prop Composer draws both crosses against the brazier with "rim" as their base,
+// and since [v6] it uses the same rim df_m2_rim_height gives (2 for a tombstone), not the model top.
 df_m2_rim_pos( b )
 {
     return b.origin + ( 0, 0, b.rim ) + df_fx_point( "brazier_rim_fire" );
@@ -1784,7 +1786,12 @@ df_m2_rim_pos( b )
 
 df_m2_ash_pos( b )
 {
-    return b.origin + ( 0, 0, b.rim ) + df_fx_point( "brazier_ash" );
+    yaw = 0;
+
+    if ( isdefined( b.angles ) )
+        yaw = b.angles[1];
+
+    return b.origin + ( 0, 0, b.rim ) + df_fx_point_at( "brazier_ash", yaw );
 }
 
 // Stage FX (spec 5, M2), all relative to the rim (b.rim = the model top): 0 ember glow 6 below the rim (unlit;

@@ -137,14 +137,20 @@ die "df_model_top_z: no tops[] entry for tv model \"$model_def{tv}{name}\" in $c
 my $brazier_top_z = $top_z_by_model{ $model_def{brazier}{name} };
 die "df_model_top_z: no tops[] entry for brazier model \"$model_def{brazier}{name}\" in $coords -- needed for the brazier rim base\n"
     unless defined $brazier_top_z;
+# The RIM the two brazier fire points hang on is NOT the model's top bound in every case: df_m2_rim_height()
+# in df_act2_maxis.gsc returns 2 for any model whose name contains "tombstone" (owner 2026-09-11: the grave
+# burns from its base, the flame used to start at the top), and only otherwise the registry top. Mirror that
+# rule here, or the page draws the fire and the ash against a base the game never uses.
+my $brazier_rim_z = ( $model_def{brazier}{name} =~ /tombstone/ ) ? 2 : $brazier_top_z;
+
 my $orb_rest   = $rest_z_by_model{ $model_def{orb}{name} }   // 0;
 my $skull_rest = $rest_z_by_model{ $model_def{skull}{name} } // 0;
 
-printf STDERR "df_coords.gsc: relay=%s relay_coil=%s(%s,%s,%s) relay_mast=%s(%s,%s,%s) relay_top=%s(%s,%s,%s) brazier=%s(top %s) ember=%s\n",
+printf STDERR "df_coords.gsc: relay=%s relay_coil=%s(%s,%s,%s) relay_mast=%s(%s,%s,%s) relay_top=%s(%s,%s,%s) brazier=%s(rim %s) ember=%s\n",
     $model_def{relay}{name}, $model_def{relay_coil}{name}, $model_def{relay_coil}{ox}, $model_def{relay_coil}{oy}, $model_def{relay_coil}{oz},
     $model_def{relay_mast}{name}, $model_def{relay_mast}{ox}, $model_def{relay_mast}{oy}, $model_def{relay_mast}{oz},
     $model_def{relay_top}{name}, $model_def{relay_top}{ox}, $model_def{relay_top}{oy}, $model_def{relay_top}{oz},
-    $model_def{brazier}{name}, $brazier_top_z, $model_def{ember}{name};
+    $model_def{brazier}{name}, $brazier_rim_z, $model_def{ember}{name};
 printf STDERR "df_coords.gsc: table=%s top_z=%s front_yaw=%s card=%s(pitch %s) skull=%s(rest %s) orb=%s(rest %s) tv=%s(top %s)\n",
     $model_def{table}{name}, $table_top_z, $table_front_yaw, $model_def{card}{name}, $model_def{card}{pitch},
     $model_def{skull}{name}, $skull_rest, $model_def{orb}{name}, $orb_rest, $model_def{tv}{name}, $tv_top_z;
@@ -213,8 +219,8 @@ my %fx_base;   # name -> [bx,by,bz], default [0,0,0] (registry offset only, no b
 $fx_base{pipe_glow}        = [ 0, 0, $tv_top_z ];                       # TOP of the prop (tv)
 $fx_base{table_slot_glint} = [ 0, 0, $table_top_z ];                    # TOP of the prop (table); slot x overridden per instance
 $fx_base{table_demo_step}  = [ 0, 0, $table_top_z ];                    # "multiplied by the slot index": drawn once at slot 1 (x=0)
-$fx_base{brazier_rim_fire} = [ 0, 0, $brazier_top_z ];                  # RIM of the prop (brazier)
-$fx_base{brazier_ash}      = [ 0, 0, $brazier_top_z ];                  # RIM of the prop (brazier)
+$fx_base{brazier_rim_fire} = [ 0, 0, $brazier_rim_z ];                  # RIM of the prop (brazier), df_m2_rim_height
+$fx_base{brazier_ash}      = [ 0, 0, $brazier_rim_z ];                  # RIM of the prop (brazier), df_m2_rim_height
 $fx_base{fuse_focus}       = [ 0, 0, $fx_def{fuse_led}{z} ];            # base is fuse_led, not the box origin
 $fx_base{relay_array_step} = [ 0, 0, $fx_def{relay_array_node}{z} ];    # "multiplied by the array level, on top of relay_array_node"
 
@@ -515,7 +521,7 @@ add_preset(
 add_preset(
     'tombstone', 'Tombstone',
     'Base = kind "brazier" (' . $model_def{brazier}{name} . ') at (0,0,0). Ember = kind "ember" (' . $model_def{ember}{name}
-      . ') snapped to its own live top bound. brazier_rim_fire / brazier_ash: base = RIM of the prop, df_model_top_z("brazier") = ' . $brazier_top_z
+      . ') snapped to its own live top bound. brazier_rim_fire / brazier_ash: base = the RIM the game uses, df_m2_rim_height("' . $model_def{brazier}{name} . '") = ' . $brazier_rim_z
       . '. brazier_ember, ember_glow, node_aim, node_beam, node_glow: registry offset only.',
     model_part( kind => 'brazier', model => $model_def{brazier}{name}, pitch => $model_def{brazier}{pitch}, roll => $model_def{brazier}{roll} ),
     model_part( kind => 'ember', model => $model_def{ember}{name}, pitch => $model_def{ember}{pitch}, roll => $model_def{ember}{roll}, snapTop => 1 ),
@@ -715,7 +721,7 @@ __SCRIPTS__
 (function(){
   var PRESETS = __PRESETS_JSON__;
   var FX_REGISTRY = __FX_REGISTRY_JSON__;
-  var VERSION = 'v5';
+  var VERSION = 'v6';
   var TABLE_TOP_Z = __TABLE_TOP_Z__;   // df_model_top_z( "table" ): the slot registry's z is measured from here
   var STORE_KEY = 'df_composer_transit';
 
