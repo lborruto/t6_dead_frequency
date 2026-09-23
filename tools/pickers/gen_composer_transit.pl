@@ -301,9 +301,9 @@ my @slot2 = table_slot_xyz(2);
 # same, "the relay pieces sit at 45 degrees on the table"); relay_coil / relay_mast ride at their registered
 # df_model_offset, turned the same way (df_model_offset_at / df_offset_rotate).
 # the turn is read from df_table_demo_prop ("yaw = yaw - N;") so the page follows the code (owner turned it to 135 on 2026-09-22)
-my ($relay_turn) = $gsc =~ /df_table_demo_prop\(.*?yaw = yaw - (\d+);/s;
-$relay_turn = 45 unless defined $relay_turn;
-my $relay_yaw = $table_front_yaw - $relay_turn;
+my ($relay_turn) = $gsc =~ /df_relay_table_turn\(\)\s*{\s*return (-?[\d.]+);/s;
+$relay_turn = -45 unless defined $relay_turn;
+my $relay_yaw = $table_front_yaw + $relay_turn;
 my ( $coil_ox, $coil_oy, $coil_oz ) = df_rotate_offset( $model_def{relay_coil}{ox}, $model_def{relay_coil}{oy}, $model_def{relay_coil}{oz}, $relay_yaw );
 my ( $mast_ox, $mast_oy, $mast_oz ) = df_rotate_offset( $model_def{relay_mast}{ox}, $model_def{relay_mast}{oy}, $model_def{relay_mast}{oz}, $relay_yaw );
 my @relay_pos      = ( r2( $slot0[0] ),               r2( $slot0[1] ),               r2( $slot0[2] ) );
@@ -451,7 +451,7 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
       . 'in the table\'s frame with z from the top (df_model_top_z("table") = ' . $table_top_z . '): '
       . join( ', ', map { sprintf 'slot %d = ( %s, %s, %s )', $_, @{ $slot_def{$_} } } ( 0, 1, 2 ) )
       . '. Each item sits exactly ON its slot (the lift is the slot\'s own z; no caller adds anything). '
-      . 'Slot 0: the plugged relay assembly (relay turned yaw - ' . $relay_turn . ' = ' . $relay_yaw . '); relay_coil / relay_mast at their '
+      . 'Slot 0: the plugged relay assembly (relay turned yaw + ' . $relay_turn . ' = ' . $relay_yaw . '); relay_coil / relay_mast at their '
       . 'df_model_offset, rotated the same way. Slot 1: '
       . ( $is_rich
         ? 'kind "card" (' . $model_def{card}{name} . ').'
@@ -721,7 +721,7 @@ __SCRIPTS__
 (function(){
   var PRESETS = __PRESETS_JSON__;
   var FX_REGISTRY = __FX_REGISTRY_JSON__;
-  var VERSION = 'v6';
+  var VERSION = 'v7';
   var TABLE_TOP_Z = __TABLE_TOP_Z__;   // df_model_top_z( "table" ): the slot registry's z is measured from here
   var STORE_KEY = 'df_composer_transit';
 
@@ -866,14 +866,19 @@ __SCRIPTS__
   // A part's pitch/roll fields (in the Parts panel, or R/F and Z/C on the keyboard) feed p.pitch / p.roll here
   // directly: e.g. the card's registry pitch 90 (df_model_def "card","p6_zm_keycard",90,0,0) tips it flat,
   // exactly like a wall prop's registered upright pitch/roll already does for tv/fuse/socket.
-  function toThree(x, y, z){ return new THREE.Vector3(x, z, y); }
+  // FIXED 2026-09-23 (owner: the game did not match the preview): game X forward / Y left / Z up maps to three
+  // (x, z, -y), the right-handed conversion glTF itself uses; the old (x, z, y) mirrored the world left/right and
+  // applied "pitch" around the forward axis (that is a roll). Game angles are yaw about Z, then pitch about the
+  // model's own left axis (positive = nose DOWN), then roll about its own forward axis: three Euler order 'YZX'
+  // with y = yaw, z = -pitch, x = roll.
+  function toThree(x, y, z){ return new THREE.Vector3(x, z, -y); }
   function setPose(obj, p){
     obj.position.copy(toThree(p.x, p.y, p.z));
     var e = new THREE.Euler(
-      THREE.MathUtils.degToRad(p.pitch),
-      -THREE.MathUtils.degToRad(p.yaw),
       THREE.MathUtils.degToRad(p.roll),
-      'YXZ'
+      THREE.MathUtils.degToRad(p.yaw),
+      -THREE.MathUtils.degToRad(p.pitch),
+      'YZX'
     );
     obj.quaternion.setFromEuler(e);
   }

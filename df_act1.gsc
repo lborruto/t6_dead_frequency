@@ -1666,7 +1666,7 @@ df_step4_plugged_relay_spawn()
     if ( isdefined( level.df_models ) && isdefined( level.df_models["relay_mast"] ) )
         top_kind = "relay_mast";
 
-    level.df_socket_relay = df_a1_relay_spawn( pos, yaw, top_kind );
+    level.df_socket_relay = df_a1_relay_spawn( pos, yaw, top_kind, df_relay_table_turn() );
     level thread df_a1_plugged_power_watch();
     df_debug_print( "DF: plugged relay at " + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ", top piece " + top_kind );
 }
@@ -2030,9 +2030,13 @@ df_step4_skip_cleanup()
 
 // Spawns a relay model at pos facing yaw (with its top piece, `top_kind` optional, default "relay_top");
 // returns the base script_model.
-df_a1_relay_spawn( pos, yaw, top_kind )
+df_a1_relay_spawn( pos, yaw, top_kind, turn )
 {
-    yaw = yaw - 135; // owner 2026-09-22: turned a further 90 degrees clockwise (was -45); the relay sits at 45 degrees on the roof and on the table, turned this way (all pieces follow relay.df_yaw)
+    // the turn off the carrier's front: roof and ground by default, the table passes df_relay_table_turn()
+    if ( !isdefined( turn ) )
+        turn = df_relay_roof_turn();
+
+    yaw = yaw + turn;
     relay = spawn( "script_model", pos );
     relay setmodel( df_model( "relay" ) );
     relay.angles = df_model_angles( "relay", yaw );

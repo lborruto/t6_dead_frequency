@@ -368,9 +368,9 @@ df_table_slots_init()
 {
     level.df_table_slots = [];
 
-    df_table_slot_def( 0, ( 0, 18, 0 ) );     // relay: on the top, its own pivot is at its base
-    df_table_slot_def( 1, ( 3, 8, 3.5 ) );    // key card (skull on the Maxis side): half the card below its origin
-    df_table_slot_def( 2, ( 9.5, 1, 2 ) );    // orb: hovers just over the top
+    df_table_slot_def( 0, ( 0, -18, 0 ) ); // mirrored 2026-09-23 with the owner layout     // relay: on the top, its own pivot is at its base
+    df_table_slot_def( 1, ( 3, -8, 3.5 ) ); // mirrored 2026-09-23    // key card (skull on the Maxis side): half the card below its origin
+    df_table_slot_def( 2, ( 9.5, -1, 2 ) ); // mirrored 2026-09-23    // orb: hovers just over the top
 }
 
 df_table_slot_def( n, offset )
@@ -924,9 +924,21 @@ df_table_demo_prop( kind, pos, offset )
 
     // the relay pieces sit at 45 degrees on the table (df_act1 df_a1_relay_spawn, owner 2026-09-11)
     if ( kind == "relay" || kind == "relay_coil" || kind == "relay_top" || kind == "relay_mast" )
-        yaw = yaw - 135; // owner 2026-09-22: matches df_act1 (90 degrees clockwise from the old -45)
+        yaw = yaw + df_relay_table_turn();
 
-    ent = spawn( "script_model", pos + df_offset_rotate( offset, yaw ) );
+    ent = spawn( "script_model", pos + // The relay's turn off its carrier's front: on the bus roof (approved in game since 2026-09-11) and on the table
+// (owner composer 2026-09-22; the preview's -135 was a mirror image, so the game value is +135).
+df_relay_roof_turn()
+{
+    return -45;
+}
+
+df_relay_table_turn()
+{
+    return 135;
+}
+
+df_offset_rotate( offset, yaw ) );
     ent setmodel( df_model( kind ) );
     ent.angles = df_model_angles( kind, yaw );
     return ent;
@@ -1265,19 +1277,19 @@ df_models_init()
     // Owner 2026-09-09: "the relay should look the same each time": the roof relay is the SAME assembly as the
     // table relay, radio + coil + mast (relay_top = relay_mast; the slab read as "just a plank"). The mast pokes
     // through the tunnel roof and the depot roof for a second while the bus passes: cosmetic, no collision.
-    df_model_def( "relay_top", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( -5, -3, 4.5 ) ); // owner composer 2026-09-22: the mast stands on the radio, the box rides the mast
+    df_model_def( "relay_top", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( -5, 3, 4.5 ) ); // owner composer 2026-09-22, mirrored 2026-09-23 (the composer viewer showed the world mirrored left/right)
 
     // relay_coil: the wire coil the phone gave (part 3), stacked on the radio (7.3 tall) on the roof and on the
     // table; the mast stands on the coil (7.6 tall, base pivot, 25 x 25 footprint on the radio's 26 x 19).
     // owner pick 2026-09-11: the power box (13 x 20 x 4, CENTRE pivot) stands upright on the radio: centre at 7 + 10
-    df_model_def( "relay_coil", "p6_zm_buildable_sq_electric_box", 0, 0, -29, ( -4, -0.5, 39.5 ) ); // owner composer 2026-09-22
+    df_model_def( "relay_coil", "p6_zm_buildable_sq_electric_box", 0, 0, 29, ( -4, 0.5, 39.5 ) ); // owner composer 2026-09-22, mirrored 2026-09-23 (the composer viewer showed the world mirrored left/right)
 
     // relay_mast: the piece on the TABLE relay after Step 4 (no clearance problem under the tower): a fence
     // end post, zm_transit ALWAYS, glTF 13 x 3 footprint, 117 tall, pivot at its base, its brace extends 12
     // along -x (inside the radio's 26-long footprint). Stacked at the radio's top (7) it makes the plugged
     // relay a 124-tall antenna readable from outside the fence (art audit #7). Spawned by df_act1
     // (df_step4_plugged_relay_spawn) at relay.origin + df_model_offset( "relay_mast" ) with the relay's yaw.
-    df_model_def( "relay_mast", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( -5, -3, 4.5 ) ); // owner composer 2026-09-22
+    df_model_def( "relay_mast", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( -5, 3, 4.5 ) ); // owner composer 2026-09-22, mirrored 2026-09-23 (the composer viewer showed the world mirrored left/right)
 
     // orb: Step 6/7 charge core. Art audit #6: kind "orb" and kind "skull" were both zombie_skull, so the
     // Maxis table held two identical skulls; the trophy stays the skull, the orb is a machine part: the
@@ -1361,7 +1373,7 @@ df_models_init()
     // height: a flat card seen edge-on has no visible area. Pose here (owner composer 2026-09-22): pitch 180
     // with the face turned 44 off the front, the look the owner settled on for the card on the table and on
     // the barn wall (DF_CARD_SPAWN shows it like a badge).
-    df_model_def( "card", "p6_zm_keycard", 180, 0, 44 ); // owner composer 2026-09-22: pitch 180, turned 44 off the front
+    df_model_def( "card", "p6_zm_keycard", 90, 0, -44 ); // lies flat (pitch 90, known good in game); turn -44 = the owner's 44 mirrored. The viewer applied pitch as a roll before 2026-09-23, so its 180 is not used
 
     // table: the bench under the tower everything is deposited on (owner 2026-09-08). Vanilla Pack-a-Punch
     // "legs" buildable piece (so_zclassic_zm_transit; zm_transit_buildables.gsc:53 generate_zombie_buildable_piece
@@ -1406,7 +1418,7 @@ df_models_init_items()
     // a trigger, 11 x 4 x 10, proven to spawn as a buildable. Fallback: p6_zm_buildable_battery (16 x 14 x 9).
     // receiver (the phone's part) = the wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the
     // same model R2's spools use: the relay carries one on the radio.
-    df_model_def( "receiver", "p6_zm_buildable_sq_electric_box", -10, 0, -14 ); // owner pick 2026-09-11 (Prop Picker): the EE power box; pitch -10 yaw -14 from the composer 2026-09-22
+    df_model_def( "receiver", "p6_zm_buildable_sq_electric_box", 0, 10, 14 ); // owner composer 2026-09-22, mirrored 2026-09-23 (the composer viewer showed the world mirrored left/right): the viewer's "pitch -10" was a roll about the forward axis, mirrored = roll +10; yaw -14 mirrored = 14
 
     // spool: the wire spool a filled lamp drops in R2 (audit 9). The jet gun wire bundle piece
     // (so_zclassic_zm_transit, ALWAYS, zm_transit_buildables.gsc jetgun pieces), 25 x 7 x 25: a coil of cable.
@@ -1538,15 +1550,15 @@ df_fx_points_init()
     df_fx_point_def( "relay_array_step", "relay", ( 0, 0, 16 ) );   // multiplied by the array level, on top of relay_array_node
 
     // ---- the table under the tower (DF_SOCKET sits on DF_TABLE)
-    df_fx_point_def( "socket_spark", "table", ( 1, 17.5, 52 ) ); // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
+    df_fx_point_def( "socket_spark", "table", ( 1, -17.5, 52 ) ); // mirrored 2026-09-23 // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
     df_fx_point_def( "socket_glow", "table", ( 0, 0, 42.5 ) );      // owner composer 2026-09-22; the table light, the pulses, the finale stings
     df_fx_point_def( "socket_marker", "table", ( 0, 0, 42.5 ) );    // owner composer 2026-09-22; the AVAILABLE marker over the table
     df_fx_point_def( "table_slot_glint", "table", ( 0, 0, 6 ) );    // base: TOP of the table, df_table_slot( n ) already carries it
     df_fx_point_def( "table_demo_step", "table", ( 0, 0, 10 ) );    // `!df show DF_TABLE` only: multiplied by the slot index
 
     // ---- the things that sit on the table
-    df_fx_point_def( "card_glint", "card", ( 0, -0.5, 0.5 ) );      // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
-    df_fx_point_def( "card_glow", "card", ( 0, -0.5, 0.5 ) );       // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
+    df_fx_point_def( "card_glint", "card", ( 0, 0.5, 0.5 ) ); // mirrored 2026-09-23      // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
+    df_fx_point_def( "card_glow", "card", ( 0, 0.5, 0.5 ) ); // mirrored 2026-09-23       // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
     df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
     df_fx_point_def( "skull_table_glow", "skull", ( 0, 0, 8 ) );
     df_fx_point_def( "ember_glow", "ember", ( 0, 0, 0.5 ) );        // owner composer 2026-09-22
