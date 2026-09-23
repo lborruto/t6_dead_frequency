@@ -1233,9 +1233,8 @@ df_s6_deny_check( range2 )
     if ( df_s6_is_jetgun( self getcurrentweapon() ) )
         return;
 
+    // owner 2026-09-23: silent (the deny buzz played every time a carrier walked past the node with another gun)
     self.df_s6_deny_node = node.index;
-    df_cue_deny( self );
-    df_debug_print( "DF: s6 draw refused at node " + node.index + " (" + node.name + "): carrier " + self.name + " has no Jet Gun in hand" );
 }
 
 // Nearest charged (undrawn) node within range2 of pos, aim not considered.
@@ -1339,6 +1338,14 @@ df_s6_overheat_watch( node, range2 )
 
     what = self waittill_any_return( "jetgun_overheated", "weapon_change", "player_downed", "death" );
     self.df_s6_heat_watch = 0;
+
+    // TranZit Enhanced takes the overheated gun away for its cooldown: that arrives as a weapon change, sometimes
+    // before our thread reads the overheat notify (owner 2026-09-23: a full charge drew nothing). A weapon change
+    // with the gun cooling, locked or gone counts as the overheat.
+    if ( what == "weapon_change" && ( is_true( self.jgx_cooling ) || self isweaponoverheating( 0 ) || !self hasweapon( "jetgun_zm" ) ) )
+        what = "jetgun_overheated";
+
+    df_debug_print( "DF: s6 heat watch ended on " + what );
 
     if ( what != "jetgun_overheated" || !isdefined( node ) || node.state != "charged" )
         return;
