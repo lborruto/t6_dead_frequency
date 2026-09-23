@@ -117,8 +117,8 @@ df_fin_round_power_watch()
 
 // Players near the table under the tower get the prompt; a hold of 5 s with the right power state starts
 // the finale. DF_SOCKET is the table (df_coords, owner 2026-09-08), so the radius and the marker sit on
-// it: marker fx fx_zmb_tranzit_key_glint (zm_transit_fx.gsc:105) 30 above its centre, the same glint
-// Step 4 uses. The shared STEP AVAILABLE sting (zmb_spawn_powerup, df_steps df_step_available_cue) plays by
+// it: marker fx fx_zmb_tranzit_light_glow at df_fx_point "socket_glow" over the table, the same glow
+// Step 4 uses. The shared STEP AVAILABLE sting (zmb_screecher_portal_arrive, df_steps df_step_available_cue) plays by
 // itself when the step opens; no df_step_focus is registered here because this marker IS the table glint and
 // outlives the first touch (a wrong-power press must not take it away before the hold).
 df_fin_socket_watch()

@@ -493,7 +493,7 @@ df_debug_cmd_coords( sub, arg, args )
         case "grab":
             if ( args.size < 3 )
             {
-                self df_out( "Usage: !df grab <KEY>   the prop follows your crosshair: melee = place, ADS = freeze, 1/2 turn, 3/4 raise, F = surface/float, space = reset" );
+                self df_out( "Usage: !df grab <KEY>   the prop follows your crosshair: fire = place, melee = cancel, ADS = freeze, 1/2 turn, 3/4 raise, F = surface/float, space = reset" );
                 return 1;
             }
 

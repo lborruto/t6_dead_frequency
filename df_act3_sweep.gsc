@@ -2,28 +2,28 @@
 //   design audit 2026-09-08 #2 / #4).
 //   The game's ONE lamp set (df_lamps.gsc: the lamps R2 filled with souls on the Richtofen side, picked here
 //   on the Maxis side) must be TUNED (hold use at the lamp, 5 s: a short channelling) and ANCHORED.
-//   The anchor FORK (owner 2026-09-09; canon: vanilla Maxis's third node IS two turbines at denizen lamps,
-//   Richtofen "controls the undead"):
+//   The anchor FORK (owner 2026-09-09; canon: vanilla Maxis's third node IS two turbines at denizen lamps):
 //   - Maxis (grid OFF): a running TURBINE within 200 of the lamp base (level.local_power[]: one struct per
 //     powering turbine, .origin / .radius, _zm_power.gsc:248 add_local_power / :297 end_local_power). The
 //     turbine gives the lamp the power the dark grid does not; it is chewed by zombies like any equipment.
-//   - Richtofen (grid ON): a DENIZEN burrow at the lamp. Vanilla digs a portal when a denizen riding a
-//     player's head reaches a lamp whose server flag power_on is set (zm_transit_ai_screecher.gsc:23-59);
-//     main power already sets it (_zm_power.gsc:365) and df_lamp_power_silent keeps it set for the step
-//     (the flag only, no clientfield) so a power hiccup cannot block the burrow.
-//   The FIRST ANCHOR starts the countdown: Richtofen reads the "sweep_time_rich" row (480/360/300/270, the
-//   denizen latches are RNG; steps audit v2 #3) when df_steps has it, else "sweep_time"; Maxis reads
-//   "sweep_time" (360/300/270/240). `need` anchors before it ends complete the step.
+//   - Richtofen (grid ON): a Galvaknuckles PUNCH (jolt) on the lamp post, within 90 of it (df_s5_jolt_loop,
+//     owner 2026-09-11): it counts during the tuning or up to df_s5_anchor_fresh (45) seconds before it.
+//     Without the knuckles a melee there is refused (deny + S5_NOFISTS_RICH). Denizen burrows no longer count
+//     (they were RNG); df_lamp_power_silent still keeps the lamp's power flag set for the step.
+//   Every set lamp must be anchored (df_s5_need_all). The FIRST ANCHOR starts the countdown: Richtofen reads
+//   the "sweep_time_rich" row (480/360/300/270; steps audit v2 #3) when df_steps has it, else "sweep_time";
+//   Maxis reads "sweep_time" (360/300/270/240).
 //   Expiry FAILS FORWARD (steps audit v2 #2, 2026-09-09): the anchored lamps STAY anchored (beam and look
-//   kept); only the lamps that were NOT anchored pay souls (8/10/12/14, kills within 400 of the base) and
-//   re-tune; the clock restarts at the next anchor, with only the missing anchors left to win.
+//   kept); only the lamps that were NOT anchored pay souls (df_s5_pen_quota: 12 + 3 per player = 15/18/21/24,
+//   unless a "sweep_souls" row exists; kills within 400 of the base) and re-tune; the clock restarts at the
+//   next anchor, with only the missing anchors left to win.
 //   Lamp looks come only from df_lamp_state_set (df_lamps.gsc): "filled" = tunable (steady light + slow
 //   burst + hum), "tuning" while the hold fills (quick bursts + the rising power loop), "waiting" (tuned,
 //   15 s for the anchor: blinking light + tick-tock loop, a top-centre 15 s timer when df_sys_hud_timers),
 //   "anchored" (steady light + tower beam + slow double burst), "souls" during the penalty.
 //   Cue grammar (art audit 2026-09-09, one alias per meaning, helpers in df_systems): the step opening
-//   registers its focus (df_step_focus: the first set lamp) and every still-untuned set lamp carries the
-//   vanilla "take me" glint (fx_zmb_tranzit_key_glint, zm_transit_fx.gsc:105) at the bulb until its first
+//   registers its focus (df_step_focus: the first set lamp) and every still-untuned set lamp carries a
+//   glint (fx_zmb_tranzit_light_glow, df_s5_glint_set) at the bulb until its first
 //   hold; a tune completing = two PROGRESS clinks (df_cue_tick x2, was the PaP-ready ding); an anchor =
 //   SUB-GOAL chime + side flash at the bulb + the canon node -> tower runner (df_cue_subgoal does all
 //   three); "Signal lost" = FAIL thump + side loss fx at the lamp (df_cue_fail, was silent to all but the
@@ -59,11 +59,10 @@ df_s5_config()
     level.df_s5_drain_time = 10;
     level.df_s5_tune_radius = 200;
     level.df_s5_turbine_radius = 200; // Maxis anchor: a running turbine this close to the lamp base
-    level.df_s5_anchor_fresh = 45; // Richtofen anchor: a burrow this recent still counts
+    level.df_s5_anchor_fresh = 45; // Richtofen anchor: a knuckle jolt this recent still counts
     level.df_s5_soul_radius = 400;
     level.df_s5_soul_cue_every = 5;
     level.df_s5_timer_warn = 30;
-    level.df_s5_timer_tick = 10;
     level.df_s5_hint = "Hold [{+activate}] to tune";
 }
 
@@ -74,7 +73,7 @@ df_s5_need_all()
     level.df_s5_need = level.df_s5_lamps.size;
 }
 
-// Penalty souls per unanchored lamp (audit 1.1: 8/10/12/14). A "sweep_souls" row in df_steps wins when the
+// Penalty souls per unanchored lamp (12 + 3 per player since audit v3 #8). A "sweep_souls" row in df_steps wins when the
 // steps agent adds one; until then this table, on the player count snapshotted when Step 5 opened.
 df_s5_pen_quota()
 {
@@ -138,10 +137,9 @@ df_s5_run()
         df_s5_lamp_reset( lamp );
         lamp.anchored = 0;
         lamp.touched = 0;
-        df_lamp_power_silent( lamp, 1 ); // keeps the burrow flag on (Richtofen); harmless on Maxis
+        df_lamp_power_silent( lamp, 1 ); // keeps the lamp's power flag on for the step; harmless on Maxis
         df_lamp_state_set( lamp, "filled" );
         df_s5_glint_set( lamp, 1 ); // "take me" glint until this lamp's first hold (art audit S5.2)
-        level thread df_s5_burrow_listen( lamp );
         level thread df_s5_claim_keeper( lamp );
         level thread df_s5_lamp_think( lamp );
     }
@@ -284,7 +282,7 @@ df_s5_anchored_count()
     return n;
 }
 
-// The vanilla "take me" glint (fx_zmb_tranzit_key_glint, zm_transit_fx.gsc:105, the buildable-part marker)
+// The "take me" glint (fx_zmb_tranzit_light_glow)
 // at the bulb of a set lamp that nobody has tuned yet (art audit S5.2: "filled" looks like the R2 residue,
 // nothing else says the lamp wants a hold). on = 0 removes it; a lamp that was touched never gets it back.
 df_s5_glint_set( lamp, on )
@@ -450,32 +448,15 @@ df_s5_prompts_clear()
 }
 
 // =========================================================================================
-// anchors (Richtofen: denizen burrow at the lamp; Maxis: running turbine within 200 of the base)
+// anchors (Richtofen: Galvaknuckles jolt on the post; Maxis: running turbine within 200 of the base)
 // =========================================================================================
-
-// zm_transit_ai_screecher::screecher_should_burrow notifies "burrow_done" on the light struct (:59).
-df_s5_burrow_listen( lamp )
-{
-    level endon( "end_game" );
-    level endon( "df_s5_stop" );
-    level endon( "df_skip_step5" );
-
-    while ( true )
-    {
-        lamp.light waittill( "burrow_done" );
-        lamp.burrow_time = gettime();
-        df_debug_print( "DF: s5 denizen burrowed at lamp " + lamp.name );
-    }
-}
 
 // The fork (owner 2026-09-09, see the header). Maxis: a running turbine within df_s5_turbine_radius of the
 // lamp base. level.local_power holds one struct per turbine that is currently powering (add_local_power on
 // warm-up _zm_equip_turbine.gsc:410, removed by end_local_power when it is picked up, dies or is EMPed); a
 // distance test to the base is the honest check (the powered item's .power flag is also set by main power,
 // _zm_power.gsc:365 set_global_power, and cannot tell a turbine apart in general).
-// Richtofen: a burrow during the tuning, or a recent one (df_s5_anchor_fresh), or a portal still open at the
-// lamp (an open portal blocks any new burrow there until someone jumps in, so it must count). Under main
-// power light.power_on is 1, so the vanilla create_portal path (zm_transit_ai_screecher.gsc:55) just works.
+// Richtofen: a knuckle jolt during the tuning, or a recent one (df_s5_anchor_fresh).
 df_s5_has_anchor( lamp )
 {
     if ( !df_s5_is_rich() )
@@ -556,7 +537,6 @@ df_s5_timer_start()
     level.df_s5_end_ms = gettime() + seconds * 1000;
     level.df_s5_force_expire = 0;
     level.df_s5_hud_warned = 0;
-    level.df_s5_last_tick = undefined;
     level thread df_s5_hud_loop();
     level thread df_sys_clock_run( level.df_s5_end_ms, "df_s5_stop", "df_skip_step5", "df_s5_timer_over" );
     level thread df_s5_timer_watch();
@@ -578,7 +558,7 @@ df_s5_timer_watch()
 // Expiry fails forward (steps audit v2 #2): the anchored lamps KEEP their anchor (look, beam, flag); the
 // buzz (zmb_bus_emp_shutdown, zm_transit_bus.gsc:3097) and D5_FAIL play, then the soul penalty runs only on
 // the lamps that were NOT anchored when the time ran out (audit 1.1); those reopen for tuning afterwards
-// (back to "filled", their stale burrow forgotten) and the next anchor starts a fresh timer with only the
+// (back to "filled", their stale jolt forgotten) and the next anchor starts a fresh timer with only the
 // missing anchors left to win. A Richtofen fail no longer costs three denizen latches.
 df_s5_fail()
 {
@@ -596,7 +576,6 @@ df_s5_fail()
             continue;
 
         unanchored[unanchored.size] = lamp;
-        lamp.burrow_time = undefined;
         lamp.jolt_time = undefined;
         df_s5_lamp_reset( lamp );
         df_s5_bar_hide( lamp );
@@ -619,7 +598,7 @@ df_s5_fail()
 }
 
 // Keeps a countdown on every player's screen, turns it red for the last df_s5_timer_warn seconds and
-// ticks once a second for the last df_s5_timer_tick (zmb_tombstone_timer_count, _zm_tombstone.gsc:380).
+// leaves the ticks to df_sys_clock_run (df_systems, the last 30 s).
 df_s5_hud_loop()
 {
     level endon( "end_game" );

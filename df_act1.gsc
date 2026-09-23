@@ -1,11 +1,15 @@
 // Dead Frequency - Act 1 "Static" (shared).
-//   Step 1 "Dead Air":       ONE Depot wall phone plays four tones in order; four dead SCREENS (df_model "tv" =
-//                            the CRT tube p6_zm_buildable_etrap_tvtube, 22 tall) outside must be tapped in that
-//                            order (spec 5, Step 1). Solved, the phone drops its RECEIVER: the relay's 3rd part.
-//   Step 2 "Salvage":        two parts in the fog (battery, lattice) + the receiver, built into a relay on the bus roof.
+//   Step 1 "Dead Air":       four PIPES (df_model "tv" = the chimney pipe pb_pole_telephone_bulb; code names still
+//                            say tv / screen) at DF_TV_1..4, each blinking its own number dealt at random; the far
+//                            signal light (DF_SIGNAL) flashes those numbers in the order to press (spec 5, Step 1;
+//                            blinks since 2026-09-11, no phone and no tones). Solved: the COIL (kind "receiver",
+//                            p6_zm_buildable_jetgun_wires) arrives by lightning at DF_COIL_DROP: the 3rd part.
+//   Step 2 "Salvage":        two parts in the fog (radio = part_a, the sq transceiver; mast = part_b, the fence end
+//                            post) + the coil, built into a relay on the bus roof.
 //   Step 3 "Ride the Line":  the relay survives ONE full bus stop with power on while zombies chew it.
 //   Step 4 "Plug In":        carry the locked relay to the table under the tower; power state locks the side.
 //
+// History below: the passes as they were written (phone, screens and lattice are gone; the summary above is current).
 // V2 pass (V2-act1, 2026-09-09, tools/audit_art.md S1-S4 + top 10 #7 #10, tools/audit_steps_v2.md #7,
 // tools/audit_dialogue_v2.md; report tools/audit_V2act1.md). Uniform cue grammar through the core helpers:
 // df_step_focus (glint of the AVAILABLE cue), df_cue_tick (progress), df_cue_deny (wrong input), df_cue_fail
@@ -64,7 +68,7 @@ df_act1_init()
 }
 
 // AVAILABLE cue glint points (df_steps::df_step_focus, art audit change 2) for the objects that exist from boot:
-// Step 1 = the wall phone (the ring and the glint agree), Step 4 = the table under the tower (core's glint lives
+// Step 1 = the far signal light (DF_SIGNAL, else DF_PHONE_1), Step 4 = the table under the tower (core's glint lives
 // until the relay is lifted off the roof = df_touch; from then on df_step4_socket's own marker takes over, so
 // the table is never double-lit). Step 2 registers none (every part already glints); Step 3's object rides the
 // bus, so it gets its own linked glint instead (df_a1_relay_glint_set). Registered at init: the glint shows as
@@ -87,9 +91,9 @@ df_a1_focus_boot()
 }
 
 // Owner rule (2026-09-08): everything physical exists from game start so players can look at it, pick it
-// up and get hints before any step is done. The screens and the phone belong to Step 1 (boot already); this
-// adds the TABLE under the tower (Step 4 only arms it) and the two fog parts (Step 2 only arms the roof
-// build). The receiver is the one thing that appears later: the phone drops it when Step 1 is solved.
+// up and get hints before any step is done. This spawns the TABLE under the tower (Step 4 only arms it) and
+// the two fog parts (Step 2 only arms the roof build). The coil is the one thing that appears later: it
+// arrives when Step 1 is solved.
 df_a1_boot_items()
 {
     df_step4_socket_spawn();
@@ -125,20 +129,18 @@ df_a1_table_follow()
 // STEP 1 - Dead Air
 // =========================================================================================
 
-// Height of the screen fx over the "tv" anchor: the chimney pipe (pb_pole_telephone_bulb, 9 x 8 x 9, base pivot;
-// owner 2026-09-09: back from the CRT tube) stands on its anchor, so glow, flicker and sparks sit just over its
-// top. df_model_top_z( "tv" ) + 1 stays right if the model changes again.
+// Height of the pipe fx over the "tv" anchor: the chimney pipe (pb_pole_telephone_bulb, 9 x 8 x 9, base pivot)
+// stands on its anchor, so glow, flicker and sparks sit just over its top (df_model_top_z( "tv" ) plus the
+// "pipe_glow" registry lift).
 df_a1_screen_z()
 {
     return df_model_top_z( "tv" ) + df_fx_point( "pipe_glow" )[2]; // the extra above the pipe top lives in the registry
 }
 
-// Spawns the four dead screens (df_model "tv") and the one phone spot, runs the poll until the order is solved.
-// The canon distress recording (vox_maxi_tv_distress_0, zm_transit_sq.gsc:1098) plays once at the phone when the
-// step opens (df_vox_once): the phone literally carries Maxis.
-// Tones: TranZit ships no boat, foghorn, water or musical alias (every name of its three sound banks checked,
-// tools/assets/soundbank), so the four are its shortest distinct signals, see level.df_tv_tones below.
-// zmb_bus_horn_warn (the klaxon) is gone from the whole step, cue included.
+// Spawns the four pipes (df_model "tv") with their blink loops, the far signal light and its hum, runs the poll
+// until the order is solved. The canon distress recording (vox_maxi_tv_distress_0, zm_transit_sq.gsc:1098) plays
+// once at the signal light when the step opens (df_vox_once). zmb_bus_horn_warn (the klaxon) is gone from the
+// whole step, cue included.
 df_step1_run()
 {
     level endon( "end_game" );
@@ -159,7 +161,6 @@ df_step1_run()
 
     level.df_tv_order = array_randomize( order );
     level.df_tv_progress = 0;
-    level.df_phones_heard = 0;
     level.df_tv_lockout = 0;
     level.df_tvs = [];
 
@@ -187,8 +188,6 @@ df_step1_run()
     }
 
     // the wall phone has no role since 2026-09-11 (owner): the far signal light carries the order
-    level.df_phones = [];
-
     level thread df_step1_poll();
     level thread df_step1_signal_loop();
     level thread df_step1_signal_hum(); // owner 2026-09-11: the hum at the far light (zmb_power_on_loop)
@@ -221,12 +220,11 @@ df_step1_run()
     df_complete( "step1" );
 }
 
-// Step 1 solved (or skipped): the phone gives up its RECEIVER (audit section 9, key ITEM_RECEIVER): the
-// relay's last part, lying on the floor at the phone spot (DF_PHONE_1 is the player's feet when it was
-// recorded), taken like the fog parts. Model kind "receiver" (df_coords registry), df_model "part_a" until it
-// exists (df_a1_part_model). Cue (art audit S1.4): a PROGRESS TICK (df_cue_tick) + the blue one-shot; the PaP
-// ding is gone (zmb_perks_packa_ready = "the phone rings", nothing else). Step 2 registers no df_step_focus:
-// every part, this one included, already wears the same glint (core: AVAILABLE sound only). Idempotent.
+// Step 1 solved (or skipped): the COIL arrives (audit section 9, key ITEM_RECEIVER): the relay's last part,
+// struck down by the shared item arrival (df_item_arrival) at DF_COIL_DROP (DF_PHONE_1 when that anchor is
+// missing) and taken like the fog parts. Model kind "receiver" (df_coords registry: the jet gun wires). Cue: the
+// switch flip + a blue spark burst. Step 2 registers no df_step_focus: every part, this one included, already
+// wears the same glint (core: AVAILABLE sound only). Idempotent.
 df_a1_receiver_drop()
 {
     if ( df_is_done( "step2" ) || ( isdefined( level.df_parts ) && isdefined( level.df_parts[df_a1_receiver_idx()] ) ) )
@@ -272,8 +270,8 @@ df_step1_hide_prompts()
     }
 }
 
-// "!df goto" past this step: remove the screens (and their light) entirely; the receiver still drops (Step 2
-// needs it; a goto past Step 2 deletes it again in df_step2_setup).
+// "!df goto" past this step: the pipes stay, their lights go; the coil still drops (Step 2 needs it; a goto
+// past Step 2 deletes it again in df_step2_setup).
 df_step1_skip_cleanup()
 {
     level endon( "end_game" );
@@ -289,8 +287,7 @@ df_step1_skip_cleanup()
     df_a1_receiver_drop();
 }
 
-// One poll for all screens and phones: the nearest unlit object within 80 units gets the puzzle prompt
-// (df_prompt_puzzle, hidden with df_hints 0); a single press (df_press_use) uses it.
+// One poll for all pipes: the nearest unlit pipe within 80 units takes a single press (df_press_use); no prompt.
 df_step1_poll()
 {
     level endon( "end_game" );
@@ -321,20 +318,12 @@ df_step1_poll()
             if ( !player df_press_use() )
                 continue;
 
-            if ( target.kind == "phone" )
-            {
-                if ( !is_true( player.df_at_phone ) )
-                    player thread df_phone_listen( target.index );
-
-                continue;
-            }
-
             level thread df_tv_press( target, player );
         }
     }
 }
 
-// Nearest screen that is still off, or phone, within 80 units of the player; undefined if none.
+// Nearest pipe that is still off within 80 units of the player; undefined if none.
 df_step1_target( player )
 {
     best = undefined;
@@ -354,52 +343,12 @@ df_step1_target( player )
         }
     }
 
-    foreach ( phone in level.df_phones )
-    {
-        d = distancesquared( player.origin, phone.origin );
-
-        if ( d < best_d )
-        {
-            best = phone;
-            best_d = d;
-        }
-    }
-
     return best;
 }
 
-// One use on the phone: handset knock, then ALL FOUR tones 2 s apart (silence between every two notes), to that
-// player only.
-df_phone_listen( phone_index )
-{
-    self endon( "disconnect" );
-    level endon( "df_step1_cleanup" );
-    level endon( "df_skip_step1" );
-
-    self.df_at_phone = 1;
-    df_touch( "step1" );
-
-    if ( !is_true( level.df_phones_heard ) )
-        level.df_phones_heard = 1;
-
-    df_debug_print( "DF: phone plays the whole order: " + level.df_tv_order[0] + " " + level.df_tv_order[1] + " " + level.df_tv_order[2] + " " + level.df_tv_order[3] );
-    // handset off the hook: a knock (zmb_perks_packa_knuckle_0, 0.6 s, 2D); zmb_switch_flip is tone 1 now
-    df_a1_tone_to( self, "evt_perk_deny" ); // owner pick 2026-09-11: handset = the perk bottle deny click
-    wait 0.8;
-
-    // longest tone 1.4 s, so 2 s apart leaves silence between notes (owner 2026-09-09: "they seem all together")
-    for ( t = 0; t < 4; t++ )
-    {
-        df_a1_tone_to( self, level.df_tv_tones[level.df_tv_order[t]] );
-        wait 2.0;
-    }
-
-    self.df_at_phone = 0;
-}
-
-// A screen was tapped by `who`: its tone and a short glow, then the order check.
-// Wrong screen: WRONG INPUT cue to the presser (df_cue_deny = zmb_perks_packa_deny; the EMP thump means
-// "progress lost" elsewhere, art audit S1.5), everything off, the phone rings.
+// A pipe was kicked by `who`: a spark on its top, then the order check.
+// Wrong pipe: WRONG INPUT cue to the presser (df_cue_deny; the EMP thump means "progress lost" elsewhere,
+// art audit S1.5), every pipe back to blinking, same order kept.
 // Other screens ignore presses meanwhile, or a correct press would light one the reset then kills.
 df_tv_press( tv, who )
 {
@@ -466,7 +415,7 @@ df_tv_light( tv, on )
     tv.fx = undefined;
 }
 
-// Wrong screen: everything off, the phone rings once, same order kept.
+// Wrong pipe: everything off, same order kept (the signal keeps flashing it).
 df_step1_reset_tvs()
 {
     foreach ( tv in level.df_tvs )
@@ -502,7 +451,7 @@ df_step1_dashboard_cue()
 // =========================================================================================
 
 // The parts already lie in the world (df_a1_parts_boot); this arms the roof build site and ends when the
-// relay is built. Three parts: two from the fog plus the receiver the phone dropped at the end of Step 1.
+// relay is built. Three parts: two from the fog plus the coil that arrived at the end of Step 1.
 // Built: Maxis's canon "build complete" line once at the relay (vox_maxi_build_complete_0, zm_transit.gsc:3326),
 // then D2_DONE and the uniform STEP DONE sting (df_complete).
 df_step2_run()
@@ -562,18 +511,6 @@ df_a1_part_kind( idx )
     return "receiver";
 }
 
-// Model kind actually spawned for part idx: the item kind, or "part_a" while the registry has no
-// "receiver" model yet (df_model would print a warning and return an invisible tag_origin).
-df_a1_part_model( idx )
-{
-    kind = df_a1_part_kind( idx );
-
-    if ( isdefined( level.df_models ) && isdefined( level.df_models[kind] ) )
-        return kind;
-
-    return "part_a";
-}
-
 // One part at its anchor (df_coord key): see df_a1_part_place.
 df_step2_spawn_part( idx, key, name )
 {
@@ -589,9 +526,9 @@ df_a1_part_place( idx, pos, yaw, name )
     part = spawnstruct();
     part.idx = idx;
     part.name = name;
-    part.model = spawn( "script_model", pos + ( 0, 0, df_model_rest_z( df_a1_part_model( idx ) ) ) ); // centre-pivot parts (the coil box) rest ON the ground
-    part.model setmodel( df_model( df_a1_part_model( idx ) ) );
-    part.model.angles = df_model_angles( df_a1_part_model( idx ), yaw );
+    part.model = spawn( "script_model", pos + ( 0, 0, df_model_rest_z( df_a1_part_kind( idx ) ) ) ); // centre-pivot parts (the coil box) rest ON the ground
+    part.model setmodel( df_model( df_a1_part_kind( idx ) ) );
+    part.model.angles = df_model_angles( df_a1_part_kind( idx ), yaw );
     part.fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "part_glint" ) );
     part.trig = df_spawn_use_trigger( pos, 56, 72, "Press [{+activate}] to take the " + name );
     level.df_parts[idx] = part;
@@ -1388,9 +1325,9 @@ df_step3_roof_part( idx, origin, name )
     part = spawnstruct();
     part.idx = idx;
     part.name = name;
-    part.model = spawn( "script_model", origin + ( 0, 0, df_model_rest_z( df_a1_part_model( idx ) ) ) ); // centre-pivot parts rest ON the roof
-    part.model setmodel( df_model( df_a1_part_model( idx ) ) );
-    part.model.angles = df_model_angles( df_a1_part_model( idx ), level.the_bus.angles[1] );
+    part.model = spawn( "script_model", origin + ( 0, 0, df_model_rest_z( df_a1_part_kind( idx ) ) ) ); // centre-pivot parts rest ON the roof
+    part.model setmodel( df_model( df_a1_part_kind( idx ) ) );
+    part.model.angles = df_model_angles( df_a1_part_kind( idx ), level.the_bus.angles[1] );
     part.model linkto( level.the_bus );
     part.fx = df_fx_loop( "fx_zmb_tranzit_light_glow", origin + df_fx_point( "part_roof_glint" ) );
 
@@ -1683,7 +1620,7 @@ df_step4_socket_light( side )
 // roof). df_table_slot returns the point on the table top and the relay's own pivot is at its base
 // (buildable piece), so it just stands there. Its top piece (art audit change 7): kind "relay_mast" (the
 // upright post, 117 tall, so the Step 4 residue is an antenna seen from outside the fence) when the coords
-// registry defines it, else the roof's flat "relay_top"; both stacked at their registry offset by
+// registry defines it, else the roof's "relay_top"; both stacked at their registry offset by
 // df_a1_relay_spawn. An anchor DF_SOCKET_RELAY, if the coords registry ever defines one, still wins.
 df_step4_plugged_relay_spawn()
 {
@@ -2115,10 +2052,9 @@ df_step4_skip_cleanup()
 
 // ---- relay model + optional top piece -------------------------------------------------------------
 // Every relay in the world (roof, dropped, plugged) is spawned here: df_model "relay" stood upright with
-// its front along `yaw` (df_model_angles) plus, when the coords registry defines the top kind ("relay_top" =
-// the flat lattice for the roof, low enough for the tunnel; "relay_mast" = the upright post for the table),
-// a second piece stacked on it at df_model_offset( kind ) (the registry's own height: world sets relay_top
-// to +7 = the radio's height, art audit change 7, the old +30 left 23 units of air) and linked to it.
+// its front along `yaw` (df_model_angles) plus, when the coords registry defines the top kind ("relay_top"
+// on the roof, "relay_mast" on the table: both the fence end post today), a second piece stacked on it at
+// df_model_offset( kind ) (the registry's own offset, Prop Composer) and the coil (relay_coil), linked to it.
 
 // Spawns a relay model at pos facing yaw (with its top piece, `top_kind` optional, default "relay_top");
 // returns the base script_model.
@@ -2441,7 +2377,7 @@ df_a1_idle_pulse( ent, key, z )
 // a1_parts   take every remaining part (static or roof)  a1_hit    200 damage to the relay (x2 = second layer)
 // a1_stop    count the running sweep as arrived           a1_relay  bring the relay (roof/ground) to player 1
 // a1_build   player 1 runs the vanilla build hold where they stand (no parts, nothing built): hold use within 10 s
-// a1_receiver  the phone drops the receiver now (without solving the screens)
+// a1_receiver  the coil (receiver) arrives now (without solving the pipes)
 // a1_corn    play the cornfield line where the relay is now (the once-per-game guard still applies)
 
 df_a1_debug_hooks()
@@ -2653,14 +2589,6 @@ df_portal_use( player )
     self.burrow_active = 0;
 }
 
-// Volume: playsoundtoplayer has no gain, so a tone is THREE instances at once (about +9 dB). An alias whose bank
-// LimitCount is 1 (zmb_switch_flip) keeps a single instance and stays at its own level: pick a louder alias for
-// it on the Sound Picker if it is still too quiet (owner 2026-09-11: "the phone needs to be louder").
-df_a1_tone_to( player, alias )
-{
-    for ( i = 0; i < 3; i++ )
-        player playsoundtoplayer( alias, player );
-}
 
 // ---- Blinks (owner 2026-09-11) --------------------------------------------------------------------
 // Each pipe blinks its own number in a loop: tv.count flashes of 0.25 s, 0.6 s apart, then 2.5 s dark; pipes start

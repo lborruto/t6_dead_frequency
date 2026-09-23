@@ -9,14 +9,15 @@
 // name a model: they call df_model( "<kind>" ). The anchors below take their model from the same registry,
 // so a swap is one line there. Heights that depend on the model come from the registry too:
 // df_model_top_z( kind ) = top surface above the origin (table top, brazier rim), df_model_rest_z( kind ) =
-// how high the origin sits above the surface the prop rests on (tube centre, orb hover; 0 for base pivots),
+// how high the origin sits above the surface the prop rests on (centre-pivot props, the skull; 0 for base pivots),
 // df_model_offset( kind ) = stacking offset of a piece on its parent (relay_top / relay_mast on the relay).
 // Every number is measured on the glTF export (C:\Games\t6\model_dump\<zone>\model_export, POSITION bounds).
 //
 // Effect and sound ATTACH POINTS live in the same place: df_fx_points_init() below is the one registry of
 // every offset an fx or a 3D sound takes from its prop (pipe_glow, fuse_led, orb_aura, brazier_rim_fire...).
-// Step files never write "+ ( 0, 0, 30 )" any more: they call df_fx_point( "<name>" ) (or df_fx_point_at
-// with the parent's yaw when the point has a horizontal part). `!df dump` prints them as [FXPT] lines and
+// Prop-relative fx offsets go through df_fx_point( "<name>" ) (or df_fx_point_at with the parent's yaw when
+// the point has a horizontal part); step files still write some literal offsets inline (player-carried and
+// zombie bursts, prompt / trail / focus heights, bus and tower geometry). `!df dump` prints the points as [FXPT] lines and
 // the Prop Composer shows each one as a named cross beside its prop and exports the df_fx_point_def lines.
 //
 // Check in game: `!df show` (prints the model per anchor), `!df tp <KEY>`, `!df dump`, then tune live
@@ -52,10 +53,10 @@ df_coords_init()
     df_fx_points_init();
     df_table_slots_init();
 
-    // ---- Depot TVs (owner decision 2026-09-07): one inside on a wall of the phone room, three outside
-    //      around the depot on dog spawn points (solid ground), facing the building. Audio stays on the phones.
-    //      The "tv" model (CRT tube posed upright) has its origin at mid height: the anchors carry
-    //      df_model_rest_z( "tv" ) above the floor so the tube stands ON the ground instead of half in it.
+    // ---- Step 1 pipes, DF_TV_1..4 (owner decision 2026-09-07, then TVs): one derived on a wall of the phone room, three outside
+    //      around the depot on dog spawn points (solid ground), facing the building (df_apply_overrides pins the owner spots).
+    //      (Step 1's pipes since 2026-09-09: the "tv" model is the chimney pipe, base pivot; the anchors add
+    //      df_model_rest_z( "tv" ), 0 for it, so a centre-pivot model would still stand ON the ground.)
     depot_center = ( -6754, 5314, -40 );
     tv_rest = ( 0, 0, df_model_rest_z( "tv" ) );
     df_coords_on_walls( "DF_TV_", 1, ( -6475, 5324, -55 ), 75, 420, 20, tv_rest[2], "tv" );
@@ -76,7 +77,7 @@ df_coords_init()
     //      3D, audible from 525 to 750 units, so the Depot hears where to look.
     df_coord_set( "DF_SIGNAL_SND", ( -6245, 5085, -67 ), ( 0, -90, 0 ), undefined ); // owner move 2026-09-11
 
-    // ---- Where the coil (the phone's relay part, kind "receiver") lands when Step 1 is solved. Default: the
+    // ---- Where the coil (the relay's third part, kind "receiver") lands when Step 1 is solved. Default: the
     //      phone spot. Move it like any prop: `!df tp DF_COIL_DROP`, `!df move DF_COIL_DROP <fwd> <right> <up>`
     //      or `!df grab receiver`, then paste the printed line into df_apply_overrides (owner 2026-09-11).
     df_coord_set( "DF_COIL_DROP", ( -6455, 5309, -55 ), ( 0, -67, 0 ), df_model( "receiver" ) );
@@ -130,10 +131,8 @@ df_coords_init()
     df_coord_set( "DF_ORB_SPAWN", df_ground( ( 7628, -471, -207 ) ) + ( 0, 0, 1 ), ( 0, 0, 0 ), df_model( "orb" ) );
 
     // ---- Farm barn: four fuse boxes, each on the wall the owner faced from these spots (recorded with !pos
-    //      on 2026-09-07). The "fuse" model is the breaker panel p6_zm_buildable_pswitch_body: 36 wide, 63 tall,
-    //      16 deep, pivot at its BASE and 5..11 units in front of its back face (glTF bounds). lift 18 puts its
-    //      centre at chest height (18 + 63 / 2 = 50, where the old 20-tall box was centred); off_wall 11 keeps
-    //      the back out of the wall whichever way the depth axis turns (worst case a 6-unit gap).
+    //      on 2026-09-07). The "fuse" model is the EE power box p6_zm_buildable_sq_electric_box (13 x 20 x 4,
+    //      centre pivot): the anchors put its centre at 50, 6 off the wall.
     df_coords_row_on_wall( "DF_FUSE_1", 1, ( 8808, -5767, 50 ), -3, 0, 50, 6, "fuse" );
     df_coords_row_on_wall( "DF_FUSE_2", 1, ( 8526, -5599, 50 ), 89, 0, 50, 6, "fuse" );
     df_coords_row_on_wall( "DF_FUSE_3", 1, ( 8802, -5872, 50 ), -93, 0, 50, 6, "fuse" );
@@ -142,7 +141,7 @@ df_coords_init()
     // ---- R1 key card appears here (owner 2026-09-08): a barn wall next to the fuse boxes, chest height,
     //      standing upright with its face towards the room (card pose in df_models_init). Derived fallback
     //      = the same wall spot; df_apply_overrides pins the final one. Read by df_act2_rich. 84 units along
-    //      the wall from DF_FUSE_4 (x 8530 vs 8614): clear of the 36-wide panel (half width 18).
+    //      the wall from DF_FUSE_4 (x 8530 vs 8614): clear of the box.
     df_coords_row_on_wall( "DF_CARD_SPAWN", 1, ( 8613, -5840, 50 ), -90, 0, 50, 4, "card" );
 
     // ---- Braziers (owner redesign 2026-09-09, Blood-of-the-Dead style; moved to Town by the owner
@@ -285,9 +284,9 @@ df_vec_str( v )
 //     df_coord_override_rest( "KEY", ( x, y, z ), ( p, y, r ), "kind" )        raw line of a FLOOR spot + the kind's rest height
 df_apply_overrides()
 {
-    // Depot TVs: four spots on the ground around the depot, screen towards where the owner stood.
+    // Step 1 pipes (DF_TV_n): spots on the ground around the depot, front towards where the owner stood.
     // owner-placed with !df grab on 2026-09-08 (exact [PLACE] lines recorded with a base-pivot model, so they
-    // are floor spots); the CRT tube's origin is its centre, df_coord_override_rest adds df_model_rest_z( "tv" ).
+    // are floor spots); df_coord_override_rest adds df_model_rest_z( "tv" ) (0 for the base-pivot pipe).
     df_coord_override_rest( "DF_TV_1", ( -6269, 5593, -55 ), ( 0, 284, 0 ), "tv" );
     df_coord_override_rest( "DF_TV_2", ( -6313, 4117, -63 ), ( 0, 99, 0 ), "tv" );
     df_coord_override_rest( "DF_TV_3", ( -7234, 4588, -55 ), ( 0, 175, 0 ), "tv" ); // owner move 2026-09-11
@@ -342,7 +341,7 @@ df_apply_overrides()
 }
 
 // Owner paste format: a raw [SPOT] / [PLACE] line whose position is a FLOOR spot, for a kind whose model
-// origin is not at its base (the CRT tube): the kind's rest height is added, then pinned like df_coord_override.
+// origin may not be at its base: the kind's rest height is added, then pinned like df_coord_override.
 // The pasted numbers stay exactly what the console printed.
 df_coord_override_rest( key, floor_pos, angles, kind )
 {
@@ -1223,13 +1222,15 @@ df_beam_stop( b )
 // =========================================================================================
 // Model registry (polish pass 2026-09-08, art audit 2026-09-09). Every step asks df_model( kind ) instead of
 // hard-coding a model name, so a model swap is one line here. Kinds: "relay" (bus roof radio / tower relay,
-// the base), "relay_top" (the low slab stacked on the ROOF relay, offset df_model_offset( "relay_top" )),
-// "relay_mast" (the tall post stacked on the TABLE relay after Step 4, offset df_model_offset( "relay_mast" )),
-// "orb" (Step 6/7 charge core), "part_a" "part_b" "part_c" (Step 2 parts; part_c unused), "tv", "fuse", "socket",
-// "brazier", "card" (R1 key card), "portal" (M1 hole), "beacon" (Step 5 anchor marker), "table" (the bench
-// under the tower the relay / card / orb are deposited on, DF_TABLE + df_table_slot), and the audit items of
-// 2026-09-08 (section 9): "skull" (M1 trophy on table slot 1), "receiver" (S1 handset part), "spool" (R2
-// wire spool), "ember" (M2 carried ember).
+// the base), "relay_top" (the post stacked on the ROOF relay, offset df_model_offset( "relay_top" )),
+// "relay_mast" (the same post stacked on the TABLE relay after Step 4), "relay_coil" (the coil on the radio),
+// "orb" / "orb_ground" (the Step 6/7 rock on the table / on the floor), "part_a" "part_b" (Step 2 radio and
+// mast), "part_c" (no anchor or step uses it; kept for `!df catalog pick`), "battery" (R1 bus battery), "tv"
+// (Step 1 pipe), "fuse", "socket" (preview only), "brazier" (M2 grave), "card" / "card_barn" (R1 key card on
+// the table / in the barn), "portal" (M1 hole), "beacon", "table" (the bench under the tower the relay / card /
+// orb are deposited on, DF_TABLE + df_table_slot), "clip", and the audit items of 2026-09-08 (section 9):
+// "skull" (M1 trophy on the table), "receiver" (the Step 1 coil), "spool" (R2 wire spool), "ember" (the M2
+// fire hand).
 //
 // Selection rules (tools/assets/xmodels_zm_transit.txt, dumped from the fastfiles):
 //   - only models whose zones are always resident: zm_transit, common_zm, so_zclassic_zm_transit.
@@ -1298,20 +1299,15 @@ df_models_init()
     // "yaw = yaw - 135"), so the registry yawoff stays 0 - pasting the -135 here would turn it twice.
     df_model_def( "relay", "p6_zm_buildable_sq_transceiver", 0, 0, 0 );
 
-    // relay_top: the piece on the ROOF radio (the bus goes through the tunnel and under the depot roof, so
-    // it stays low). Vanilla EE tower lattice section (zm_transit, sq_common "tag_part_01",
-    // zm_transit_buildables.gsc:137), the same piece the players carried as part_b. glTF: 83 x 24 flat slab,
-    // 4.4 thick, pivot at its CENTRE; the radio is 7.3 tall with a base pivot, so the slab's underside meets
-    // the radio top at 7.3 + 2.2 = 9 (art audit #7: the old 30 left 23 units of air). Spawned by df_act1 at
-    // relay.origin + df_model_offset( "relay_top" ) with the relay's yaw (only when this kind exists).
+    // relay_top: the piece on the ROOF radio. Spawned by df_act1 at relay.origin + df_model_offset( "relay_top" )
+    // with the relay's yaw (only when this kind exists). (It was the flat EE lattice slab until 2026-09-09.)
     // Owner 2026-09-09: "the relay should look the same each time": the roof relay is the SAME assembly as the
     // table relay, radio + coil + mast (relay_top = relay_mast; the slab read as "just a plank"). The mast pokes
     // through the tunnel roof and the depot roof for a second while the bus passes: cosmetic, no collision.
     df_model_def( "relay_top", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( -5, 3, 4.5 ) ); // owner composer 2026-09-22, mirrored 2026-09-23 (the composer viewer showed the world mirrored left/right)
 
-    // relay_coil: the wire coil the phone gave (part 3), stacked on the radio (7.3 tall) on the roof and on the
-    // table; the mast stands on the coil (7.6 tall, base pivot, 25 x 25 footprint on the radio's 26 x 19).
-    // owner pick 2026-09-11: the power box (13 x 20 x 4, CENTRE pivot) stands upright on the radio: centre at 7 + 10
+    // relay_coil: the third part as the assembled relay shows it, on the radio on the roof and on the table.
+    // owner pick 2026-09-11: the power box (13 x 20 x 4, CENTRE pivot) stands upright on the radio (offset from the composer)
     df_model_def( "relay_coil", "p6_zm_buildable_sq_electric_box", 0, 0, 29, ( -4, 0.5, 39.5 ) ); // owner composer 2026-09-22, mirrored 2026-09-23 (the composer viewer showed the world mirrored left/right)
 
     // relay_mast: the piece on the TABLE relay after Step 4 (no clearance problem under the tower): a fence
@@ -1321,88 +1317,64 @@ df_models_init()
     // (df_step4_plugged_relay_spawn) at relay.origin + df_model_offset( "relay_mast" ) with the relay's yaw.
     df_model_def( "relay_mast", "p6_zm_chain_fence_piece_end", 0, 0, 0, ( -5, 3, 4.5 ) ); // owner composer 2026-09-22, mirrored 2026-09-23 (the composer viewer showed the world mirrored left/right)
 
-    // orb: Step 6/7 charge core. Art audit #6: kind "orb" and kind "skull" were both zombie_skull, so the
-    // Maxis table held two identical skulls; the trophy stays the skull, the orb is a machine part: the
-    // turbine rotor disc (so_zclassic_zm_transit ALWAYS, vanilla turbine buildable piece,
-    // zm_transit_buildables.gsc turbine pieces). glTF: 25 x 25 disc, 10 thick, pivot at its BASE (not the
-    // centre): it rests with df_model_rest_z( "orb" ) = 5 of hover under the steps' aura fx; spun slowly
-    // (rotateyaw, df_act3) it reads as a coil / core and never as the trophy.
+    // orb: the Step 6/7 rock. (2026-09-09 .. 09-11 it was the turbine rotor disc p6_zm_buildable_turbine_fan.)
     // Alternatives (all always loaded, all in df_catalog_models for `!df catalog orb`):
     //   zombie_skull                  common_zm, the insta-kill powerup skull (_zm_powerups.gsc:96), 16 x 23 x 21, rest 14
-    //   p6_zm_buildable_sq_meteor     zm_transit, the EE meteor piece (the original orb, too small for the owner)
+    //   p6_zm_buildable_turbine_fan   so_zclassic_zm_transit, the turbine rotor disc (25 x 25 x 10, base pivot)
     //   p6_zm_rocks_small_cluster_01  zm_transit, a small rock pile
     //   zombie_pickup_perk_bottle     so_zclassic_zm_transit, the perk-bottle powerup (_zm_powerups.gsc:103)
     //   test_sphere_silver            common_zm, chrome sphere (mirrors the black sky, reads dark)
     //   semtex_bag                    zm_transit, a rounded canvas bag
-    // owner pick 2026-09-11 (Prop Picker): the EE meteor piece, 5 x 6 x 5, centre pivot (the skull was the same model until 2026-09-23,
-    // owner's choice; the orb spins and wears the aura, the skull sits still on slot 1).
+    // owner pick 2026-09-11 (Prop Picker): the EE meteor piece, 5 x 6 x 5, centre pivot (the skull was the same model until 2026-09-23).
     df_model_def( "orb", "p6_zm_buildable_sq_meteor", 0, 0, 0 );
     // orb_ground: the rock where it lands and rests on the floor (Step 6 landing spots, drops, Step 7 wander). Offset z = its rest
     // height above the floor. Posed in the Prop Composer preset "Orb (on the ground)".
     df_model_def( "orb_ground", "p6_zm_buildable_sq_meteor", 0, 0, 0, ( 0, 0, 3 ) );
 
-    // part_a: Diner garage (owner move; the derived fallback below is the cabin jet gun spot), the "battery" of spec 10. Vanilla electric trap battery piece (so_zclassic_zm_transit,
-    // zm_transit_buildables.gsc electric_trap pieces): a car battery, clearly a power cell.
-    // Owner 2026-09-09: the parts ARE the pieces of the assembled relay, same positions, models swapped:
-    // part_a (Diner garage) = the radio itself (the car battery moved to kind "battery" for the R1 bus battery).
+    // part_a: Diner garage (owner move; the derived fallback is the cabin jet gun spot). Owner 2026-09-09: the parts
+    // ARE the pieces of the assembled relay: part_a = the radio itself (the car battery of spec 10 moved to kind
+    // "battery" for the R1 bus battery).
     df_model_def( "part_a", "p6_zm_buildable_sq_transceiver", 0, 0, 0 );
 
     // battery: the R1 bus battery (df_act2_rich), the electric trap battery piece (so_zclassic_zm_transit).
     df_model_def( "battery", "p6_zm_buildable_battery", 0, 0, 0 );
 
-    // part_b: Farm barn (owner move; the derived fallback below is the tunnel jet gun spot), the "antenna" of spec 10. Vanilla EE tower lattice piece (zm_transit, sq_common
-    // "tag_part_01", zm_transit_buildables.gsc:137): a metal mast section, reads as an antenna.
-    // part_b (Farm barn) = the mast, the fence end post (13 x 3 footprint, 117 tall, base pivot): it STANDS at its
+    // part_b: Farm barn (owner move; the derived fallback is the tunnel jet gun spot), the "antenna" of spec 10:
+    // the mast, the fence end post (13 x 3 footprint, 117 tall, base pivot): it STANDS at its
     // anchor, readable from far (owner 2026-09-09; was the flat lattice slab).
     df_model_def( "part_b", "p6_zm_chain_fence_piece_end", 0, 0, 0 );
 
     // part_c: cornfield, the "chassis" of spec 10. Vanilla EE power box piece (zm_transit, sq_common
     // "tag_part_02", zm_transit_buildables.gsc:135, HUD icon zm_hud_icon_sq_powerbox): the transmitter housing.
-    // 2026-09-23: no anchor or step uses it any more (DF_PART_C removed); kept only because df_act2_rich's spool
-    // fallback (df_r2_spool_kind) still returns this kind.
+    // 2026-09-23: no anchor or step uses it any more (DF_PART_C removed); the kind stays for `!df catalog pick`
+    // and the df_scav notice cases.
     df_model_def( "part_c", "p6_zm_buildable_sq_electric_box", 0, 0, 0 );
 
-    // tv: the electric trap's CRT picture tube, a vanilla piece (so_zclassic_zm_transit ALWAYS, spawned
-    // anywhere by _zm_buildables). Stands upright with pitch 270 / roll 180, screen away from the wall with
-    // yaw +180 (owner-tested 2026-09-07, README "TVs: pitch 270 + roll 180 stand upright"). Art audit #5: the
-    // 9-unit pb_pole_telephone_bulb of 2026-09-08 was unreadable without its glow; the tube is 21 x 21 x 22,
-    // literally the "screen" the Step 1 lines talk about. glTF: 21 wide, 22 deep, 20.6 long; posed upright
-    // its origin is at MID height (the tube spans -11..+11 around it), hence df_model_rest_z( "tv" ) = 11 on
-    // the DF_TV anchors and "top of the tube" = anchor + 11. p_jun_old_tv (the farmhouse TV) is gump_farm and
-    // renders black at the depot; the power station monitors are gump_powerstation: same problem.
+    // tv: the Step 1 pipe, the chimney pipe pb_pole_telephone_bulb (9 x 8 x 9, base pivot, top +9), plain pose.
+    // (The CRT tube p6_zm_buildable_etrap_tvtube was tried 2026-09-08 .. 09-09; p_jun_old_tv is gump_farm and
+    // renders black at the depot.)
     df_model_def( "tv", "pb_pole_telephone_bulb", 0, 0, 0 ); // owner 2026-09-09: the chimney pipe again, not the tube
 
-    // fuse: the four Simon boxes on the barn walls. Art audit section 2: the EE power box
-    // (p6_zm_buildable_sq_electric_box, 13 x 20 x 4) read from 3 m only; the vanilla power switch panel piece
-    // (zm_transit + so_zclassic_zm_transit ALWAYS, zm_transit_buildables.gsc powerswitch pieces) is a 36 x 63
-    // breaker panel, 16 deep, three times the size, so the boxes read from the barn door. Front along the
-    // model's right side (yaw +90, the Treyarch wall-panel convention the electric box validated 2026-09-07).
-    // glTF: pivot at the BASE, so the anchor is the panel's bottom edge: centre = anchor + 32, top = + 63.
-    // p_rus_electricalbox_03 would be the barn's own box but is gump_farm (streams only at the farm).
-    // Owner 2026-09-09: the EE power box again (the breaker panel was not wanted); anchors back to the box centre
-    // at 50 with 6 off the wall. Centre pivot: top edge = anchor + 10 (df_model_top_z).
+    // fuse: the four Simon boxes on the barn walls: the EE power box (13 x 20 x 4, centre pivot, top edge =
+    // anchor + 10, df_model_top_z), front along the model's right side (yaw +90, validated 2026-09-07). Owner
+    // 2026-09-09: the box again (the 36 x 63 breaker panel p6_zm_buildable_pswitch_body of the art audit was
+    // not wanted). p_rus_electricalbox_03 would be the barn's own box but is gump_farm (streams only at the farm).
     df_model_def( "fuse", "p6_zm_buildable_sq_electric_box", 0, 0, 90 );
 
-    // socket: the old wall panel at the tower base; fallback only since the table IS the socket
-    // (df_table_sync_socket), kept so `!df show` still previews DF_SOCKET. Same panel as "fuse".
+    // socket: the old wall panel at the tower base (the breaker panel); fallback only since the table IS the
+    // socket (df_table_sync_socket), kept so `!df show` still previews DF_SOCKET.
     df_model_def( "socket", "p6_zm_buildable_pswitch_body", 0, 0, 90 );
 
-    // brazier: a low lava-rock cairn (zm_transit ALWAYS, a map static precached by df_coords_precache). Art
-    // audit #8: the white biohazard drum afr_barrel_biohazard_white_rust (29 x 44 x 29) read "toxic waste"
-    // and its 44-tall closed body hid the stage-0 ember; the cairn is the Blood-of-the-Dead stone-bowl
-    // silhouette (picked for the old lava-field row; the graves stand in Town since 2026-09-23). glTF: 88 x 77
-    // footprint (off centre: 58 one way, 30 the other), 16.5 tall with the pivot 2.6 above its lowest rock, so on the ground
-    // the rim / top is anchor + 14 (df_model_top_z( "brazier" )): the fire sits on the rocks, visible all round.
-    // owner pick 2026-09-11 (Prop Picker): a tombstone (ch_tombstone1, zm_transit, 3 x 20 footprint, 31 tall, base
-    // pivot); the fire sits on its top edge (df_model_top_z = 31).
+    // brazier: the M2 GRAVE (the kind keeps its old name). Owner pick 2026-09-11 (Prop Picker): a tombstone
+    // (ch_tombstone1, zm_transit, 3 x 20 footprint, 31 tall, base pivot; df_model_top_z = 31); df_act2_maxis
+    // lights it from its base (df_m2_rim_height). Earlier picks: the biohazard drum, then the lava-rock cairn
+    // p6_zm_rocks_small_cluster_03 (art audit #8).
     df_model_def( "brazier", "ch_tombstone1", 0, 0, 0 );
 
     // card: the NavCard model (zm_transit; zm_transit.gsc:118 precaches it, zm_transit_sq.gsc:1365 places it
     // LYING FLAT on the depot floor at (-6245, 5479.5, -55.35), angles (0,0,0): the model's origin is on the
-    // card, face up +z). Owner 2026-09-08: "invisible, can be taken but not seen" when floating at chest
-    // height: a flat card seen edge-on has no visible area. Pose here (owner composer 2026-09-22): pitch 180
-    // with the face turned 44 off the front, the look the owner settled on for the card on the table and on
-    // the barn wall (DF_CARD_SPAWN shows it like a badge).
+    // card, face up +z). This kind is the card ON THE TABLE: lying flat at pitch 0, turned -45 (owner composer
+    // 2026-09-23); the barn card is "card_barn" below.
     df_model_def( "card", "p6_zm_keycard", 0, 0, -45 ); // owner composer 2026-09-23 (fixed viewer): lies flat at pitch 0, turned -45
     // card_barn: the same card where it FIRST appears in the barn (standing, floating, random turn + this yaw). Offset z =
     // its float height above the floor under DF_CARD_SPAWN (df_r1_card_pos). Posed in the Prop Composer preset "Key card (barn)".
@@ -1426,8 +1398,8 @@ df_models_init()
     // zm_transit_ai_screecher.gsc:78 setmodel).
     df_model_def( "portal", "p6_zm_screecher_hole", 0, 0, 0 );
 
-    // beacon: small marker under Step 5 anchor FX. The vanilla meteor piece (zm_transit, sq_common
-    // "tag_part_04"): small on purpose here, visible, proven to spawn.
+    // beacon: the vanilla meteor piece (zm_transit, sq_common "tag_part_04"): the stand-in model for anchors without
+    // a prop (df_place previews) and the audition pedestal (df_audition).
     df_model_def( "beacon", "p6_zm_buildable_sq_meteor", 0, 0, 0 );
     // player collision block for the table (patch_zm, ALWAYS; the vanilla ffotd pattern zm_transit_ffotd.gsc:17/47)
     df_model_def( "clip", "collision_player_32x32x32", 0, 0, 0 );
@@ -1437,10 +1409,9 @@ df_models_init()
 // The physical items of the design audit (2026-09-08, section 9), one kind each; same selection rules.
 df_models_init_items()
 {
-    // skull: the cold room's trophy Maxis leaves on table slot 1 after M1 (audit #7 / 9). The insta-kill
-    // powerup skull (common_zm, ALWAYS; _zm_powerups.gsc:96 spawns it dynamically), 16 x 23 x 21; glTF: the
-    // pivot is 14 above its lowest point (df_model_rest_z( "skull" ) = 14). Since the art audit (#6) the orb is
-    // the turbine disc, so this is the only skull on the table; the zombie head gib c_zom_zombie_head_a
+    // skull: the cold room's trophy placed on the table after M1 (audit #7 / 9). The insta-kill powerup skull
+    // (common_zm, ALWAYS; _zm_powerups.gsc:96 spawns it dynamically), 16 x 23 x 21; glTF: the pivot is 14 above
+    // its lowest point (df_model_rest_z( "skull" ) = 14). The zombie head gib c_zom_zombie_head_a
     // (so_zclassic_zm_transit, ALWAYS, 14 x 10 x 11, precached by character/c_zom_zombie1_01.gsc:34) stays in
     // the catalog as the one-line alternative.
     // owner 2026-09-23: a real skull again (was the meteor stone of the 2026-09-11 Prop Picker pick): zombie_skull,
@@ -1448,25 +1419,19 @@ df_models_init_items()
     // the table front. Rest 14 / top +9 (df_model_rest_z / df_model_top_z). Table slot 1 keeps its value.
     df_model_def( "skull", "zombie_skull", 0, 0, 0, ( -3, 8, 58 ) ); // owner 2026-09-23: pose in the TABLE frame (df_table_point, z from the floor: bench top 44 + the skull's rest 14), like the fire hand
 
-    // receiver: the handset the depot phone drops after Step 1 (audit 9, the relay's 4th part). No phone
-    // handset is always loaded (com_payphone_america is gump_busstation, black elsewhere); the jet gun handles
-    // piece (so_zclassic_zm_transit, ALWAYS, zm_transit_buildables.gsc jetgun pieces) is a hand-sized grip with
-    // a trigger, 11 x 4 x 10, proven to spawn as a buildable. Fallback: p6_zm_buildable_battery (16 x 14 x 9).
-    // receiver (the phone's part) = the wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the
-    // same model R2's spools use: the relay carries one on the radio.
+    // receiver: the COIL that arrives when Step 1 is solved (audit 9, the relay's third part; the name is from
+    // the old phone handset). The wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the
+    // same model R2's spools use.
     // owner 2026-09-23: the model is the wire bundle again (was the power box; so_zclassic_zm_transit ALWAYS,
     // 25 x 7 x 25, base pivot). The small tilt below is the owner's composer pose of 2026-09-22 (kept).
     df_model_def( "receiver", "p6_zm_buildable_jetgun_wires", 0, -10, 14 ); // owner composer 2026-09-22; roll sign checked in game 2026-09-23 (the engine rolls the other way than a right-hand turn about forward)
 
     // spool: the wire spool a filled lamp drops in R2 (audit 9). The jet gun wire bundle piece
     // (so_zclassic_zm_transit, ALWAYS, zm_transit_buildables.gsc jetgun pieces), 25 x 7 x 25: a coil of cable.
-    // Fallback: p6_zm_buildable_sq_electric_box (13 x 20 x 4).
     df_model_def( "spool", "p6_zm_buildable_jetgun_wires", 0, 0, 0 );
 
-    // ember: the carried ember of the M2 chain (audit 9). The EE meteor piece (zm_transit, ALWAYS, sq_common
-    // "tag_part_04"), 5 x 5 x 6: a small glowing rock; the step wraps it in fire fx (lava_burning / lava glow).
-    // No other always-loaded coal-like prop exists (zombie_meteor_chunk_sml2 is gump_busstation).
-    // owner 2026-09-23: the ember is now the FIRE HAND, the power switch hand piece (zm_transit, 9 x 8 x 9) with a tiny flame.
+    // ember: the M2 FIRE HAND (owner 2026-09-23; the kind keeps the old "ember" name, it was the meteor piece):
+    // the power switch hand piece p6_zm_buildable_pswitch_hand (zm_transit, 9 x 8 x 9) with a tiny flame.
     // Offset = its place in the TABLE's frame from the table origin (z from the floor; default = slot 2 on the top),
     // df_table_point; the owner poses it in the Prop Composer ("Table, Maxis loaded").
     df_model_def( "ember", "p6_zm_buildable_pswitch_hand", -16, 0, -8.5, ( -6, -12, 48 ) ); // owner composer 2026-09-23
@@ -1475,84 +1440,7 @@ df_models_init_items()
 // =========================================================================================
 // effect / sound attach points
 // =========================================================================================
-//
-// INVENTORY (2026-09-22, the refactor that created this registry). Every effect or sound whose position
-// was a literal "<prop or anchor origin> + ( x, y, z )" in a step file, with the file:line it lived on,
-// the prop it hangs on, the fx / sound key and the offset. All of them now read their offset from
-// df_fx_point() below; the numbers did not change.
-//
-//   file:line                   parent  fx / sound key                          offset          point
-//   df_act1.gsc:183             tv      df_a1_fx_pipe_flash (flasher)           top +1          pipe_glow
-//   df_act1.gsc:417             tv      switch_sparks                           top +1          pipe_glow
-//   df_act1.gsc:460             tv      fx_zmb_tranzit_light_bulb_xsm           top +1          pipe_glow
-//   df_act1.gsc:2596            tv      df_a1_fx_pipe_flash                     top +1          pipe_glow
-//   df_act1.gsc:2603            tv      df_a1_fx_pipe_locator                   top +1          pipe_glow
-//   df_act1.gsc:2626            signal  df_a1_fx_signal (flasher + locator)     ( 0, 0, 70 )    signal_flash
-//   df_act1.gsc:2668            signal  df_a1_signal_hum_alias (playloopsound)  ( 0, 0, 20 )    signal_hum
-//   df_act1.gsc:260             receiver fx_zmb_tranzit_spark_blue_lg_os        ( 0, 0, 20 )    part_spark
-//   df_act1.gsc:261             receiver elec_md                                ( 0, 0, 20 )    part_spark
-//   df_act1.gsc:597             part    fx_zmb_tranzit_light_glow               ( 0, 0, 24 )    part_glint
-//   df_act1.gsc:1388            part    fx_zmb_tranzit_light_glow               ( 0, 0, 20 )    part_roof_glint
-//   df_act1.gsc:730             relay   building_dust                           ( 0, 0, 10 )    relay_dust
-//   df_act1.gsc:731             relay   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 20 )    relay_spark
-//   df_act1.gsc:1037            relay   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 20 )    relay_spark
-//   df_act1.gsc:1361            relay   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 20 )    relay_spark
-//   df_act1.gsc:1362            relay   elec_md (df_a1_burst_at)                ( 0, 0, 20 )    relay_spark
-//   df_act1.gsc:910             relay   fx_zmb_tranzit_light_glow (key glint)   ( 0, 0, 34 )    relay_glint
-//   df_act1.gsc:1442            relay   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 30 )    relay_glow
-//   df_act1.gsc:1702            relay   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 30 )    relay_glow
-//   df_act1.gsc:1456/1703       relay   elec_sm (df_a1_idle_pulse z)            ( 0, 0, 30 )    relay_glow
-//   df_act1.gsc:1302            relay   df_side_burst_fx (df_a1_burst z)        ( 0, 0, 10 )    relay_burst_low
-//   df_act1.gsc:1249/1468       relay   elec_sm / df_side_burst_fx (burst z)    ( 0, 0, 24 )    relay_burst_mid
-//   df_act1.gsc:1482            relay   fx_zmb_tranzit_spark_int_runner (z)     ( 0, 0, 30 )    relay_glow
-//   df_act1.gsc:1985            table   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 20 )    socket_spark
-//   df_act1.gsc:1638            table   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 30 )    socket_glow
-//   df_act1.gsc:1924            table   fx_zmb_tranzit_light_glow               ( 0, 0, 40 )    socket_marker
-//   df_act2_rich.gsc:147        spool   fx_zmb_tranzit_light_glow               ( 0, 0, 14 )    pickup_glint
-//   df_act2_rich.gsc:301        fuse    (led_origin: glow / spark / Simon)      ( 0, 0, 10 )    fuse_led
-//   df_act2_rich.gsc:794        fuse    AVAILABLE glint over the LED            ( 0, 0, 6 )     fuse_focus
-//   df_act2_rich.gsc:903        table   fx_zmb_tranzit_light_glow               ( 0, 0, 40 )    socket_marker
-//   df_act2_rich.gsc:1354       table   avogadro_phasing                        ( 0, 0, 30 )    socket_glow
-//   df_act2_rich.gsc:2310       relay   fx_zmb_tranzit_light_glow_xsm (array)   ( 0, 0, 40 )    relay_array_node
-//                                       + 16 per array level                    ( 0, 0, 16 )    relay_array_step
-//   df_act2_maxis.gsc:487       portal  fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 40 )    portal_light
-//   df_act2_maxis.gsc:488/493   portal  fx_zmb_tranzit_light_glow_xsm (orbit)   ( 28, 0, 30 )   portal_orbit
-//   df_act2_maxis.gsc:778       portal  screecher_death                         ( 0, 0, 10 )    portal_burst_ash
-//   df_act2_maxis.gsc:779       portal  fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 50 )    portal_burst_light
-//   df_act2_maxis.gsc:1177      skull   fx_zmb_tranzit_light_glow               ( 0, 0, 20 )    skull_glow
-//   df_act2_maxis.gsc:2396      ember   character_fire_death_sm (fire hand)     ( 0, 0, 4 )     hand_fire
-//   df_act2_maxis.gsc:2108      brazier zmb_phdflop_explo                       rim + 0         brazier_rim_fire
-//   df_act2_maxis.gsc:1798      brazier fx_zmb_tranzit_fire_med (stage fx)      rim + 0         brazier_rim_fire
-//   df_act2_maxis.gsc:1815      brazier zmb_fire_loop (crackle, playloopsound)  rim + 0         brazier_rim_fire
-//   df_act2_maxis.gsc:2181      brazier zmb_fire_loop (puff)                    rim + 0         brazier_rim_fire
-//   df_act2_maxis.gsc:2241/2250 brazier fx_zmb_tranzit_fire_lrg / zmb_explo_swt rim + 0         brazier_rim_fire
-//   df_act2_maxis.gsc:2109      brazier fx_zmb_ash_rising_md                    rim + 10        brazier_ash
-//   df_act2_maxis.gsc:2161      brazier maxis_sparks trail target               rim + 10        brazier_ash
-//   df_act2_maxis.gsc:2183      brazier fx_zmb_ash_rising_md                    rim + 10        brazier_ash
-//   df_act2_maxis.gsc:2249      brazier fx_zmb_ash_rising_md                    rim + 10        brazier_ash
-//   df_act2_maxis.gsc:2259      brazier fx_zmb_lava_crevice_glow_50 (scorch)    ( 0, 0, 2 )     brazier_ember
-//   df_act2_maxis.gsc:2450      table   fx_zmb_tranzit_fire_lrg                 ( 0, 0, 30 )    socket_glow
-//   df_act2_maxis.gsc:2451      table   fx_zmb_ash_rising_md                    ( 0, 0, 40 )    socket_marker
-//   df_act3_vacuum.gsc:137      orb     df_s6_aura_fx / charge bursts           ( 0, 0, 0 )     orb_aura
-//   df_act3_vacuum.gsc:151      lamp    orb hum / aim (no exploder found)       ( 0, 0, 148 )   lamp_bulb_glow
-//   df_act3_vacuum.gsc:157/170  fuse    zmb_avogadro_loop hum / beam aim        ( 0, 0, 20 )    fuse_aim
-//   df_act3_vacuum.gsc:158/173  core    zmb_avogadro_loop hum / beam aim        ( 0, 0, 30 )    core_node
-//   df_act3_vacuum.gsc          cabin_hearth zmb_avogadro_loop hum / beam aim   ( 0, 0, 18 )    cabin_hearth_node
-//   df_act3_vacuum.gsc:826/827  orb     df_beam_start / key glint               ( 0, 0, 20 )    orb_glint
-//   df_act3_vacuum.gsc:1633     table   fx_zmb_tranzit_spark_int_runner         ( 0, 0, 30 )    socket_glow
-//   df_act3_vacuum.gsc:464/465  tower   fx_zmb_ash_rising_md (side columns)     ( 60, 0, 0 )    tower_column_side
-//   df_act3_hold.gsc:503/504    tower   fx_zmb_ash_rising_md (side columns)     ( 60, 0, 0 )    tower_column_side
-//   df_finale.gsc:132           table   fx_zmb_tranzit_light_glow               ( 0, 0, 30 )    socket_glow
-//   df_finale.gsc:569           table   fx_zmb_tranzit_fire_lrg                 ( 0, 0, 30 )    socket_glow
-//   df_finale.gsc:574           table   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 30 )    socket_glow
-//   df_finale.gsc:917           table   zmb_whoosh                              ( 0, 0, 30 )    socket_glow
-//   df_finale.gsc:311           tower   zmb_turn_on                             ( 0, 0, 100 )   tower_power_snd
-//   df_lamps.gsc:60             lamp    every lamp fx / hum (bulb fallback)     ( 0, 0, 148 )   lamp_bulb_glow
-//
-// Left as literals on purpose (not prop-relative): the player-carried bursts (df_act1:1810,
-// df_act2_maxis:2006/2048, df_act3_vacuum:1042), the zombie burst (df_act2_maxis:2159), the soul-trail lift
-// (df_act2_maxis:1076), the Nacht room fog on the spawn structs (df_act2_maxis:704) and the bus / tower
-// geometry.
+// The current list of points is df_fx_points_init itself (the 2026-09-22 file:line inventory was removed: it had gone stale).
 
 // Effect / sound attach points, in the PARENT PROP'S frame (x forward, y left, z up at yaw 0), turned with the parent
 // by df_fx_point_at. One df_fx_point_def line per point; the Prop Composer exports these lines.
@@ -1593,7 +1481,7 @@ df_fx_points_init()
 
     // ---- the table under the tower (DF_SOCKET sits on DF_TABLE)
     df_fx_point_def( "socket_spark", "table", ( -2.5, 20.5, 88 ) ); // owner composer 2026-09-23 // unmirrored 2026-09-23 with slot 0 // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
-    df_fx_point_def( "socket_glow", "table", ( 0, 0, 42.5 ) );      // owner composer 2026-09-22; the table light, the pulses, the finale stings
+    df_fx_point_def( "socket_glow", "table", ( 0, 0, 42.5 ) );      // owner composer 2026-09-22; the Step 4 preview light, the pulses, the finale marker and stings
     df_fx_point_def( "socket_marker", "table", ( 0, 0, 42.5 ) );    // owner composer 2026-09-22; the AVAILABLE marker over the table
 
     // ---- the things that sit on the table
@@ -1750,17 +1638,17 @@ df_model_top_z( kind )
     tops = [];
     tops["p6_zm_work_bench"] = 44;               // 31 x 44 x 88, the vanilla TranZit bench, base pivot
     tops["p6_zm_buildable_pap_table"] = 21;      // 54 x 21 x 11, the PaP table legs (previous choice)
-    tops["p6_zm_rocks_small_cluster_03"] = 14;   // brazier cairn: 16.5 tall, pivot 2.6 above the lowest rock
+    tops["p6_zm_rocks_small_cluster_03"] = 14;   // the old brazier cairn: 16.5 tall, pivot 2.6 above the lowest rock
     tops["afr_barrel_biohazard_white_rust"] = 44; // the old drum brazier, base pivot
     tops["p6_zm_buildable_sq_transceiver"] = 7;  // relay radio, base pivot (the coil sits here)
     tops["p6_zm_buildable_jetgun_wires"] = 8;    // wire coil, 7.6 tall, base pivot (the mast sits on it at +15)
-    tops["p6_zm_buildable_sq_electric_box"] = 10; // fuse power box, 20 tall, centre pivot
-    tops["p6_zm_buildable_pswitch_body"] = 63;   // fuse panel, base pivot
+    tops["p6_zm_buildable_sq_electric_box"] = 10; // fuse / relay_coil power box, 20 tall, centre pivot
+    tops["p6_zm_buildable_pswitch_body"] = 63;   // socket breaker panel, base pivot
     tops["p6_zm_chain_fence_piece_end"] = 117;   // relay mast, base pivot
-    tops["p6_zm_buildable_turbine_fan"] = 10;    // orb disc, base pivot
+    tops["p6_zm_buildable_turbine_fan"] = 10;    // the old orb disc, base pivot
     tops["p6_zm_buildable_sq_meteor"] = 2;       // meteor piece, centre pivot, 4.5 tall
     tops["ch_tombstone1"] = 31;                  // tombstone brazier, base pivot, 31 tall
-    tops["p6_zm_buildable_etrap_tvtube"] = 11;   // tv tube posed upright: origin at mid height, top +11
+    tops["p6_zm_buildable_etrap_tvtube"] = 11;   // the old tv tube posed upright: origin at mid height, top +11
     tops["pb_pole_telephone_bulb"] = 9;          // tv = the chimney pipe (9 x 8 x 9, base pivot)
     tops["zombie_skull"] = 9;                    // skull: 23 tall, pivot 14 above its lowest point (rest 14)
 
@@ -1782,19 +1670,16 @@ df_model_top_z( kind )
 
 // Height of a kind's model ORIGIN above the surface it rests on (floor, table top), in its registered pose,
 // so the prop looks placed: 0 for the base-pivot props (most of them), the half height for models whose pivot
-// is at their centre, the measured pivot height for the skull. The one deliberate non-contact value is the
-// orb: the turbine disc has a base pivot (contact would be 0) but it hovers 5 above the slot / floor under the
-// steps' aura fx, so a spinning core never z-fights the table (requested in tools/requests_act3_orb.md and
-// requests_hold2.md; df_act3_vacuum / df_act3_hold add this to the floor spots and DF_ORB_SPAWN - on the
-// table the hover is part of slot 2's own registered offset instead).
+// is at their centre, the measured pivot height for the skull. The Step 6/7 rock's floor height is NOT read
+// here: df_act3_vacuum / df_act3_hold use df_model_offset( "orb_ground" ), and table slot 2 carries its own lift.
 // Numbers: glTF POSITION bounds of the model export.
 df_model_rest_z( kind )
 {
     name = df_model( kind );
     rest = [];
-    rest["p6_zm_buildable_turbine_fan"] = 5;   // orb: 25 x 25 x 10 disc, base pivot, hovers half its thickness
+    rest["p6_zm_buildable_turbine_fan"] = 5;   // the old orb disc (catalog only now): base pivot, hovered half its thickness
     rest["p6_zm_buildable_sq_meteor"] = 3;     // orb / orb_ground / beacon: the meteor piece, centre pivot, 4.5 tall
-    rest["p6_zm_buildable_etrap_tvtube"] = 11; // tv posed upright: origin at mid height, 21 tall
+    rest["p6_zm_buildable_etrap_tvtube"] = 11; // the old tv tube (catalog only now) posed upright: origin at mid height
     rest["zombie_skull"] = 14;                 // skull: pivot 14 above its lowest point (top +9)
     rest["test_sphere_lambert"] = 16;          // the old debug sphere (centre pivot)
     rest["p6_zm_buildable_sq_scaffolding"] = 2; // flat slab, centre pivot, 4.4 thick
@@ -1935,25 +1820,27 @@ df_catalog_models()
 
     // registry models (all kinds), so `!df catalog buildable` shows the current picks too
     m[m.size] = "p6_zm_buildable_sq_transceiver";  // relay base (radio, 26 x 7 x 19)
-    m[m.size] = "p6_zm_buildable_sq_scaffolding";  // relay_top / part_b (lattice slab, 83 x 4 x 24)
-    m[m.size] = "p6_zm_chain_fence_piece_end";     // relay_mast (fence end post, 13 x 117 x 3)
+    m[m.size] = "p6_zm_buildable_sq_scaffolding";  // the old relay_top / part_b (lattice slab, 83 x 4 x 24)
+    m[m.size] = "p6_zm_chain_fence_piece_end";     // relay_top / relay_mast / part_b (fence end post, 13 x 117 x 3)
     m[m.size] = "p6_zm_buildable_sq_electric_box"; // relay_coil / fuse / part_c (power box, 13 x 20 x 4)
-    m[m.size] = "p6_zm_buildable_sq_meteor";       // beacon / ember (small rock, 5 x 5 x 6)
-    m[m.size] = "p6_zm_buildable_battery";         // part_a (16 x 14 x 9)
-    m[m.size] = "p6_zm_buildable_etrap_tvtube";    // tv (CRT tube, 21 x 21 x 22, pose 270/180)
-    m[m.size] = "p6_zm_buildable_pswitch_body";    // fuse / socket (breaker panel, 36 x 63 x 16)
-    m[m.size] = "p6_zm_buildable_turbine_fan";     // orb (rotor disc, 25 x 10 x 25)
-    m[m.size] = "p6_zm_keycard";                   // card
+    m[m.size] = "p6_zm_buildable_sq_meteor";       // orb / orb_ground / beacon (the rock, 5 x 5 x 6)
+    m[m.size] = "p6_zm_buildable_battery";         // battery (16 x 14 x 9)
+    m[m.size] = "p6_zm_buildable_etrap_tvtube";    // the old tv (CRT tube, 21 x 21 x 22, pose 270/180)
+    m[m.size] = "p6_zm_buildable_pswitch_body";    // socket (breaker panel, 36 x 63 x 16)
+    m[m.size] = "p6_zm_buildable_turbine_fan";     // the old orb (rotor disc, 25 x 10 x 25)
+    m[m.size] = "p6_zm_keycard";                   // card / card_barn
     m[m.size] = "p6_zm_screecher_hole";            // portal (108 x 18 x 105)
-    m[m.size] = "p6_zm_rocks_small_cluster_03";    // brazier (lava-rock cairn, 88 x 16 x 77)
+    m[m.size] = "p6_zm_rocks_small_cluster_03";    // the old brazier (lava-rock cairn, 88 x 16 x 77)
     m[m.size] = "p6_zm_work_bench";                // table (31 x 44 x 88)
     m[m.size] = "p6_zm_buildable_jetgun_handles";  // receiver alternative (hand grip, 11 x 4 x 10)
     m[m.size] = "p6_zm_buildable_jetgun_wires";    // spool / receiver (wire bundle, 25 x 7 x 25)
+    // (ch_tombstone1 = brazier, p6_zm_buildable_pswitch_hand = ember: registry models,
+    // precached through df_models_init)
     m[m.size] = "zombie_skull";                    // skull (insta-kill skull, 16 x 23 x 21)
     m[m.size] = "c_zom_zombie_head_a";             // skull alternative (zombie head, 14 x 10 x 11)
 
     // antenna / mast candidates (relay_top, relay_mast)
-    m[m.size] = "pb_pole_telephone_bulb";          // bulb lamp head (9 x 8 x 9, the old tv)
+    m[m.size] = "pb_pole_telephone_bulb";          // bulb lamp head (9 x 8 x 9, the tv pipe)
     m[m.size] = "afr_powerpole1";                  // power pole (tall)
     m[m.size] = "p_glo_powerline_tower_redwhite";  // red/white pylon (huge)
     m[m.size] = "p6_garage_pipes_1x128";           // a 128-unit pipe: plain mast

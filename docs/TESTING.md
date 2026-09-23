@@ -11,35 +11,38 @@ Install first: `perl tools/deploy.pl` from the repo (Git Bash). Today the source
 else from the repo. `!df status` prints the version: `DF <version> | side none | players 1 | round 1 | prompts off | texthints on`.
 
 Every `!df` answer and every quest event lands in the console as `[DF] ...`: paste those lines when something is off.
-ONE press of F = every pickup and placement (parts, coil, relay, card, battery, spools, stone, fire hand, orb) and every
+ONE press of F = every pickup and placement (parts, coil, relay, card, battery, spools, skull, fire hand, rock) and every
 pipe kick / grave touch.
 Holds only: build the relay (3 s, vanilla bar + builder hands), tune a lamp (5 s, heard not seen), power the relay (3 s,
 small bar "Powering the relay"), open the frequency (5 s, bar "Opening the frequency"). NO timer on screen anywhere:
 every clock is the Pack-a-Punch tick-tock loop on every player plus dry ticks in the last 30 s (every second, doubled
 under 10 s). `set df_hud_timers 1` before loading brings the old top-centre timers back for a test.
-Two switches: `!df hints on|off` = on-screen PUZZLE prompts ("kick the pipe", Simon boxes, Jet Gun hints, "take
-the skull" in the bunker), default OFF; mechanic prompts (take / place / build / hold, kick the pipe, the Simon boxes) always stay. `!df texthints on|off`
-= the spoken HINT_1 (4 min) / HINT_2 (10 min, then every 6 min) ladder and the event hints, default ON; START / FAIL /
-DONE lines play whatever it says.
+Two switches: `!df hints on|off` = on-screen PUZZLE prompts (the Simon boxes, Jet Gun hints, "Take the skull before
+the cold closes" in the bunker), default OFF; mechanic prompts (take / place / build / hold) always stay. The pipes
+never show a prompt, whatever the switch. `!df texthints on|off` = the spoken HINT_1 (4 min) / HINT_2 (10 min, then
+every 6 min) ladder and the event hints, default ON; START / FAIL / DONE lines play whatever it says.
 Cue grammar, one sound = one meaning: portal-arrive sound + glint on the object = a step is AVAILABLE; piece-add clink =
 progress tick; NavCard chime + side flash + a spark runner flying to the tower top = a sub-goal done; the bridge groan
 (2D) = STEP DONE (the only step-done sound); NavCard fail buzz = wrong input (only you hear it); bus EMP thump =
 something lost / failed; Samantha-steal burst + Avogadro thunder + a short quake = a quest ITEM ARRIVES (coil, key card,
-spool, stone, orb: every item comes by that strike). `!df cue avail|tick|subgoal|fail|deny|trail|done` plays each one
-where you stand.
+spool, skull, rock: every item comes by that strike). Anything put on the table = ONE snap (blue spark on Richtofen and
+before the fork, a short fire snap on Maxis), nothing stays lit; the lasting look is one small glow per finished step
+climbing the relay mast. `!df cue avail|tick|subgoal|fail|deny|trail|done` plays each one where you stand.
 Side family: everything electric (blue sparks) on Richtofen and before the fork, everything fire / ash on Maxis.
 Useful cheats: `!god`, `!points`, `!ammo`, `!kill`, `!round <n>`, `!gun jetgun_zm`, `!gun turbine_zm`, `!gun
 tazer_knuckles_zm`; `!df freeze` (ours: every regular zombie stands inert until toggled back, denizens and Avogadro
-untouched, new zombies freeze as they finish rising).
+untouched, new zombies freeze as they finish rising); `!df jet` / `!df jet watch` (Jet Gun heat values per player).
 
 ## 0. Load
 - No red error popup. `!df status` -> the version line above, `registered: step1 step2 step3 step4 r1 r2 m1 m2 step5 step6 step7 finale`, `available: step1`.
 - `!df fire compat` -> `DF compat: richcompleted 1 maxcompleted 1` (vanilla quest muted). Console at boot: `bus parts
-  pinned (n moved): ladder at the Depot, hatch at the Diner` and `Galvaknuckles cost 3000 (was 6000)`.
+  pinned (n moved): ladder at the Depot, hatch at the Diner`, `Galvaknuckles cost 3000 (was 6000)` and `orb landing spot
+  DF_ORB_SPOT_n x y z (drawn once per game)` (the Step 6 spot, fixed for the whole game).
 - ~20 s into round 1: MAXIS (orange name, white text) then RICHTOFEN (blue name) bottom centre, a soft tick per line.
   Readable? Cut on the right? A vanilla Maxis voice line plays at the phone when Step 1 opens (console `vox vox_maxi_tv_distress_0 3D`).
 - `!df fire perks` -> `finale perks (debug): 5 perks` + one `finale perk X given` line each, five icons. `!df say FIN_RICH_2` (longest line): still readable?
 - `!df scale` -> `players 1 | lamp_souls 12 | nodes 3 | sweep_time 360 | sweep_time_rich 480` and `hold_time 75 | orb_hp 3000 | s7_period 1.3 | s7_cap rich 10 maxis 14`.
+  A step's quotas are frozen at the player count it opened with.
 
 ## 1. What to check at round 1 (touch nothing first)
 Everything below must already be there. Missing = the biggest bug of this build.
@@ -48,58 +51,62 @@ Everything below must already be there. Missing = the biggest bug of this build.
   four `m2 brazier_n at ... (ch_tombstone1)` (the graves), `lamp set: skipped diner townbridge ...`, `lamp set (3): <areas>`. Paste them.
 - Depot: four PIPES (chimney pipe, 9 tall) on the ground around the depot (`!df tp DF_TV_1..4`), each blinking its own
   number (short flashes, a dark gap, ONE blue spark in the gap), no steady glow. Past the fence (`!df tp DF_SIGNAL`, the
-  light 70 above the anchor) a light flashes the order in GROUPS with a click per flash and the same blue spark closing
-  the message; a hum at `DF_SIGNAL_SND`. Is the far light visible from the Depot? Can you count four blinking pipes?
+  light 70 above the anchor) a light flashes the order in silent GROUPS (no click) with the same blue spark closing the
+  message; a hum at `DF_SIGNAL_SND`. Is the far light visible from the Depot? Can you count four blinking pipes?
   Say so. The wall phone: no glint, no prompt, nothing on press.
-- Fog: `!df tp DF_PART_A` radio (Diner garage, behind the box), `DF_PART_B` mast (Farm barn upper floor, a 117-tall post standing). Glint on each. `DF_PART_C` still exists as an
-  anchor but NOTHING lies there (the third part is the wire coil, which arrives after Step 1). Take one part now: notice
-  "Relay parts (1/3)", console `radio taken (1/3)`. It must count later.
+- Fog: `!df tp DF_PART_A` radio (Diner garage, behind the box), `DF_PART_B` mast (Farm barn upper floor, a 117-tall post
+  standing). Glint on each. There is no DF_PART_C any more (the third part is the wire coil, which arrives after Step 1).
+  Take one part now: notice "Relay parts (1/3)", console `radio taken (1/3)`. It must count later.
 - Tower: `!df tp DF_TABLE`: the work bench stands there, empty. Walk into it: you must NOT pass through, and you must
   NOT be able to jump onto it (two rows of clips, a 64-tall wall). `!df move DF_TABLE 20 0 0` moves the real table
   (`table follows DF_TABLE to ...`); move it back or restart.
 - Barn: `!df tp DF_FUSE_1..4`: four small power boxes (13 x 20, centre at mid height) on the walls, faint glow, back
   against the wall, lever side towards the room. Press F on one: nothing.
-- Town: `!df tp DF_BRAZIER_1..4`: four TOMBSTONES spread over Town (owner spots 2026-09-23), standing on the ground,
-  nothing on them, no fire, no glow. Walk into one: you must not pass through.
+- Town: `!df tp DF_BRAZIER_1..4`: four TOMBSTONES spread over Town (owner spots 2026-09-23), standing on the ground, each
+  with ONE small flame (replayed every 2 s, never burns out), no crackle, no glow. Walk into one: you must not pass
+  through, and you must not be able to stand on it (two clip blocks, 64 tall).
 - Lamps: walk to one lamp of the printed set: one small electric spark at the bulb every 6 s, no colour, not green.
   `!df fire lamps` lists 3 lamps `set 1 state off`. None of them is diner or townbridge; one is the lamp nearest the tower.
 - Bus parts: the ladder lies at the Depot (-7313 5441), the hatch at the Diner (-3537 -7214). `!df fire busparts`
   re-runs the pin and prints the pools.
-- Not there yet, correct: coil, key card, orb, battery on the bus, spools, stone, fire hand.
+- Not there yet, correct: coil, key card, rock, battery on the bus, spools, skull, fire hand.
 
 ## 2. Models, effects, sounds (once)
     !df show
     !df tp DF_TABLE       work bench under the tower, front towards you; `!df fire table_demo` puts radio + coil box +
-                          tall post on slot 0, card on slot 1, the stone on slot 2 (`!df hide` removes them)
+                          tall post on slot 0, card on slot 1, the rock on slot 2 (`!df hide` removes them)
     !df tp DF_TV_1        chimney pipe (pb_pole_telephone_bulb, 9 tall) on the ground (also TV_2..4)
     !df tp DF_SIGNAL      the far light spot (light 70 above); DF_SIGNAL_SND the hum spot
-    !df tp DF_COIL_DROP   where the coil lands after Step 1 (-6311 5019 -46): preview of the electric box
+    !df tp DF_COIL_DROP   where the coil lands after Step 1 (-6311 5019 -46): preview of the wire coil
+                          (p6_zm_buildable_jetgun_wires, slightly tilted)
     !df tp DF_FUSE_1      power box on the barn wall (also FUSE_2..4); IN the wall or floating? say which
     !df tp DF_BRAZIER_1   tombstone on the ground (also 2..4); sunk? floating?
     !df tp DF_CARD_SPAWN  key card preview upright on the barn wall, clear of panel 4
     !df tp DF_PORTAL      the M1 hole spot in front of the table (7623 -457 -207)
-    !df tp DF_ORB_SPOT_1  the diner landing spot (-5991 -7686 34); SPOT_2 Town (1401 -445 -67); SPOT_3 power station
-                          (11720 8491 -575): the stone preview on the ground at each, off the road?
-    !df side rich         console `orb landing spot ...` (one of the three, at random; `!df side maxis` picks again)
+    !df tp DF_NACHT_SPAWN_1  a denizen spawn in the Nacht bunker (also 2..4: 13673 -337, 13861 -327, 13643 -541, 13886 -522)
+    !df tp DF_ORB_SPOT_1  the diner landing spot (-5991 -7686 34); SPOT_2 Town (900 130 -39); SPOT_3 power station
+                          (11720 8491 -575): the rock preview on the ground at each, off the road?
     !df dump              one [SPOT] line per anchor + [MODEL] lines
 Report: invisible / black / sideways / wrong size, with the anchor name. Fix live: `!df grab DF_ORB_SPOT_2` (fire =
-place), paste the printed line. `!df hide` when done. The stone (M1) and the orb (Step 6) are the SAME meteor model.
+place, melee = cancel), paste the printed line; a live tune of a DF_ORB_SPOT_n makes it this game's landing spot
+(`orb landing spot now DF_ORB_SPOT_n (edited)`). `!df hide` when done. The M1 skull is `zombie_skull`; the Step 6 rock
+is the meteor piece (`p6_zm_buildable_sq_meteor`); the M2 fire hand is `p6_zm_buildable_pswitch_hand`.
 Picking by ear and eye: the picker pages (Sound, Prop, Effect; self-contained HTML built by the generators in `tools/pickers`)
 list the same sets as `!df snd list` / `!df fx list`. In game: `!df snd <n>` / `!df snd next` plays a sound to you at
 full volume and prints its name; `!df fx <n>` / `!df fx next` plays an effect 8 s where you aim (`[FX n/150] name`);
 `!df fx grid` puts a whole page of effects on pedestals in front of you (`gridnext` / `gridprev` / `gridbig` for the
 huge ones / `gridoff`), walk to a pedestal and the bottom label reads `[n] name`. Paste the numbers or names you want,
-and for what (pipe flash, signal light, lamp hungry / full / anchored, grave flame, orb aura, ...).
+and for what (pipe flash, signal light, lamp hungry / full / anchored, grave flame, step glow, rock aura, ...).
 
 ## 3. Act 1 (shared)
 **Step 1 Dead Air** (depot, no power). Skip: `!df fire a1_solve1` or `!df goto step2` (the coil arrives in both cases).
 - Count the far light's groups ("3, pause, 1, pause, 4, pause, 2"), then KICK the pipes whose blink count matches, in
-  that order (one press each; "Press F to kick the pipe" only with `!df hints on`): a spark on the pipe, it stops
-  blinking and its light stays on. Holding F must not repeat. Console `screen n used, expected screen m, progress k`.
+  that order (one press each; NO prompt, even with `!df hints on`): a spark on the pipe, it stops blinking and its light
+  stays on. Holding F must not repeat. Console `screen n used, expected screen m, progress k`.
 - Wrong pipe: the deny buzz (you only), all pipes blink again, console `wrong pipe, all pipes back to blinking (the
   signal keeps flashing the order)`. Same order. `!df fire a1_tv` kicks the next expected pipe.
 - All four: `step1 solved, all four screens on`, bus dashboard pulse 5 s (NO horn), D1 lines, the step-done groan,
-  `step complete step1`. Then the STRIKE at DF_COIL_DROP (burst, thunder, quake) and a glinting electric box on the
+  `step complete step1`. Then the STRIKE at DF_COIL_DROP (burst, thunder, quake) and a glinting wire coil on the
   ground: `the phone dropped the receiver (part 3) at ...`, Richtofen names it. One press: "Relay parts (n/3)". The
   pipes stay, dark, no spark; the far light and its hum are off.
 - Fx to try (before loading): `set df_fx_pipe_flash <fx>`, `set df_fx_signal <fx>`, `set df_fx_pipe_locator <fx>` with
@@ -117,26 +124,36 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 
 **Step 3 Ride the Line** (power ON). Skip: `!df fire a1_stop` (needs a running sweep) or `!df goto step4`.
 - Glint on the relay until the first sweep. Bus leaves: `sweep 1/1 started, bus left <stop>, relay hp 800`, a blue
-  burst on the relay every 1.5 s (no big spark cloud over the bus), and `roof waves on: a zombie every 2.5 s near the
-  bus, up to 10, until the relay locks or the sweep ends`: zombies keep rising along the road and climbing on.
+  burst on the relay every 1.5 s (no big spark cloud over the bus), and `roof waves on: two zombies every 1.5 s ahead
+  of the bus, cap 8, until the relay locks or the sweep ends` (cap +3 per extra player): zombies keep rising along the
+  road and climbing on.
 - Roof zombies swing: sparks, `relay hit, hp 740` (60 a hit). `!df fire a1_hit` (200) x2: `relay damaged, hp 400,
   second burst layer on`; x3: `relay low, hp 200, warning horn`.
 - Arrival: leave horn, blue burst, 8 s of tower lightning, `stop 1/1 counted at <stop>`, then `relay locked, take it to
   the tower` + the dashboard power pulse replaying on the relay, `roof waves off`, D3 lines, `step complete step3`. ONE stop only.
+- Power OFF while the bus rides (`!df power off` mid-trip): at the stop `the bus reached the stop without power: not
+  counted`, EMP thump, D3_FAIL, relay kept.
 - Wrong: paste every `sweep ...` / `bus left ...` / `roof waves ...` line.
 
 **Step 4 Plug In**. Skip: `!df goto r1` (rich) or `!df goto m1` (maxis; the goto locks the side itself).
-- One press within 120 takes the relay (`relay picked up by`, sparks on your back). Portal at a lamp: deny buzz, refused.
+- One press within 120 takes the relay (`relay picked up by`, sparks on your back); the first lift of the game plays
+  S4_CHOOSE ("Choose now..." / "Lights ON when you plug it..."). Portal at a lamp: deny buzz, refused.
 - Carry it into the cornfield: Maxis's vanilla "Spire" voice once (`locked relay entered the cornfield`).
-- Walk towards the table with power ON: from ~400 units a plain small glow on the table is BLUE (no lamp-shaped light),
-  console `table preview rich`. Walk away: off (`table preview off`). `!df power off`, come back: ORANGE, `table preview maxis`.
-- One press within 150: blue burst + clink + switch-on sound, the relay stands on the LEFT slot, turned 45 degrees,
-  with the coil box and the TALL post on it (`plugged relay at ..., top piece relay_mast`), the colour stays, tower
-  visuals 15 s, one vanilla voice line, D4 line, `relay plugged by <you>, power 1, side rich`. A white runner starts
-  climbing a tower leg every ~5 s and stays for the game; a tiny glow on the left slot.
+- Walk towards the table with power ON: from ~400 units the BLUE safety light (fx_zmb_tranzit_light_safety_ric) shows
+  on the table, console `table preview rich`. Walk away: off (`table preview off (no carrier within 400)`). `!df power
+  off`, come back: the ORANGE one (safety_max), `table preview maxis`.
+- One press within 150: the side's snap (RICH blue spark, MAXIS a short fire snap) + clink + switch-on sound, the relay
+  stands on the LEFT slot, turned 45 degrees, with the coil box and the TALL post on it (`plugged relay at ..., top piece
+  relay_mast`), the preview light GOES (no lasting table light), tower visuals 15 s, one vanilla voice line, D4 line,
+  `relay plugged by <you>, power 1, side rich`. A white runner starts climbing a tower leg every ~5 s and stays for the
+  game. Four small step glows appear on the relay mast, bottom up (steps 1-4; `set df_step_glow_fx <fx>` swaps the glow).
 - Side lock: power ON = `side rich` and `Richtofen side locked, the four tombstones are gone` (check Town: no
   graves); power OFF = `side maxis` and `Maxis side locked, the four Simon boxes are gone` (check the barn: no boxes).
-  Both print `orb landing spot ...` (the Step 6 spot). `!df status` shows the side.
+  Both print `orb spawn for side X: x y z` (the spot drawn at boot, not a new draw). `!df status` shows the side. The
+  lock is FINAL: `!df side maxis` now answers `side rich is already locked, it cannot change in this game (start a fresh
+  game to test maxis)`.
+- Co-op: the carrier leaves the game with the relay: `relay carrier left the game, relay dropped`, then after 60 s
+  untouched `orphan relay untouched for 60 s, returned to the table`.
 
 ## 4R. Richtofen side (power ON): `!df goto r1` in a fresh game if needed
 **R1 Summon the Storm** (barn). Skips: `!df simon` (solves it), `!df fire r1_captured` (skips the fight).
@@ -147,42 +164,47 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   replay. 20 s without a press: `simon abandoned (no input)`, press again to restart.
 - Solved: three rising clinks, all boxes spark, then the STRIKE on the barn wall at DF_CARD_SPAWN (burst, thunder,
   quake) and the NavCard chime + a runner to the tower: `key card at ...`. The card must be VISIBLE. One press takes it
-  (`key card taken`), one press at the table inserts it (`key card on the table, slot 1`, middle slot, lying 2 above
-  the top, glint on it).
+  (`key card taken`), one press at the table inserts it (sub-goal chime, `key card inserted`, `key card on the table,
+  slot 1`: middle slot, lying flat, NO glint or glow on it).
 - Case A (nobody stood at the power core yet): NO clock, Richtofen's chamber line, console `avogadro state chamber`. Look
   at the core in the power room: `avogadro released`, called down and `avogadro warped to the tower`.
 - Case B (he roams or sits in the cloud): storm over the tower, `avogadro called down`, warped to the tower at once.
+- Case C (no Avogadro entity at all): R1_RICH_NOSTORM ("Nothing came, Samuel..."), `no avogadro entity to summon, r1
+  counts as captured`, R1 completes without a fight.
 - While he is alive within 900 of the tower the table pulses BLUE. The last 30 s of the 240 s clock tick once a second;
   stay near him past it: NO fail while he is within 900.
 - Knife him 3 times (vanilla's defeat): `avogadro captured at the tower`, soul trails from the table into the 4 boxes, a
-  blue burst on each, the card's glint becomes a steady glow, `step complete r1`. Maxis's vanilla stab line once.
+  blue burst on each, `step complete r1`, the fifth step glow on the relay. Maxis's vanilla stab line once.
 - Wrong: paste `simon ...`, `avogadro ...` lines.
 
-**R2 Souls on the Line**. Skips: `!df fire r2_soul` (one soul), `r2_punch` (every full lamp frees its spool), `r2_spool` (one spool counted), `!df souls` (all).
+**R2 115 on the Line**. Skips: `!df fire r2_soul` (one kill), `r2_punch` (every full lamp frees its spool), `r2_spool` (one spool counted), `!df souls` (all).
 - Console `r2 3 lamps, 12 souls each`, then per lamp `r2 lamp X: N spawn structs for its waves`. At a set lamp: the
   side colour IN the bulb, a hum, a spark every 2 s (HUNGRY), a light shaft from the tower and a light column at the
   base. NOT green.
 - Stand within 450 of a hungry lamp: every 3 s two zombies rise nearby (`r2 two zombies pulled to lamp X (<you> under
-  it)`) while fewer than 20 live. Kill within 450 of the post: `lamp X souls a/12` every 5, a trail into the bulb and a
-  clink for EVERY soul (every trail must be visible, no streak). A miss says `kill not absorbed: NNN from lamp X (need
-  450, ...)`.
+  it)`) while fewer than 12 zombies are within 1200 of you. Kill within 450 of the post: `lamp X souls a/12` every 5, a
+  trail into the bulb and a clink for EVERY kill (every trail must be visible, no streak). A miss says `kill not
+  absorbed: NNN from lamp X (need 450, ...)`.
 - At 12: `lamp X filled`, NavCard chime + blue flash + runner to the tower, beam off, the sparks STOP and the bulb keeps
   a steady glow (no electric arcs), Richtofen: "punch the post". Console `lamp X full: punch the post with the knuckles
-  to get the spool`.
+  to get the spool (!df fire r2_punch drops every ready spool)`.
 - Buy the Galvaknuckles (Diner roof, through the hatch, 3000). Melee the post within 90: a spark on the post, `r2 lamp X
   punched by <you>, the spool is out`, the STRIKE at the lamp's foot and a glinting WIRE SPOOL on the ground (`spool at
   lamp X`). Richtofen names the first spool. Knife the post instead (or any gun melee): deny buzz + "Bare steel? No."
   (once per 20 s), console `r2 <you> hit lamp X without the knuckles (<weapon>)`, no spool.
 - "Press F to take the spool" (`spool taken (1 in hand, 0 placed)`); spools STACK, carry all three; at the table "Press F
-  to place the spools": clink + spark at the relay slot, one glow per spool climbs the post, `spool placed 3/3`,
-  `step complete r2`, R2_DONE, Step 5 opens.
+  to place the spools": clink + spark at the relay slot, `3 spool(s) placed, 3/3`, `r2 antenna array 3/3` (NO glows on
+  the mast for the spools), `step complete r2`, R2_DONE, the sixth step glow on the relay, Step 5 opens. Every lamp of
+  the set ends filled with its beam off. Nobody holding a Jet Gun: A2_JETGUN_RICH ("Before the end you will need a Jet Gun").
 - Act 2 reward at once: `act 2 reward given (rich): side reward + Max Ammo at the table`, Richtofen's reward line, blue
   runners start climbing the tower next to the white one. Place a turret (`!gun turret_zm`) with no turbine: it fires.
 - Side rules: hold the Jet Gun until the heat passes 50: the needle stalls. Power OFF and end a round: `power off: lamp X
-  -5, n` (a filled lamp reopens, hungry again). Avogadro comes back EVERY round (`avogadro returns next round`).
+  -5, n` + R2_POWER_RICH ("Lights out, Samuel!"); a filled lamp whose spool is still in the post reopens (hungry again),
+  one whose spool is out never does. Avogadro comes back EVERY round (`avogadro returns next round`), except while
+  Step 6 is open.
 
 ## 4M. Maxis side (power OFF): `!df goto m1` in a fresh game (the goto locks the side)
-**M1 The Cold Room**. Skips: `!df fire m1_ride` (ride cue), `m1_latch`, `m1_kills`, `m1_skull` (stone in front of you; fire again = on the table).
+**M1 The Cold Room**. Skips: `!df fire m1_ride` (ride cue), `m1_latch`, `m1_kills`, `m1_skull` (skull in front of you; fire again = on the table).
 - `!df goto m1`: console `m1 waiting for a denizen latched within 300 of the table` then `s7 tower safety volumes
   removed: N`. Denizens now rise AT the tower in the fog. Glint over the table.
 - Let a denizen jump on you anywhere: the portal-open sound, the table pulses ORANGE 5 s, Maxis's M1_EVENT line,
@@ -190,52 +212,65 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - Walk to the table with it: it dies in ash, `m1 denizen latched at the table`, `m1 portal at 7623 -457 ...`: the hole
   rises out of the ground in front of the table and spins with an orbiting orange light; the glint moves onto it.
 - Walk INTO the hole (no F): warp sound, black flash, Nacht. `m1 cold room 60 s, 6 denizen kills`, cold fog, the
-  tick-tock (no timer). Denizens rise two at a time (`m1 denizen rising at`); each kill = trail + ash + `m1 denizen kill k/6`.
-- Success: `m1 cold room over: success`, the STRIKE where the last one died and the STONE (the small meteor rock) lies
-  there with a glint (`m1 skull on the floor at ..., one press takes it`: console and prompt still say "skull"),
-  Maxis: "Lightning left you a stone"; 30 s window, "Press F to take the skull" within 100 ("Take the skull before the
-  cold closes" for the room only with hints on). Then everyone is sent back (`m1 1 player(s) returned to the tower`).
-  Nobody took it: `m1 skull not taken in 30 s, it comes along to the tower`, it lies at the tower return point with its
-  glint, NEVER placed by itself.
-- Carry it (notice, no lamp portals, drops at your feet if you go down: `m1 skull dropped`). "Press F to place the
-  skull" within 150 of the table: `m1 skull on the table, slot 1 (...)`, tower orange 12 s, M1_DONE, `step complete m1`.
-- After M1: `m1 side rules on: denizens avoid the table and lit braziers (400), fog spawns doubled`. Stand near the table
-  with a denizen on your head: it jumps off.
+  tick-tock (no timer). Denizens rise two at a time at a RANDOM one of the four Nacht anchors at least 150 from every
+  player, never the same one twice in a row (`m1 denizen rising at x y`: the coordinates must change); each kill =
+  trail + ash + `m1 denizen kill k/6`.
+- Success: `m1 cold room over: success (6/6)`, the STRIKE where the last one died and the SKULL (zombie_skull, resting
+  on its base) lies there with a glint (`m1 skull on the floor at ..., one press takes it`), Maxis: "The cold left a
+  skull behind"; 30 s window, "Press F to take the skull" within 100 ("Take the skull before the cold closes" for the
+  room only with hints on). Then everyone is sent back (`m1 1 player(s) returned to the tower`). Nobody took it: `m1
+  skull not taken in 30 s, it comes along to the tower`, it lies at the tower return point with its glint, NEVER
+  placed by itself.
+- Carry it (notice "Skull" with the scoreboard skull icon, TAB square, no lamp portals, drops at your feet if you go
+  down: `m1 skull dropped (<you> went down), take it again`). "Press F to place the skull" within 150 of the table:
+  the fire snap, `m1 skull placed by <you>`, `m1 skull on the table, slot 1 (...)` (it stands at its own pose on the
+  table and turns slowly, no glow), tower orange 12 s, M1_DONE, `step complete m1`.
+- After M1: `m1 side rules on: denizens avoid the graves (M2) and the cabin fireplace (Step 6) within 400, fog spawns doubled` (the tower safety
+  volume comes back as well). Stand at the table with a denizen on your
+  head: say whether it jumps off.
 - Timeout: `m1 cold room over: timeout`, back at the tower with an ash burst + EMP thump, Maxis's fail line, `m1 failed
   (timeout), back to the latch`.
 
 **M2 Fire and Ash**. Skips: `!df fire m2_ember` (you hold it), `m2_light` (next grave lit), `m2_fill` (all four spent, fire hand returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
-- M2 opens: `m2 the fire hand burns on the table: take it (one press), touch any tombstone with it, 5 zombies killed at a
-  lit one make it vanish; all four gone = bring the charged fire hand back to the table`. The FIRE HAND lies on the table's
-  RIGHT slot with the glint; the four graves stand dark.
+- M2 opens: `m2 the fire hand is on the table` and `m2 the fire hand burns on the table: take it (one press), touch any
+  tombstone with it, 5 zombies killed at a lit one make it vanish; all four gone = bring the charged fire hand back to
+  the table`. The FIRE HAND (the power switch hand) lies on the table at its own pose with a tiny flame and the glint.
 - "Press F to take the fire hand" within 100 of the table: pickup sound, ignite crack, lava fire on your body, health drops
-  5/s (never below 15 by the fire hand alone), `m2 fire hand taken from the table by <you> (5 hp/s while carried; it stays in
-  hand for the whole step)`, Maxis names it once. Lamp portal: deny, refused.
-- Within 100 of a DARK grave: "Press F to light the grave". One press: whoosh + ignite + ash puff, a SMALL flame at the
-  base of the tombstone, a clink, the fire hand STAYS in your hand: `m2 brazier_n lit by <you> (1/4 lit, 3 to go, the fire hand
-  stays in hand)`. Any order, any number lit at once. Console `m2 brazier_n: N spawn structs for its waves`.
+  5/s (never below half health, and not within 300 of a lit grave), `m2 fire hand taken from the table by <you> (5 hp/s
+  while carried; it stays in hand for the whole step)`, Maxis names it once. Lamp portal: deny, refused.
+- Within 100 of an unlit grave: "Press F to light the grave". One press: fire whoosh, the grave starts to CRACKLE (its
+  small flame stays), a clink, the fire hand STAYS in your hand: `m2 brazier_n lit by <you> (1/4 lit, 3 to go, you keep
+  the fire hand)`. Any order, any number lit at once. Console `m2 brazier_n: N spawn structs for its waves`.
 - A lit grave starts its wave (`m2 wave ON at brazier_n`): two sprinting zombies every 2 s from the Town spawn structs
-  within 1200 (N above must not be 0), up to 8 (+3 per extra player). Kill one within 250 of that grave, burning or
-  not, any gun: a fire burst at the body, a fire trail into the grave, clink + fire puff, `m2 brazier_n 1/5`. A kill at
-  a DARK grave does not count (deny buzz to the killer, console silent); a Galvaknuckle kill at a lit grave does not
-  count either (deny buzz). At 5: `m2 brazier_n spent and gone (k/4)`: the tombstone bursts (large fire + rising ash)
-  and VANISHES, a scorched lava glow stays on the ground.
-- All four gone: NavCard chime + fire flash + a runner from YOU to the tower, the flame on your body grows, `m2 all four
-  stones spent, the fire hand is charged: return it to the table (one press within 150)`. At the table "Press F to return
-  the fire hand": the lightning snap at the table, the hand stays there lit until Step 6, `m2 the charged fire hand is back in the table`, `step complete m2`, tower orange
-  12 s, `m2 smoke column at the tower top for 20 s`, M2_DONE, act 2 reward at once (`act 2 reward given (maxis)`, Max
-  Ammo, Maxis line, orange runners on the tower). Nobody holding a Jet Gun: Maxis's "The rock needs a Jet Gun" line
-  (Step 6 is drawn with it). `m2 done: Step 6 node = the cabin hearth at 5430 6874 -24`. `!df fire lamps`: `silent 1` on all 8 lamps; a denizen dropping at any
-  lamp opens a portal, no turbine.
+  within 1200 (N above must not be 0), up to 8 per grave (+3 per extra player). Kill one within 250 of that grave,
+  burning or not, any gun: EVERY counted kill = a fire burst at the body with the swipe sound there, a fire trail into
+  the grave, then the clink at the grave (two different sounds; paste it if one is missing on quick kills), `m2
+  brazier_n 1/5`. A kill at an unlit grave does not count (deny buzz to the killer, console silent); a Galvaknuckle kill
+  at a lit grave does not count either (deny buzz). At 5: `m2 brazier_n spent and gone (k/4)`: the tombstone bursts
+  (large fire + rising ash) and VANISHES with its clips, a scorched lava glow stays on the ground.
+- Cold timer: a lit grave not filled within 90 s (`set df_m2_grave_time <s>` before loading) goes cold: the tick-tock
+  runs for the grave that cools first (dry ticks in its last 30 s), then EMP thump at the grave, M2_GRAVE_COLD, `m2
+  brazier_n went cold (not filled within 90 s): light it again and fill it from 0`, the crackle stops, `m2 wave OFF at
+  brazier_n`.
+- All four gone: NavCard chime + fire flash + a runner from YOU to the tower, the flame on your body grows,
+  M2_EMBER_CHARGED, `m2 all four graves spent, the fire hand is charged: return it to the table (one press within 150)`.
+  At the table "Press F to return the fire hand": the fire snap at the hand, it stays on the table lit until Step 6 (no
+  prompt), `m2 the charged fire hand is back in the table`, `step complete m2`, tower orange 12 s, `m2 smoke column at
+  the tower top for 20 s`, M2_DONE, act 2 reward at once (`act 2 reward given (maxis)`, Max Ammo, Maxis line, orange
+  runners on the tower). Nobody holding a Jet Gun: A2_JETGUN_MAXIS ("Before the end you will need a Jet Gun").
+  `m2 done: Step 6 node = the cabin hearth at 5430 6874 -24 (one draw: fire until the Jet Gun overheats)`. `!df fire
+  lamps`: `silent 1` on all 8 lamps; a denizen dropping at any lamp opens a portal, no turbine.
 - Galvaknuckles (`!gun tazer_knuckles_zm`) melee within 100 of a grave, or anywhere with the fire hand in hand: deny buzz +
-  "His current will not touch my graves", console `m2 <you> used the knuckles at the stones: refused`.
+  "His current will not touch my graves...", console `m2 <you> used the knuckles at the graves: refused`.
+- Denizens leave you alone within 400 of ANY of the four graves (lit or not) while M2 runs.
 - Wrong: paste the `m2 brazier_n ...` lines, the `spawn structs` count, and what killed the zombie.
 
 ## 5. Act 3 (shared; what differs per side is marked)
 **Step 5 Frequency Sweep**. Skips: `!df fire s5_anchor` (one lamp), `s5_all`, `s5_time` (expire, needs an anchor), `s5_penalty` (pay it), `!df goto step6`.
-- Console `s5 sweep open: 3 set lamps, anchor 3 (turbine within 200 | knuckle jolt on the post), timer 360 | 480 s from
-  the first anchor` (Maxis 360, Richtofen 480). ONLY the same three lamps get "Hold F to tune"; each untuned one wears a
-  glint at the bulb; no lamp turns green.
+- S5 START waits until the end-of-Act-2 lines are over (at most 90 s). Console `s5 sweep open: 3 set lamps, anchor 3
+  (turbine within 200 | knuckle jolt on the post), timer 360 | 480 s from the first anchor` (Maxis 360, Richtofen 480):
+  EVERY lamp of the set must be anchored (4 of 4 with a full lobby). ONLY the set lamps get "Hold F to tune"; each
+  untuned one wears a glint at the bulb; no lamp turns green.
 - Hold F 5 s: a rising power sound at the lamp (NO bar), 1 / 2 / 3 quick ticks at 25 / 50 / 75 %, then two clinks and
   `lamp X tuned, waiting 15 s for an anchor`: the light blinks, tick-tock at the lamp, no timer, the electric arcs are
   off. The first time, the patron names the anchor (S5_ANCHOR_TURBINE_MAXIS / S5_ANCHOR_DENIZEN_RICH = "Punch the post!").
@@ -244,38 +279,47 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   - RICH: melee the post with the GALVAKNUCKLES within 90 while it ticks (or up to 45 s before you tune it): `s5 lamp X
     jolted by <you> (counts as the anchor for 45 s)`, anchored, `s5 countdown started ...: 480 s`. A denizen burrow does
     NOTHING here any more. Richtofen's vanilla lamp line once.
+  - Every anchor short of the last: D5_ANCHOR (Richtofen: "One holds!").
   - Without an anchor: after 15 s EMP thump + side fx at the lamp, `no anchor within 15 s, signal lost, draining`, 10 s,
     `tunable again`, prompt back. No countdown.
 - The countdown is the Pack-a-Punch tick-tock riding you (one loop per player, everywhere on the map); the dry ticks join
-  under 30 s. Anchored lamp: steady side light + light shaft from the tower + slow double burst, no arcs. 3 anchors:
-  D5_DONE, `step complete step5`.
+  under 30 s. Anchored lamp: steady side light + light shaft from the tower + slow double burst, no arcs. All anchored:
+  `s5 3 lamps anchored, step done`, D5_DONE, `step complete step5`.
 - Wrong: paste `s5 lamp X ...` lines; on Maxis say where the turbine stood.
 
-**Step 6 Vacuum**. Skips: `!df fire s6_orb` (orb to your feet), `s6_draw` (one charge), `s6_deliver` (finish), `s6_restart`, `orb_aura` (next aura), `!df goto step7`.
-- Step opens: `s6 build-up over the tower, the orb arrives in 3 s` (RICH storm cloud + rumble / MAXIS smoke column), then
-  a bolt + thunder (RICH) or a fire burst + ignite (MAXIS) at the spot, `s6 strike at DF_ORB_SPAWN`, and the STONE lies
-  on the ground there, glint + light shaft on it. The spot is the one printed at the side lock (`orb landing spot ...`):
-  the diner, Town or the power station, on EITHER side (`!df tp DF_ORB_SPOT_1..3`). The Step 5 lamps go dark. Console
-  lists ONE node: RICH `s6 node 0 core core` (the sparking block on the power station bridge), MAXIS `s6 node 0 hearth
-  cabin hearth` (the fireplace of the hunter's cabin in the woods, `!df tp DF_CABIN_HEARTH`): shaft + column + hum on
-  it, MAXIS also a small glow in the fireplace opening.
-- One press within 100 takes it (`s6 orb picked up by <you> (0/1 charges)`, notice "Rock 0/1", TAB square). No lamp
-  portals while carrying. With no Jet Gun in any inventory: the side's "build a Jet Gun" line once (RICH vacuum line,
-  MAXIS "The rock needs a Jet Gun"); otherwise D6_HINT once per game.
-- BOTH SIDES, the same draw: `!gun jetgun_zm`, carry the orb to the node, fire at it within 350 looking at it (cone
-  55 degrees on the aim point): a rising power sound (no bar), `s6 drawing node 0`, side bursts at the node. Keep firing
-  until the gun OVERHEATS while still aimed: `s6 jet gun overheated at the node: the charge is drawn`, NavCard chime +
-  flash + runner to the tower + trail into you, `s6 charge 1/1 in the orb (node 0 ...)`. Overheat while looking away:
-  `overheated away from the node: nothing drawn`, try again. Refused: `jet gun firing but no charged node within 350`
-  / `firing near node 0, aim NN/100 (need 57)`; carrier with no Jet Gun in hand within 350: deny buzz once per approach
-  (`draw refused at node 0`).
+**Step 6 Vacuum**. Skips: `!df fire s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver` (finish), `s6_restart`, `orb_aura` (next aura), `!df goto step7`.
+- Step opens at the table: RICH the key card discharges (blue spark + arc crack, a blue runner to the landing spot,
+  S6_CARD_RICH, `s6 the key card discharged on the table, its charge flew to the landing spot`; the card stays); MAXIS
+  the fire hand bursts and is gone (fire burst, its fire flies to the landing spot, S6_EMBER_MAXIS, `s6 the fire hand
+  burst on the table, its fire flew to the landing spot`). Then `s6 build-up over the tower, the orb arrives in 3 s`
+  (RICH storm cloud + rumble / MAXIS smoke column), a bolt + thunder (RICH) or a fire burst + ignite (MAXIS) at the
+  spot, `s6 strike at DF_ORB_SPAWN`, and the ROCK lies on the ground there, glint + light shaft on it. The spot is the
+  one drawn at boot (`orb landing spot DF_ORB_SPOT_n ...`): the diner, Town or the power station, on EITHER side
+  (`!df tp DF_ORB_SPOT_1..3`). The Step 5 lamps go dark. Console lists ONE node: RICH `s6 node 0 core core` (the
+  sparking block on the power station bridge), MAXIS `s6 node 0 hearth cabin hearth` (the fireplace of the hunter's
+  cabin in the woods, `!df tp DF_CABIN_HEARTH`): shaft + column + hum on it (RICH the Avogadro hum, MAXIS a fire
+  crackle), MAXIS also a small glow in the fireplace opening.
+- Leave the rock untouched 3 min: `s6 rock untouched 180 s at its landing spot, flew to the table front (...)`, a trail
+  flies there and the glint follows.
+- "Press F to take the rock" within 100 (`s6 orb picked up by <you> (0/1 charges)`, notice "Rock 0/1", TAB square). No
+  lamp portals while carrying. With no Jet Gun in any inventory: the side's "build a Jet Gun" line once (RICH "No
+  engine? Build one...", MAXIS "The rock needs a Jet Gun"); otherwise D6_HINT once per game.
+- BOTH SIDES, the same draw: `!gun jetgun_zm` (the upgraded Jet Gun works too), carry the rock to the node, fire at it
+  within 350 looking at it (cone 55 degrees on the aim point): a rising power sound (no bar), `s6 drawing node 0`, side
+  bursts at the node. Keep firing until the gun OVERHEATS while still aimed: `s6 jet gun overheated at the node: the
+  charge is drawn`, NavCard chime + flash + runner to the tower + trail into you, `s6 charge 1/1 in the orb (node 0 ...)`.
+  Overheat while looking away: `overheated away from the node: nothing drawn`, try again. A plain weapon swap mid-draw
+  draws nothing (`s6 heat watch ended on weapon_change`, or `s6 jet gun gone without an overheat signal: nothing drawn`).
+  Refused: `jet gun firing but no charged node within 350` / `firing near node 0, aim NN/100 (need 57)` / `firing near
+  node 0 without the orb in hand (orb: <state, distance, position>)`. Walking past the node with another gun: silent.
 - MAXIS aim check at the fireplace: crouched at 5394 6872 looking straight in, standing at the same spot, and standing
   a metre back (5357 6872) must all draw. Wrong: paste the `aim NN/100` line and your `!pos`. Denizens leave you alone
-  within 400 of the fireplace while Step 6 is open.
-- All charges: three clinks, `s6 orb fully charged, bring it to the tower socket`, aura + hum on the stone and on you
-  (RICH avogadro_health_full, MAXIS powerup_on_caution; `!df fire orb_aura` cycles). At the table with charges missing:
-  "The orb needs N more charge(s)". Full, one press within 150: "Press F to place the orb in the relay", power pulse +
-  flash + clink, the stone rests on the RIGHT slot with its aura, glow on the slot, D6_DONE, `step complete step6`.
+  within 400 of the fireplace while Step 6 is open. RICH: Avogadro stays in his cloud while Step 6 is open.
+- All charges: three clinks, `s6 orb fully charged, bring it to the tower socket`, D6_FULL_RICH / D6_FULL_MAXIS, aura +
+  hum on the rock and on you (RICH avogadro_health_full, MAXIS powerup_on_caution; `!df fire orb_aura` cycles). At the
+  table with charges missing: "The rock needs N more charge(s)". Full, one press within 150: "Press F to place the rock
+  in the relay", ONE snap (blue / fire) + clink, the rock rests on the RIGHT slot with NO aura, the "Rock" notice is
+  cleared, D6_DONE, `step complete step6`, the eighth step glow on the relay.
 - `!df goto step6` MAXIS (after `!df side maxis`): console `m2 done: Step 6 node = the cabin hearth ...` and `s6 node 0
   hearth cabin hearth`; RICH `r1 done: Step 6 node = the transformer block ...`.
 - Drop test: go down while carrying: `s6 orb dropped at ..., 60 s to pick it up`; wait: `s6 orb returned home (...)` =
@@ -283,45 +327,49 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 
 **Step 7 The Line Holds**. Skips: `!df fire s7_start`, `s7_time` (win now), `s7_fail`, `s7_hp` (print hp), `s7_dmg` (100 dmg), `s7_strike`.
 - At the table: `s7 socket armed (hold 3 s, orb 3000 hp, period 1.3 s, cap 10 | 14, 1 player(s))`, glint over the right
-  slot, "Hold F to power the relay". Hold 3 s (bar "Powering the relay"): the stone leaves the slot and wanders under the
-  tower HOVERING 40 UP with its aura and hum (easy to see from the road?), switch-on + power-down sounds, D7_START, `s7
-  wave started, 75 s, orb 3000 hp, side X, guard bonus within 200`, the song starts (`s7 song started`), the tick-tock
-  rides you. `s7 spawner on: every 1.3 s, cap 10 (1 player(s) at wave start)`.
+  slot, "Hold F to power the relay". Hold 3 s (bar "Powering the relay"): the rock leaves the slot and wanders under the
+  tower HOVERING 40 UP with its aura and hum (RICH the Avogadro hum, MAXIS a fire crackle; easy to see from the road?),
+  switch-on + power-down sounds, D7_START, `s7 wave started, 75 s, orb 3000 hp, side X, guard bonus within 200`, the
+  song starts (`s7 song started`), the tick-tock rides you. `s7 N spawn structs near the tower`, `s7 spawner on: every
+  1.3 s, cap 10 (1 player(s) at wave start)`.
 - RICH: `s7 Richtofen pressure: Avogadro from the start`, storm at the tower top, Richtofen's Avogadro line once, his
   vanilla "lure them" line once. He lands: `s7 avogadro landed wounded (1 hit seeded, 3 knife hits banish him)`. Knife
   him 3 times: `s7 avogadro banished by knife, Max Ammo at the table`, chime, Max Ammo in front of the table, storm off.
-- MAXIS: `s7 Maxis pressure: denizens from the start`, `s7 denizens released on the tower`, denizens at the tower from
-  the first second, a smoke column at the tower top for the whole wave.
-- Sprinters rise near YOU (spawn structs within 900 of a random living player) and run to the stone: sparks + `s7 orb hit
-  by zombie, hp 2970` (30). Stand within 200 of the stone: `hit by zombie (guarded), hp ...` (15). Every 10-20 s `s7
-  charge strike n healed the orb +300 (guarded 0)` (+450 when guarded): 2 s of denser bursts, then RICH bolt +
-  lightning orb / MAXIS fire burst + ash, thunder.
+- MAXIS: `s7 Maxis pressure: denizens from the start`, S7_DENIZEN_MAXIS once per game, `s7 denizens released on the
+  tower`, denizens at the tower from the first second, a smoke column at the tower top for the whole wave.
+- Sprinters rise AROUND THE TOWER (spawn structs within 1400 of it) and run to the rock: sparks + `s7 orb hit by
+  zombie, hp 2970` (30). Stand within 200 of the rock: `hit by zombie (guarded), hp ...` (15). Every 10-20 s `s7 charge
+  strike n healed the orb +300 (guarded 0)` (+450 when guarded): 2 s of denser bursts, then RICH bolt + lightning orb /
+  MAXIS fire burst + ash, thunder.
 - Zone: leave the 700 zone 4 s, come back 6 s, leave 4 s, come back: no fail, console `s7 zone held 5 s, absence counter
-  reset`. Leave 11 s straight: fail (`zone abandoned`). Horn at 5 s away (`zone empty for 5 s cumulative`).
+  reset`. Leave 11 s straight: fail (`zone abandoned`). At 5 s away: horn + D7_ZONE_RICH / D7_ZONE_MAXIS (at most once
+  per 30 s), `zone empty for 5 s cumulative`. Go down INSIDE the zone (solo, `!god` off): the zone still counts as held.
 - `!df fire s7_dmg` until hp is under 900: `s7 orb damaged (...): warning beeps on`, faster bursts, a beep every 2 s.
   Keep firing to 0: `s7 orb destroyed`, `s7 wave over: fail_orb`, side flashes + EMP sound, D7_FAIL, `s6 restart:
   charged orb (1/1) waiting in front of the table`. One press takes it, one press places it (`s7 orb redelivered, the
-  table is armed again`), hold again. Song must NOT play twice within 330 s. Never two stones at once.
-- Survive (or `!df fire s7_time`): `s7 wave over: success`, tower lights, the stone glides back onto the right slot in 2 s
-  with the rising sound, `s7 orb back on the table, slot 2`, light column, D7_DONE, `step complete step7`, one more white
-  and one more side runner on the tower. MAXIS: `s7 denizen levers restored`, `s7 tower safety volume restored`.
-- AFTER the hold the song keeps playing (256 s, it cannot be stopped): `s7 after the hold: waves near the players until
-  the song ends in N s`. Walk anywhere: zombies keep rising near you (every 1.3 s, up to the cap around you) and hunt you
-  normally, no stone to defend. When the song ends: `s7 after-hold waves over (song ended, or a new wave)`. The finale
-  can be started meanwhile.
+  table is armed again`), hold again. Song must NOT play twice within its own length (256.5 s): `s7 song still running
+  from the last attempt, not restarted`. Never two rocks at once.
+- Survive (or `!df fire s7_time`): `s7 wave over: success`, tower lights, the rock glides back onto the right slot in 2 s
+  with the rising sound, `s7 orb back on the table, slot 2`, D7_DONE, `step complete step7`, the ninth step glow (the
+  relay mast is fully lit), one more white and one more side runner on the tower. MAXIS: `s7 denizen levers restored`,
+  `s7 tower safety volume restored`.
+- AFTER the hold the song keeps playing (256 s from its start, it cannot be stopped): `s7 after the hold: waves near the
+  players until the song ends in N s`. Walk anywhere: zombies keep rising near you (every 1.3 s, up to the cap around
+  you) and hunt you normally, no rock to defend. When the song ends: `s7 after-hold waves over (song ended, or a new
+  wave)`. The finale can be started meanwhile. `!df goto finale` DURING the wave: no after-hold waves start at all.
 - Wrong: paste `s7 wave over ...`, the last `s7 orb hit ...` and `s7 charge strike ...` lines.
 
-**Finale**. Skips: `!df fire finale` (full run), `finale_nostat` (no globe stat), `finale_fx` (~15 s show, stand-in orb, repeatable), `finale_world` (world change alone), `a2_reward`.
+**Finale**. Skips: `!df fire finale` (full run), `finale_nostat` (no globe stat), `finale_fx` (~15 s show, stand-in rock, repeatable), `finale_world` (world change alone), `a2_reward`.
 - `finale waiting at the table (side X)`, glint on the table, "Hold F to open the frequency". Power gate: RICH power ON;
   MAXIS power OFF now, OR the round STARTED with the power off (turn it ON mid-round, the hold is still accepted). Wrong:
   deny buzz while you hold, the patron complains once per 20 s, `finale refused, wrong power state for side X`.
 - Hold 5 s (bar "Opening the frequency"): `finale start, side X, nostat 0`. Order: all perks (one console line each),
   `finale build-up (6 s, X)` (RICH: electric hum, blue sparks and arcs over the table; MAXIS: fire crackle, fire pulses,
   ash column at the base, smoke column at the top; both shake), `finale orb rising to the tower top (6 s, stand-in 0)`:
-  the stone lifts off the right slot with the reactor hum, `finale burst, tower fx on`, lightning at the top, side flash,
+  the rock lifts off the right slot with the reactor hum, `finale burst, tower fx on`, lightning at the top, side flash,
   thunder, 3 s shake, one vanilla voice line, `s6 orb consumed by the finale`. Then EVERY fog lamp of the map is in the
   side colour (`lamps: all 8 lamps coloured ...`): check the depot lamp and the town lamp, far from the tower. Console
-  `finale world change done (X)`, the patron's world line, the keepsake line for the card / stone on the middle slot
+  `finale world change done (X)`, the patron's world line, the keepsake line for the card / skull left on the table
   (`finale keepsake on slot 1`), sting, Max Ammo (`finale power-up dropped`), `side reward already given (Act 2), not
   repeated`, screen message "Dead Frequency complete: ...", `finale stat written for side X`, three closing lines
   (6.5 s apart), `finale done`, `step complete finale`.
@@ -334,32 +382,40 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   holding F must not count twice.
 - Step 3, relay destroyed: 14 roof swings (or `!df fire a1_hit` x4): EMP thump + explosion, `relay destroyed, parts back
   on the roof`, THREE glinting parts on the roof (radio fore, mast aft, coil right). One press each, rebuild, ride again.
+  Co-op: the "take" prompt of a part goes from EVERY screen once somebody takes it (and on a goto past Step 3).
 - Step 3, EMP near the bus during the ride: `EMP near the bus, sweep lost`, the relay stays. Power OFF: `bus left <stop>
-  without power, no sweep`. Empty bus 6 s: `nobody on the bus for 6 s, sweep lost`.
+  without power, no sweep`, or at the stop `the bus reached the stop without power: not counted`. Empty bus 6 s:
+  `nobody on the bus for 6 s, sweep lost`.
 - R1, capture fail: kill him far from the tower, or walk him away after 240 s: `avogadro not captured`, EMP thump at the
-  table, Richtofen's fail line, `r1 locked, one battery from the bus charges the four boxes`, the boxes go dark. ONE
-  glinting BATTERY on the bus dashboard (`battery on the bus`), Richtofen names it. "Press F to take the battery" within
-  100 (`battery taken`, notice "0/4"). Walk to the barn: "Press F to charge the box" at every empty panel (within 70):
-  glow + sparks + clink, `box n charged k/4`, the battery STAYS in hand; at the fourth `battery consumed, all four boxes
-  charged`, NavCard chime + runner, `r1 unlocked, simon available again`. ONE bus trip. Go down while carrying:
-  `battery dropped` at your feet, pick it up again. `!df fire r1_soul` charges one box without the trip, `!df souls` all four.
-- R1, power OFF at the end of a round during the lock: `power off: box n emptied` (one more panel to charge).
+  table, Richtofen's fail line, the key card LEAVES the table, `r1 locked, one battery from the bus charges the four
+  boxes`, the boxes go dark. ONE glinting BATTERY on the bus dashboard (`battery on the bus`), Richtofen names it.
+  "Press F to take the battery" within 100 (`battery taken`, notice "0/4"). Walk to the barn: "Press F to charge the box"
+  at every empty panel (within 70): glow + sparks + clink, `box n charged k/4`, NO deny buzz or EMP thump on these
+  presses (nor on the fourth), the battery STAYS in hand; at the fourth `battery consumed, all four boxes charged`,
+  NavCard chime + runner, `r1 unlocked, the key card comes back`, and the key card arrives again by itself (`key card at
+  ...`, no Simon replay). ONE bus trip. Go down while carrying: `battery dropped` at your feet, pick it up again. `!df
+  fire r1_soul` charges one box without the trip, `!df souls` all four.
+- R1, power OFF at the end of a round during the lock: `power off: box n emptied` + R2_POWER_RICH (one more panel to charge).
 - R2, full lamp punched with the wrong tool: deny + "Bare steel? No.", no spool; `!df fire r2_punch` frees every ready spool.
-- M1, timeout: see 4M. M1, stone carrier down: `m1 skull dropped`, take it again.
+- M1, timeout: see 4M. M1, skull carrier down: `m1 skull dropped (<you> went down), take it again`. Carrier leaves:
+  `m1 skull carrier left, the skull lies at the tower return point`.
 - M2, carrier down: EMP thump + ash, `m2 fire hand lost (<you> went down), it waits on the table again`, the fire on you
-  stops; the flame is back on the right slot, take it again. Lit graves keep their count.
-- M2, power ON at the end of a round: EMP thump + ash, Maxis's M2_POWER line, `m2 power ON at end of round: N lit
-  stone(s) forget their dead (Maxis wants the dark)`: every lit hungry grave is back to 0/5 (spent graves stay gone);
-  nothing left to lose prints `m2 power on at end of round, nothing left to lose`. `!df fire m2_penalty` does it now.
+  stops; the hand is back on the table, take it again. Lit graves keep their count. Carrier leaves the game: `m2 the fire
+  hand carrier left, it waits on the table again`, the notice clears.
+- M2, power ON at the end of a round: EMP thump at the grave, Maxis's M2_POWER line, `m2 power ON at end of round:
+  brazier_n forgets its N dead (Maxis wants the dark)`: ONLY the lit unfinished grave with the most kills goes back to
+  0/5 (the others keep theirs, spent graves stay gone); nothing left to lose prints `m2 power on at end of round,
+  nothing left to lose`. `!df fire m2_penalty` does it now.
+- M2, a lit grave left alone 90 s: see the cold timer in 4M.
 - Step 5, expiry FAILS FORWARD: anchor ONE lamp, then `!df fire s5_time`: EMP thump, `s5 countdown expired: 1 anchor(s)
   kept, 2 lamp(s) pay the penalty`, D5_FAIL, the anchored lamp KEEPS its light and shaft, `s5 penalty: 15 souls each into
-  the unanchored lamp(s) <names>`: ONLY those two show the hungry look. Kill within 400 of them: trails, `penalty lamp X
-  souls a/15`, at 15 `filled`; `s5 penalty paid`, `s5 tuning open again on the unanchored lamps, countdown starts at the
-  next anchor`. `!df fire s5_penalty` or `!df souls` pays it.
+  the unanchored lamp(s) <names>`: ONLY those two show the hungry look. Kill within 400 of them: trails, `s5 penalty lamp
+  X souls a/15`, at 15 `filled`; `s5 penalty paid`, `s5 tuning open again on the unanchored lamps, countdown starts at
+  the next anchor`. `!df fire s5_penalty` or `!df souls` pays it.
 - Step 5, no anchor: "signal lost" after 15 s, 10 s drain, nothing else, no countdown.
-- Step 6, orb dropped: 60 s then home (nearer of the landing spot / table front, charges kept). After a Step 7 fail its
-  home is the table front.
-- Step 7, orb destroyed / zone empty: see Step 7 above; hold the table again, no second song.
+- Step 6, rock dropped: 60 s then home (nearer of the landing spot / table front, charges kept). After a Step 7 fail its
+  home is the table front. Never touched after landing: 3 min, then the table front.
+- Step 7, rock destroyed / zone empty: see Step 7 above; hold the table again, no second song.
 - Finale, wrong power: RICH deny + line with the power off; MAXIS refuses a round that started with power on.
 
 ## 7. Skips and cleanliness
@@ -367,22 +423,31 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   props stay: pipes (dark), table, boxes / graves (the side lock removes the other side's), lamps. No AVAILABLE / DONE
   sounds during the jump, the target step plays its own once it opens. `!df goto step3`: no parts anywhere, relay on the
   roof. `!df goto step2`: coil at DF_COIL_DROP, two parts in the fog, 3 needed.
-- `!df goto r1` / `m1` locks the side itself (`side set to rich for r1`, `orb landing spot ...`). `!df goto step5` and
-  later with no side: `no side locked, defaulting to rich`; type `!df side maxis` FIRST for a Maxis test.
-- `!df goto step5` RICH from round 1: boxes with a steady glow, card glowing on the middle slot, lamps filled (steady
-  glow, no sparks), three glows on the post, `act 2 reward given silently (goto)` (no Max Ammo, no line). MAXIS: stone on
-  the middle slot, four scorched glows where the graves stood (cosmetic, not Step 6 nodes), no fire hand prompts. `!df goto step7` / `finale`: the stone
-  rests on the right slot, tracker runners on.
+- The goto only moves FORWARD and never crosses the lock: `<step> is already done, goto only moves forward`, `<step> is
+  not ahead of the current step <key>, goto only moves forward`, `<step> belongs to the <side> side but <side> is locked
+  in this game (start a fresh game)`. A jump that hangs is aborted after 20 s: `goto <step> did not finish in 20 s,
+  aborted (goto flag cleared)`; paste it.
+- `!df goto r1` / `m1` locks the side itself (`side set to rich for r1`, `orb spawn for side ...`). `!df goto step5` and
+  later with no side: `no side locked, defaulting to rich (use !df side maxis first to test Maxis)`; type `!df side
+  maxis` FIRST for a Maxis test (it cannot be changed afterwards).
+- `!df goto step5` RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
+  (steady glow, no sparks), six step glows on the relay mast, `act 2 reward given silently (goto)` (no Max Ammo, no
+  line). MAXIS: the skull at its pose on the table, the charged fire hand resting on the table with its tiny flame (no
+  prompt), four scorched glows where the graves stood (cosmetic, not Step 6 nodes). `!df goto step7` / `finale`: the
+  rock rests on the right slot (no "Rock" notice), the fire hand is gone, tracker runners on.
 - Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched)` + one line, then at 10 min and every
-  6 min; an event hint earlier (`event hint ...`) skips that rung once. `!df texthints off` mutes them (the clock keeps
-  running); `!df hints off` (default) only hides puzzle prompts.
+  6 min; every touch of the step starts the ladder over (HINT_1 4 min after the LAST touch); an event hint earlier
+  (`event hint ...`) skips that rung once. `!df texthints off` mutes them (the clock keeps running); `!df hints off`
+  (default) only hides puzzle prompts.
 - `!df vox <alias>` plays a vanilla patron line (e.g. `vox_maxi_tv_distress_0` 3D at your feet). Silence = unknown alias.
 - `!df freeze` while testing a placement: every regular zombie stands inert; toggle again to release them.
 - Scavenger: pick up a real jet gun part: it goes to the pool (top-left notice), TAB shows the squares. Any console
   error naming `zm_scavenger` or `epod_key`? The pinned ladder / hatch must still be buildable as vanilla.
 - Co-op only, when you have a second player: Richtofen's blue lines that carry team information reach everyone (including
   the finale's wrong-power line and closing lines); the Step 5 "one lamp each" line appears; a downed player is
-  teleported into Nacht with the team and can be revived there; Step 7 sprinters rise near a random living player.
+  teleported into Nacht with the team and can be revived there; the Step 7 after-hold waves rise near a random living
+  player; a carrier who leaves drops the relay (back on the table after 60 s), the fire hand (back on the table at once)
+  or the skull (at the tower return point).
 
 ## Open verifications (things the code cannot decide alone)
 - Step 1 readability: is the far light visible from where the pipes are, can four blinking pipes be told apart, is the
@@ -390,10 +455,15 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - Beam alias / orientation: `!df fire beam_test` = one light shaft from the table to the nearest lamp for 20 s, console
   `beam test: <alias> from the table to lamp X`. Wrong way round: `set df_beam_flip 1`, fire again. Nothing: `set
   df_beam_fx fx_zmb_tranzit_god_ray_pwr_station` (or `_interior_med`, `mc_towerlight`), fire again. Say which one reads as a beam.
-- Stone rest height: the meteor rests 3 above slot 2 / the ground (`!df fire table_demo`, `!df tp DF_ORB_SPOT_n`). Sunk or floating? Say so.
+- Step glows: nine small glows up the relay mast by the end. Too faint / too strong? `set df_step_glow_fx <fx>` before
+  loading swaps the glow (default fx_zmb_tranzit_light_bulb_xsm).
+- Table poses: the skull and the fire hand each stand at their own pose on the table (`!df goto m2` then `!df goto
+  step5` on Maxis). Sunk, floating, inside the relay? Say so. Rock rest height: 3 above slot 2 / the ground (`!df fire
+  table_demo`, `!df tp DF_ORB_SPOT_n`).
 - Fuse box wall offset: the boxes are 6 off the wall at mid height. In the wall, or a visible gap? Say which box (`!df tp DF_FUSE_n`).
-- Grave flame: the small flame sits at the base of the lit tombstone (`!df fire m2_light`). Buried or floating? Say so.
-- Orb landing spots: is the stone reachable and visible at Town (SPOT_2) and at the power station (SPOT_3)? Off the road?
+- Grave flame: the small flame sits at the top of every standing tombstone and on the fire hand (`set df_m2_fire_fx
+  <fx>` swaps it). Buried or floating? Visible from the road? Say so.
+- Orb landing spots: is the rock reachable and visible at Town (SPOT_2, 900 130) and at the power station (SPOT_3)? Off the road?
 - Step 7 solo pass rate: at round 10 with a Pack-a-Punched gun, how many tries out of three pass? Paste `s7 wave over ...`.
   Are the after-hold waves (until the song ends) fun or too long?
 - Finale queue length: after the burst, world line + keepsake + three closing lines = ~5-6 lines at 6.5 s each (~40 s).

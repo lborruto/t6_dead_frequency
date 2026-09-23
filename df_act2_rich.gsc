@@ -3,8 +3,8 @@
 //                          it at the table under the tower calls Avogadro down; he must be defeated at the
 //                          tower (spec 5, R1). Failure locks the step until ONE BATTERY taken from the bus
 //                          dashboard has charged all four boxes in turn (ITEM_BATTERY_RICH; consumed at the
-//                          fourth). The four boxes then hold his charge and are Step 6's nodes on this side
-//                          (audit #3: level.df_nodes kind "fuse").
+//                          fourth). The boxes then keep a steady glow; Step 6's node on this side is the
+//                          DF_CORE transformer block (df_r1_export_nodes; the boxes only if it is missing).
 //   R2 "Souls on the Line": N lamp posts (N = df_scaled "nodes") each swallow a quota of zombie souls
 //                          (spec 5, R2); each filled lamp drops a WIRE SPOOL; the spools carried to the table
 //                          build the antenna array and complete the step (audit 9, ITEM_SPOOL_RICH).
@@ -25,7 +25,8 @@
 // done incl. the node -> tower trail, df_cue_fail = progress lost, df_cue_deny = wrong input,
 // df_step_focus = the AVAILABLE glint, df_vox_once = a vanilla voice line once per game): no
 // zmb_powerup_grabbed / zmb_spawn_powerup outside df_steps any more, box 3 tone zmb_elec_arc, a clink on
-// every soul, audible capture clock in its last 30 s, the array glows on the table mast, df_touch( "r2" ),
+// every soul, audible capture clock in its last 30 s, df_touch( "r2" ) (the array glows on the table mast
+// went 2026-09-23, df_r2_array_set),
 // ITEM_BATTERY_RICH / ITEM_SPOOL_RICH said. Cross-file needs: tools/requests_V2rich.md.
 #include common_scripts\utility;
 #include maps\mp\_utility;
@@ -136,7 +137,7 @@ df_fx_stop_after( ent, seconds )
     df_fx_stop( ent );
 }
 
-// A glinting pickup model of `kind` at pos (fx_zmb_tranzit_key_glint, zm_transit_fx.gsc:105), optionally
+// A glinting pickup model of `kind` at pos (fx_zmb_tranzit_light_glow at df_fx_point "pickup_glint"), optionally
 // riding `link` (the bus: linkto as df_act1 does for roof parts). Returns a struct {.model .fx}.
 df_rich_pickup_place( kind, pos, link )
 {
@@ -213,7 +214,6 @@ df_r1_run()
     level thread df_r1_skip_cleanup();
     level thread df_r1_hold_avogadro();
     level thread df_r1_debug_hooks();
-    level thread df_fuse_prompt_poll();
     df_r1_power_penalty_start(); // B16: the lock branch of the power-OFF penalty needs it during R1
 
     foreach ( fuse in level.df_fuses )
@@ -286,7 +286,7 @@ df_r1_run()
 }
 
 // The four boxes (df_model "fuse" at DF_FUSE_1..4, angles already kind-adjusted by df_coords) with a
-// hint-less use trigger each: the "Press F" prompt is a hideable puzzle prompt (df_fuse_prompt_poll).
+// hint-less use trigger each (no prompt on the boxes, owner 2026-09-22: the Simon boxes are the puzzle).
 // Idempotent: the boot thread and df_r1_run / df_r1_setup all call it.
 df_r1_spawn_fuses()
 {
@@ -423,8 +423,8 @@ df_r2_lamp_spots( lamp )
     return lamp.df_spots;
 }
 
-// R1 done: triggers and sparks go, the boxes keep a steady glow (they hold his charge now) and become
-// Step 6's nodes on this side; the Richtofen side rules start.
+// R1 done: triggers and sparks go, the boxes keep a steady glow (they hold his charge now), Step 6's node is
+// exported (df_r1_export_nodes: the DF_CORE block); the Richtofen side rules start.
 df_r1_finish()
 {
     foreach ( fuse in level.df_fuses )
@@ -451,8 +451,7 @@ df_r1_setup()
     df_r1_side_rules_start();
 }
 
-// Audit #3: Richtofen's Step 6 nodes = the sparking block at the power station, DF_CORE (same node struct shape;
-// df_act3_vacuum reads kind "fuse"). The R2 lamps are NOT exported on this side.
+// The R2 lamps are NOT exported on this side.
 // Step 6 nodes on Richtofen's side (owner 2026-09-11): the reactor core of the power station, where Avogadro sleeps
 // (vanilla ent "core_mover", zm_transit_power.gsc powerevent). ONE node (rc3): the whole Jet Gun emptied into it until
 // it overheats; the Maxis side draws the cabin hearth the same way (df_act2_maxis df_m2_export_nodes). The barn boxes stay R1's.
@@ -499,7 +498,7 @@ df_r1_export_nodes()
 }
 
 // "!df goto" past r1: everything R1 added goes away (triggers, sparks, card, battery, glints, carrier
-// state, prompts, hum). The box models stay: they exist from boot and are Step 6's nodes.
+// state, prompts, hum). The box models stay: they exist from boot.
 df_r1_skip_cleanup()
 {
     level endon( "end_game" );
@@ -555,36 +554,6 @@ df_r1_arm( on )
             df_rich_glow_set( fuse, fuse.led_origin, "fx_zmb_tranzit_light_glow" );
         else
             df_rich_glow_set( fuse, fuse.led_origin, "fx_zmb_tranzit_light_glow_xsm" );
-    }
-}
-
-// Puzzle prompt ("Press F", hideable with level.df_hints = 0) for players standing at a box while the
-// Simon is armed. The trigger itself has no hint string.
-df_fuse_prompt_poll()
-{
-    level endon( "end_game" );
-    level endon( "df_r1_done" );
-    level endon( "df_skip_r1" );
-
-    while ( true )
-    {
-        wait 0.1;
-
-        foreach ( player in getplayers() )
-        {
-            near = 0;
-
-            if ( is_true( level.df_r1_armed ) && is_player_valid( player ) )
-            {
-                foreach ( fuse in level.df_fuses )
-                {
-                    if ( distancesquared( player.origin, fuse.origin ) < 70 * 70 )
-                        near = 1;
-                }
-            }
-
-            // no prompt on the boxes (owner 2026-09-22): the Simon boxes are the puzzle; `near` still gates the press below
-        }
     }
 }
 
@@ -833,7 +802,7 @@ df_r1_card_spawn()
 }
 
 // The card model (df_model "card" = p6_zm_keycard: vanilla spawns it as a plain script_model too,
-// _zm_utility.gsc:4609 place_navcard), its glint (fx_zmb_tranzit_key_glint, zm_transit_fx.gsc:105) and
+// _zm_utility.gsc:4609 place_navcard), its glint (fx_zmb_tranzit_light_glow at "card_barn_glint") and
 // the slow float unless level.df_card_float is 0 (owner test switch). Used by the first spawn and drops.
 df_r1_card_place( pos )
 {
@@ -850,9 +819,7 @@ df_r1_card_place( pos )
 // ---- the card on the table (owner 2026-09-08) --------------------------------------------
 // Inserting the card does not consume it: it STAYS on the table under the tower, slot 1 (the middle
 // one), upright and facing the table's front, next to the plugged relay (slot 0) and the orb (slot 2).
-// While Avogadro is still out there it keeps a small glint (fx_zmb_tranzit_key_glint, zm_transit_fx.gsc:105);
-// once he is captured the glint becomes a steady faint glow (fx_zmb_tranzit_light_glow_xsm,
-// zm_transit_fx.gsc:55). Only df_r1_skip_cleanup (`!df goto` past R1) removes it.
+// The table card carries no fx of its own. Only df_r1_skip_cleanup (`!df goto` past R1) removes it.
 
 // Slot 1, and nothing else: the slot registry (df_coords df_table_slots_init) already carries the lift the
 // owner gave the card in the Prop Composer (its origin sits mid-card, vanilla lays it flat with the origin
@@ -1433,7 +1400,7 @@ df_r1_capture_burst()
 }
 
 // ---- refill lock: the battery (audit 9, ITEM_BATTERY_RICH; audit v2 #1: ONE battery) -----------
-// Failure locks the Simon until ONE BATTERY (df_model "part_a") taken from the bus dashboard has charged
+// Failure locks the Simon until ONE BATTERY (df_model "battery") taken from the bus dashboard has charged
 // every box: one press takes it from the bus, one press at each empty box charges that box, the battery
 // stays in hand between boxes (the ember rule, M2) and is consumed at the fourth. It never respawns on
 // the bus while it exists somewhere (in a hand, or on the ground where a carrier went down). No round
@@ -1468,7 +1435,7 @@ df_r1_lock_until_refilled()
 
     level.df_r1_locked = 0;
     df_r1_arm( 1 );
-    df_debug_print( "DF: r1 unlocked, simon available again" );
+    df_debug_print( "DF: r1 unlocked, the key card comes back" );
 }
 
 df_r1_all_refilled()
@@ -1637,7 +1604,7 @@ df_r1_empty_fuse_near( pos, radius )
     return best;
 }
 
-// Carry notice via df_scav (kind "battery", battery icon of part_a), pickup sound zm_transit_buildables.gsc:249.
+// Carry notice via df_scav (kind "battery", zm_hud_icon_battery), pickup sound zm_transit_buildables.gsc:249.
 df_r1_battery_take( player )
 {
     b = level.df_r1_bat;
@@ -1700,7 +1667,7 @@ df_r1_battery_slot( fuse, player )
     level notify( "df_r1_refill_check" );
 }
 
-// The carrier's TAB notice shows charged boxes / 4 (df_scav kind "battery", battery icon of part_a).
+// The carrier's TAB notice shows charged boxes / 4 (df_scav kind "battery", zm_hud_icon_battery).
 df_r1_battery_notice()
 {
     b = level.df_r1_bat;
@@ -1989,7 +1956,7 @@ df_r2_run()
 }
 
 // "!df goto" past r2: the set (same one for the whole game) counts as filled and the array as built.
-// No node export here: Step 6 on Richtofen draws from the fuse boxes (df_r1_export_nodes).
+// No node export here: Step 6 on Richtofen draws from the DF_CORE block (df_r1_export_nodes).
 df_r2_setup()
 {
     df_r2_pick_lamps();
@@ -2132,18 +2099,8 @@ df_r2_fill( lamp )
 }
 
 // ---- wire spools (audit 9, ITEM_SPOOL_RICH) --------------------------------------------------
-// Model kind "spool" once df_coords has it (requested), else the electric box part (part_c).
-
-df_r2_spool_kind()
-{
-    if ( isdefined( level.df_models ) && isdefined( level.df_models["spool"] ) )
-        return "spool";
-
-    return "part_c";
-}
-
 // The spool lands on the ground 40 units from the pole towards the tower (out of the post itself) under
-// the vanilla "take me" glint (df_rich_pickup_place adds fx_zmb_tranzit_key_glint +14; audit art R2.1).
+// the pickup glint (df_rich_pickup_place adds fx_zmb_tranzit_light_glow at "pickup_glint"; audit art R2.1).
 // No sound of its own: the lamp's sub-goal cue just played at the bulb. The first spool of the game is
 // announced (ITEM_SPOOL_RICH, audit dialogue 1.4 #2: the line had no caller).
 df_r2_spool_drop( lamp )
@@ -2155,7 +2112,7 @@ df_r2_spool_drop( lamp )
     s.lamp = lamp;
     s.held = 0;
     df_item_arrival( pos ); // the spool appears by the same strike as every quest item (owner 2026-09-11)
-    s.pick = df_rich_pickup_place( df_r2_spool_kind(), pos, undefined );
+    s.pick = df_rich_pickup_place( "spool", pos, undefined );
     s.model = s.pick.model;
     level.df_r2_spool_ents[level.df_r2_spool_ents.size] = s;
 
@@ -2211,7 +2168,7 @@ df_r2_spool_drop_at( s, pos, player )
 {
     s.held = 0;
     s.carrier = undefined;
-    s.pick = df_rich_pickup_place( df_r2_spool_kind(), df_ground( pos ) + ( 0, 0, 6 ), undefined );
+    s.pick = df_rich_pickup_place( "spool", df_ground( pos ) + ( 0, 0, 6 ), undefined );
     s.model = s.pick.model;
 
     if ( isdefined( player ) )

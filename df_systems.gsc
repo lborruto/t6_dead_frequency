@@ -535,7 +535,6 @@ df_tower_fx_start( side )
     clientnotify( "sq_kfx" );
     clientnotify( "sqkl" );
 
-    level.df_tower_fx_side = side;
     level.df_tower_fx_ents = [];
     level thread df_tower_fx_lightning( side );
     level thread df_tower_fx_runners( side );
@@ -552,7 +551,6 @@ df_tower_fx_stop()
     }
 
     level.df_tower_fx_ents = [];
-    level.df_tower_fx_side = undefined;
 }
 
 df_tower_fx_stop_after( seconds )

@@ -2,7 +2,7 @@
 
 > **SPOILER WARNING.** This page is the complete solution of the quest, both branches, every step.
 > The Easter Egg was built to be DISCOVERED: the patrons talk you through it, every object of the current step
-> shines, and if you stall, a hint comes by itself after 4 minutes and a much clearer one after 10. Finding it is the
+> shines, and if you stall, a hint comes by itself after 4 minutes without progress and a much clearer one after 10. Finding it is the
 > fun part. Use this page only when you are truly stuck, one step at a time: each step below is folded, open only
 > the one you need.
 
@@ -31,8 +31,8 @@ Player-count scaling is written as solo (2 / 3 / 4 players).
 
 Around the Depot building four short pipes stand on the ground. Each one blinks its own number in a loop
 (one to four short flashes, then a dark gap in which a single blue spark fires). Walk past the Depot fence and
-look for a far light: it flashes the SAME numbers as groups of flashes with a click per flash, in the order
-you need, for example "3, pause, 1, pause, 4, pause, 2".
+look for a far light: it flashes the SAME numbers as silent groups of flashes, in the order you need, for
+example "3, pause, 1, pause, 4, pause, 2", then the same blue spark closes the message.
 
 Kick the pipes in that order: for each group, find the pipe whose blink count matches and press F on it (no prompt shows). A
 right pipe sparks, stops blinking and stays lit. A wrong pipe buzzes and every pipe goes back to blinking; the
@@ -63,8 +63,8 @@ the roof (radio, coil box, mast). With only two parts there is no build prompt.
 Turn the power on (Power station). Ride the bus with the relay on its roof for ONE full trip from one stop to
 the next. While it rides, zombies rise along the road every few seconds and climb on to chew the relay; a low
 relay honks. If they destroy it, the three parts drop back onto the roof: take them and rebuild, then ride
-again. The trip is lost (relay kept) if the bus is EMP'd, if nobody is on the bus for 6 seconds, or if the bus
-leaves without power.
+again. The trip is lost (relay kept) if the bus is EMP'd, if nobody is on the bus for 6 seconds, or if the power
+is off when the bus leaves OR when it reaches the stop.
 
 When the bus reaches the next stop with the power on, the relay is locked (the dashboard pulse replays on it).
 
@@ -74,14 +74,18 @@ When the bus reaches the next stop with the power on, the relay is locked (the d
 
 
 Press F on the locked relay to take it (sparks on your back; you cannot use the lamp portals while carrying;
-it drops at your feet if you go down). Carry it to the work TABLE that stands under the tower, next to the
-cornfield. As you get close, a small glow on the table shows the side you are about to choose:
+it drops at your feet if you go down). The first lift warns you that a choice is coming. Carry it to the work
+TABLE that stands under the tower, next to the cornfield. As you get close, a light on the table shows the side
+you are about to choose:
 
 - power ON -> blue -> RICHTOFEN. The four tombstones in Town vanish.
 - power OFF -> orange -> MAXIS. The four power boxes in the Farm barn vanish.
 
-Press F at the table to plug the relay in. The choice is permanent for this game; the Step 6 landing spot is
-also drawn at this moment. A white runner light now climbs the tower for the rest of the game.
+Press F at the table to plug the relay in (a blue snap for Richtofen, a fire snap for Maxis). The choice is
+final for this game. A white runner light now climbs the tower for the rest of the game, and the relay's mast
+gets one small glow per finished step (the steps done so far light at once), so it ends fully lit. If a
+carrier leaves the game, the relay he dropped moves onto the table by itself after 60 s untouched: take it
+there and plug it in.
 
 ---
 
@@ -103,36 +107,43 @@ at the table to insert it. Then:
 - If nobody has visited the power room's core yet in this game, Avogadro is still asleep: Richtofen tells you
   to wake him. Go to the Power station, look at the core, and he is called down and carried to the tower.
 - Otherwise a storm gathers over the tower and he lands there.
+- If the game has no Avogadro at all, Richtofen says nothing came and the card alone completes R1.
 
 Defeat him AT THE TOWER: three knife hits, as vanilla. There is a clock (240 s solo, 300 in co-op) but it never
 fails while he is near the tower; it fails only if he is defeated far away or if the clock runs out with him
 far away. While he is alive at the tower the table pulses blue.
 
-If it fails, the boxes go dark and lock. A single BATTERY appears on the bus dashboard: take it, ride to the
-barn, press F at each of the four boxes (glow, sparks, clink). The battery stays in hand and is consumed at the
-fourth box, then the Simon game works again. One bus trip, no kills needed.
+If it fails, the card leaves the table and the boxes go dark and lock. A single BATTERY appears on the bus
+dashboard: take it, ride to the barn, press F at each of the four boxes (glow, sparks, clink). The battery stays
+in hand and is consumed at the fourth box; a new key card then arrives by itself (strike on the barn wall),
+with no Simon to replay. One bus trip, no kills needed. While the boxes are locked, ending a round with the
+power OFF empties one charged box again (Richtofen complains).
 
-Done: the four boxes hold his charge and become Step 6's nodes.
+Done: the four boxes hold his charge. Step 6's node is the sparking transformer block at the Power station.
 
 </details>
 
-<details><summary><b>R2 - Souls on the Line (the fog lamps)</b> (click to reveal)</summary>
+<details><summary><b>R2 - 115 on the Line (the fog lamps)</b> (click to reveal)</summary>
 
 
 Since round 1 three of the fog street lamps have shown a small spark every few seconds (four with a full lobby;
 one of them is always the lamp nearest the tower). These "set" lamps now turn hungry: a hum, a spark every 2 s.
-Kill zombies close to a hungry lamp's post: 12 souls each solo (15 / 18 / 18). Standing near a hungry lamp pulls
-zombies to you, so you do not have to go looking.
+Kill zombies close to a hungry lamp's post: 12 kills each solo (15 / 18 / 18), fixed when R2 opens. Standing
+near a hungry lamp pulls two zombies to you every few seconds (up to 12 around you), so you do not have to go
+looking.
 
 A full lamp stops sparking and keeps a steady glow, and Richtofen tells you to punch the post. Buy the
 GALVAKNUCKLES (Diner roof, through the hatch, 3000 points) and melee the post with them: the wire SPOOL arrives
 by a strike at the lamp's foot. A knife or any other melee is refused ("Bare steel? No.").
 
 Take every spool (they stack in hand) and press F at the table to place them all. Every spool placed = R2 done,
-and the Act 2 reward drops at once (see below).
+and the Act 2 reward drops at once (see below). If nobody in the team carries a Jet Gun, Richtofen says you will
+need one before the end.
 
-Richtofen side rules from here on: Avogadro returns every round; turrets work without a turbine. Ending a round with the power OFF costs you: the fullest hungry lamp loses 5 souls (a
-full lamp can reopen), or during the R1 lock one charged box loses its battery.
+Richtofen side rules from here on: Avogadro returns every round (not while Step 6 is open); turrets work
+without a turbine. Ending a round with the power OFF costs you and Richtofen says so: the fullest hungry lamp
+loses 5 kills (a full lamp whose spool is still in the post can reopen), or during the R1 lock one charged box
+loses its battery. When R2 completes every lamp of the set counts as full.
 
 ---
 
@@ -147,11 +158,11 @@ Go into the fog and let a denizen jump on your head. The first time it happens t
 Maxis speaks. Walk to the table with the denizen still on you: it dies in ash and an orange hole opens in front
 of the table. Walk INTO the hole (no F): you are in the Nacht der Untoten bunker.
 
-Cold room: 60 s solo (75 / 90 / 100). Denizens rise two at a time; kill 6 (9 / 12 / 15). Downed players come
-along and can be revived inside. Timeout: everyone is sent back to the tower; get a denizen on your head again
-and repeat.
+Cold room: 60 s solo (75 / 90 / 100). Denizens rise two at a time, at random spots of the bunker away from
+you; kill 6 (9 / 12 / 15). Downed players come along and can be revived inside. Timeout: everyone is sent back
+to the tower; get a denizen on your head again and repeat.
 
-Success: the STONE arrives by a strike where the last denizen died. You have 30 s to take it (F) before everyone
+Success: a SKULL arrives by a strike where the last denizen died. You have 30 s to take it (F) before everyone
 is sent back; if nobody takes it, it comes along and lies at the return point at the tower, still pickable.
 Carry it (no lamp portals; dropped at your feet if you go down) and press F at the table to place it. That
 completes M1. While M1 waits for a denizen, denizens can rise at the tower itself.
@@ -161,28 +172,30 @@ completes M1. While M1 waits for a denizen, denizens can rise at the tower itsel
 <details><summary><b>M2 - Fire and Ash (Town)</b> (click to reveal)</summary>
 
 
-A FIRE HAND (a burning hand) now lies on the table. Press F to take it: fire on your body, 5 health a second while you carry
-it (it never brings you below 15 by itself), and it stays in hand for the whole step.
+A FIRE HAND (a burning hand) now lies on the table. Press F to take it: fire on your body, 5 health a second while
+you carry it (never below half your health, and not while you stand next to a lit grave), and it stays in hand
+for the whole step.
 
-Four tombstones stand in Town. Carry the fire hand there (the bus is fine; the lamp portals refuse you) and press F
-on any of them to light it (any order, as many as you like). Lighting a grave starts a wave of sprinting
-zombies at it that ends when the grave is full. Kill 5 zombies near a lit grave (5 / 5 / 6 / 7), burning or
-not (a Galvaknuckle kill does not count): the tombstone vanishes and a scorched glow stays on the ground. A lit grave
-has 90 seconds to be filled: if not, it goes cold (the thump and Maxis tell you), loses its kills and must be lit
-again and filled from zero. A
-kill at an UNLIT grave does not count (a buzz tells you). Denizens leave you alone within a few steps of any of the four graves while
-M2 runs.
+Four tombstones stand in Town, each with a small flame. Carry the fire hand there (the bus is fine; the lamp
+portals refuse you) and press F on any of them to light it (any order, as many as you like); a lit grave
+crackles. Lighting a grave starts a wave of sprinting zombies at it that ends when the grave is full. Kill 5
+zombies near a lit grave (5 / 5 / 6 / 7, fixed when M2 opens), burning or not (a Galvaknuckle kill does not
+count): every counted kill bursts, its fire flies into the grave with a clink. Full: the tombstone vanishes and a
+scorched glow stays on the ground. A lit grave has 90 seconds to be filled (you hear the clock, dry ticks at the
+end): if not, it goes cold (the thump and Maxis tell you), loses its kills and must be lit again and filled from
+zero. A kill at an UNLIT grave does not count (a buzz tells you). Denizens leave you alone within a few steps of
+any of the four graves while M2 runs.
 
-All four gone: chime, the flame on you grows. Go back to the table and press F to return the fire hand. That
-completes M2 and the Act 2 reward drops at once. If nobody in the team carries a Jet Gun, Maxis says you need one:
-Step 6 is drawn with it.
+All four gone: chime, the flame on you grows. Go back to the table and press F to return the fire hand (a fire
+snap); it stays on the table. That completes M2 and the Act 2 reward drops at once. If nobody in the team
+carries a Jet Gun, Maxis says you will need one before the end.
 
-Going down with the fire hand sends it back to the table (take it again; lit graves keep their count). Ending a
-round with the power ON makes every lit, unfinished grave forget its kills. The Galvaknuckles are refused near
-the graves and while you hold the fire hand.
+Going down with the fire hand, or leaving the game with it, sends it back to the table (take it again; lit
+graves keep their count). Ending a round with the power ON makes the lit, unfinished grave with the most kills
+forget them. The Galvaknuckles are refused near the graves and while you hold the fire hand.
 
-Maxis side rules from here on: denizens leave you alone near the table and near a lit grave, and there are
-twice as many elsewhere in the fog. After M2 the lamp portals open without a turbine.
+Maxis side rules from M1 on: there are twice as many denizens in the fog; they leave you alone only near the
+four graves while M2 runs and near the cabin fireplace while Step 6 is open (plus vanilla's own safe places). After M2 the lamp portals open without a turbine.
 
 ---
 
@@ -213,54 +226,61 @@ lost.
 
 The FIRST anchor starts a countdown you hear, not see: Maxis 360 s solo (300 / 270 / 240), Richtofen 480 s
 (360 / 300 / 270). Anchor every set lamp before it ends and Step 5 is done. If it runs out, the anchored lamps
-STAY anchored; only the lamps you missed need souls again (15 / 18 / 21 / 24 kills each near the post, solo to four players) before
+STAY anchored; only the lamps you missed need kills again (15 / 18 / 21 / 24 each near the post, solo to four players) before
 they can be tuned, and the next anchor starts a fresh countdown with only the missing lamps left.
 
 </details>
 
-<details><summary><b>Step 6 - Vacuum (the orb)</b> (click to reveal)</summary>
+<details><summary><b>Step 6 - Vacuum (the rock)</b> (click to reveal)</summary>
 
 
-Three seconds of build-up over the tower, then a strike at one of THREE spots, drawn when you chose your side:
-the Diner, Town, or the Power station. Look for the glint and the light beam pointing at it from the tower. The
-ORB is a small rock. Press F to take it (no lamp portals while carrying). Every charged node also gets a beam
-from the tower and a light column, and the Step 5 lamps go dark.
+The step opens at the table: RICHTOFEN, the key card discharges and its storm flies off; MAXIS, the fire hand
+bursts and its fire flies off. Three seconds of build-up over the tower, then a strike at one of THREE spots,
+drawn once at the start of the game: the Diner, Town or the Power station.
+It falls there as a small ROCK. Look for the glint and the light beam pointing at it from the tower. Press F to
+take it (no lamp portals while carrying). Left untouched for 3 minutes, it flies to the front of the table by
+itself. Every charged node also gets a beam from the tower and a light column, and the Step 5 lamps go dark.
 
-Charge the orb (the draw is heard as a rising sound):
+Charge the rock (the draw is heard as a rising sound):
 
-Both sides draw the same way: ONE node, a full JET GUN charge into it. Carry the orb there and fire the Jet Gun at
-the node until the gun OVERHEATS, as in the vanilla tower step: the whole gun goes into it in one go. Keep looking
-at the node when it overheats. You need a Jet Gun in the team (your patron says so when the Act 2 step ends and
-nobody carries one).
+Both sides draw the same way: ONE node, a full JET GUN charge into it. Carry the rock there and fire the Jet Gun
+(plain or upgraded) at the node until the gun OVERHEATS, as in the vanilla tower step: the whole gun goes into it
+in one go. Keep looking at the node when it overheats; just switching weapons does not count. You need a Jet Gun
+in the team (your patron says so when the Act 2 step ends and nobody carries one).
 
 - RICHTOFEN: the sparking transformer block on the small bridge at the Power station exit. Fire from the bridge.
-- MAXIS: when the step opens, the fire hand on the table bursts and its fire flies off to where the rock falls. The node is the fireplace of the hunter's cabin in the woods. Stand in front of it (crouched or standing) and fire
+  Avogadro stays in his cloud while this step is open.
+- MAXIS: the fireplace of the hunter's cabin in the woods. Stand in front of it (crouched or standing) and fire
   into the opening. Denizens leave you alone near the cabin while this step is open.
 
-Fully charged (three clinks, an aura and a hum on the orb and on you): press F at the table to place it. If you
-drop the orb (down, or you leave it) its charges are kept, and after 60 s it flies back home by itself, to the
-landing spot or to the table front, whichever is nearer.
+Fully charged (three clinks, your patron speaks, an aura and a hum on the rock and on you): press F at the table
+to place it (one snap: blue for Richtofen, fire for Maxis). If you drop the rock (down, or you leave it) its
+charges are kept, and after 60 s it flies back home by itself, to the landing spot or to the table front,
+whichever is nearer.
 
 </details>
 
 <details><summary><b>Step 7 - The Line Holds (the tower)</b> (click to reveal)</summary>
 
 
-HOLD F for 3 s at the table ("power the relay"). The orb leaves its slot and hovers under the tower for 75 s solo
-(90 / 105 / 120) while the Easter Egg song plays. Fast zombies keep rising near the players and run at the orb.
-Your job is to keep it alive and to STAY AT THE TOWER: 10 s of cumulative absence from the tower area fails the
-step (a horn sounds at 5 s; 5 s continuously back inside resets the count).
+HOLD F for 3 s at the table ("power the relay"). The rock leaves its slot and hovers under the tower for 75 s
+solo (90 / 105 / 120) while the Easter Egg song plays. Fast zombies keep rising around the tower and run at the
+rock. Your job is to keep it alive and to STAY AT THE TOWER: 10 s of cumulative absence from the tower area
+fails the step (a horn and a warning from your patron at 5 s; 5 s continuously back inside resets the count).
+A player who is down inside the area still counts as there.
 
-Guard it up close: while a living player stands right next to the orb, every hit does half damage and the
+Guard it up close: while a living player stands right next to the rock, every hit does half damage and the
 charge strikes that hit it every 10-20 s heal it more. Below 30 % health it flickers and beeps.
 
-- RICHTOFEN: Avogadro is recalled at once as a boss. Camping the orb hurts it; three knife hits banish him and
+- RICHTOFEN: Avogadro is recalled at once as a boss. Camping the rock hurts it; three knife hits banish him and
   drop a Max Ammo in front of the table.
-- MAXIS: the denizens are let loose on the tower for the whole wave, with a smoke column at the top.
+- MAXIS: the denizens are let loose on the tower for the whole wave (Maxis says so), with a smoke column at the
+  top.
 
-Fail: the orb bursts and the CHARGED orb reappears in front of the table. Take it, place it, hold again (the song
-does not restart for a while). Win: the orb glides back onto the table. After the hold the song keeps playing
-for about four minutes and zombies keep rising near you until it ends; you can start the finale meanwhile.
+Fail: the rock bursts and the CHARGED rock reappears in front of the table. Take it, place it, hold again (the
+song does not restart while it is still playing). Win: the rock glides back onto the table. After the hold the
+song keeps playing to its end (about four minutes after it started) and zombies keep rising near you until then;
+you can start the finale meanwhile.
 
 </details>
 
@@ -270,7 +290,7 @@ for about four minutes and zombies keep rising near you until it ends; you can s
 Set the right power state: RICHTOFEN power ON; MAXIS power OFF now, or off at the start of this round. HOLD F
 for 5 s at the table ("open the frequency"). Wrong power state: a buzz and a complaint.
 
-Every perk first, a 6 s build-up, the orb rises into the tower top, the burst, then the permanent world change:
+Every perk first, a 6 s build-up, the rock rises into the tower top, the burst, then the permanent world change:
 on Richtofen every fog lamp of the map turns blue and Avogadro is banished for good; on Maxis every lamp turns
 orange and the denizens are gone for good. Then the sting, a Max Ammo, the side reward if Act 2 did not already
 give it, a screen message, the closing lines, and the globe in the main menu lights up for your side.

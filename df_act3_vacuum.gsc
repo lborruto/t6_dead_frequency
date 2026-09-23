@@ -1,12 +1,15 @@
 // Dead Frequency - Act 3 Step 6 "Vacuum" (spec 5 / Step 6; owner redesign v4, polish pass 2026-09-08, design
 //   audit 2026-09-08 #3 / #4 / section 7; steps / art / dialogue audits v2 2026-09-09).
-//   When the step opens the orb ARRIVES at DF_ORB_SPAWN (3 s build-up over the tower top, then the strike,
-//   thunder: df_s6_orb_arrival) in the side's fx family: Richtofen = Avogadro's storm, his descend bolt, the
-//   lightning orb and the blue one-shot; Maxis = a smoke column at the top (fx_zmb_tranzit_smk_column_lrg
-//   when the alias exists, else three ash columns), then a fire burst and the lava ignite sound: never a
-//   blue bolt on the fire side (art audit #9). The orb (df_model( "orb" ): the turbine rotor disc
-//   p6_zm_buildable_turbine_fan since 2026-09-09, 25 x 10 x 25 with a centre pivot, spun slowly by
-//   rotateyaw as the tombstone skull is, _zm_tombstone.gsc:332) rests there afterwards: the one thing
+//   When the step opens the orb (the ROCK: df_model( "orb" ) = the meteor piece p6_zm_buildable_sq_meteor,
+//   centre pivot, spun slowly by rotateyaw as the tombstone skull is, _zm_tombstone.gsc:332) ARRIVES at
+//   DF_ORB_SPAWN: the landing spot, one of DF_ORB_SPOT_1..3 (diner / Town / power station) drawn once per game
+//   on both sides (df_coords df_orb_spawn_for_side). The opening starts at the table: on Maxis the resting fire
+//   hand bursts (df_s6_ember_burst), on Richtofen the key card on slot 1 discharges (df_s6_card_discharge), and
+//   a trail flies from it to the landing spot; then 3 s of build-up over the tower top and the strike, thunder
+//   (df_s6_orb_arrival) in the side's fx family: Richtofen = Avogadro's storm, his descend bolt, the lightning
+//   orb and the blue one-shot; Maxis = a smoke column at the top (fx_zmb_tranzit_smk_column_lrg when the alias
+//   exists, else three ash columns), then a fire burst and a whoosh: never a blue bolt on the fire side (art
+//   audit #9). The rock rests there afterwards (df_model_offset( "orb_ground" ) above the floor): the one thing
 //   allowed to appear after a step. A player takes it with one press of F, then carries it to the charged
 //   node left by Act 2 (level.df_nodes: ONE node per side. Richtofen: the sparking transformer block DF_CORE,
 //   kind "core", exported by df_r1_export_nodes; Maxis (owner 2026-09-23): the fireplace of the hunter's cabin
@@ -15,17 +18,17 @@
 //   CARRYING THE ORB, within draw range and cone, until the gun OVERHEATS (df_s6_overheat_watch), as in the
 //   vanilla tower step. With every node
 //   drained the carrier places the charged orb in the relay on the table under the tower (one press of F,
-//   within 150 units of df_coord( "DF_SOCKET" ) = DF_TABLE): the step is complete, the disc stays visible on
-//   the table's slot 2 (df_s6_orb_table_show, aura on, spinning) and Step 7 defends that orb.
+//   within 150 units of df_coord( "DF_SOCKET" ) = DF_TABLE): the step is complete, the rock stays visible on
+//   the table's slot 2 (df_s6_orb_table_show, spinning, no aura since 2026-09-23) and Step 7 defends that orb.
 //   Visibility (owner: "the orb is too tiny"): while the orb holds a charge it carries a permanent
 //   side-coloured aura (df_s6_aura_fx, cycle candidates with "!df fire orb_aura"), the elec_md /
 //   lava_burning bursts and a soft hum (zmb_meteor_loop). On the ground (fresh at the spawn with zero
-//   charges, or dropped) it ALWAYS carries the vanilla "take me" glint (fx_zmb_tranzit_key_glint,
-//   zm_transit_fx.gsc:105, art audit S6.2) plus the tower beam; the step registers the spawn as its focus
+//   charges, or dropped) it ALWAYS carries the "take me" glint (fx_zmb_tranzit_light_glow, art audit S6.2)
+//   plus the tower beam; the step registers the spawn as its focus
 //   (df_step_focus) for the shared STEP AVAILABLE cue.
 //   Carrying: no lamp portals (df_portal_use in df_act1 checks player.df_orb). Going down drops the orb
 //   at the feet (charges kept); an orb left on the ground 60 s flies HOME = the nearer of DF_ORB_SPAWN and
-//   the table front (steps audit v2 #8: a Richtofen drop at the barn no longer flies back to the diner),
+//   the table front (steps audit v2 #8: a drop far from the landing spot no longer flies back across the map),
 //   or the table front during a Step 7 restart cycle (df_s6_home_pos). A freshly landed rock nobody touches
 //   for 3 min flies to the table front too (df_s6_idle_timer, owner 2026-09-23).
 //   Guidance: every charged node and the waiting orb get the tower beam + rising light column
@@ -100,18 +103,17 @@ df_s6_drop_seconds()
     return 60;
 }
 
-// Height of the orb's origin above the surface it rests on: df_model_rest_z( "orb" ) from the df_coords
-// registry (world agent 2026-09-09: the turbine rotor disc p6_zm_buildable_turbine_fan, 25 x 25 x 10, pivot
-// at its base, hovers 5 = half its thickness under the aura). Used for the spawn, drops, the debug hook and
-// the table slot (df_s6_table_pos adds it to the table TOP, exactly as it is added to the floor). Same
-// source in df_act3_hold (df_s7_orb_rest_offset): a model swap in df_coords moves both at once.
+// Offset of the rock's origin above the floor it rests on: df_model_offset( "orb_ground" ) from the df_coords
+// registry (the meteor piece, centre pivot; set in the Prop Composer). Used for the spawn, drops and the debug
+// hook; the table spot is slot 2 (df_s6_table_pos, no offset added). Same source in df_act3_hold
+// (df_s7_orb_rest_offset): a registry change moves both at once.
 df_s6_orb_rest_offset()
 {
     return df_model_offset( "orb_ground" ); // the registry (kind orb_ground), set in the Prop Composer
 }
 
 // One slow turn every 8 s (rotateyaw on a script_model, the tombstone skull's spin _zm_tombstone.gsc:332;
-// the R1 card does the same, df_act2_rich): under the aura the flat rotor disc reads as a coil / core.
+// the R1 card does the same, df_act2_rich): the rock turns slowly under its aura.
 // self = the orb model; ends with it ("death" is fired by delete).
 df_s6_orb_spin()
 {
@@ -366,7 +368,6 @@ df_s6_run()
     level thread df_s6_skip_cleanup();
     df_s6_build_nodes();
     level.df_s6_target = level.df_s6_nodes.size;
-    level.df_orbs_delivered = 0;
     level.df_s6_said_nojet = 0;
     level.df_s6_said_hint = 0;
 
@@ -400,7 +401,7 @@ df_s6_run()
 //   zm_transit_fx.gsc:20) and the blue one-shot (df_cue_side_flash).
 //   Maxis: the smoke column (df_s6_arrival_fx_start), then a fire burst (df_cue_side_flash) and the lava
 //   ignite sound ("ignite", zm_transit_lava.gsc:275): fire, never a blue bolt.
-// The caller places the disc right after. Blocking; a skip during the build-up ends the caller and
+// The caller places the rock right after. Blocking; a skip during the build-up ends the caller and
 // df_s6_cleanup removes the column / storm.
 df_s6_orb_arrival( pos )
 {
@@ -625,7 +626,6 @@ df_s6_restart_cycle( gen )
     orb.charges = level.df_s6_target;
     orb.drop_id = 0;
     level.df_s6_orb = orb;
-    level.df_orbs_delivered = orb.charges;
     df_scav_carry_clear( "orb" );
     df_scav_carry_set( "orb", orb.charges, level.df_s6_target, undefined );
     df_s6_orb_show( df_s6_socket_front_pos() );
@@ -691,7 +691,6 @@ df_s6_place_silent()
     orb.state = "placed";
     orb.placed_silent = 1;
     df_s6_orb_table_show();
-    level.df_orbs_delivered = level.df_s6_target;
     df_scav_carry_clear( "orb" );
     level notify( "df_s6_check" );
     return 1;
@@ -770,7 +769,6 @@ df_s6_setup()
     df_scav_carry_clear( "orb" );
     df_s6_orb_table_show();
     level.df_s6_target = level.df_s6_nodes.size;
-    level.df_orbs_delivered = level.df_s6_target;
     df_debug_print( "DF: s6 setup, orb marked placed with " + level.df_s6_target + " charge(s), resting on the table" );
 
     // Step 7 may fail after a "!df goto step7": arm the restart contract here as well (guarded against double arming)
@@ -897,10 +895,10 @@ df_s6_orb_reset( charges )
 }
 
 // The orb (df_model( "orb" ), precached by df_coords_precache) appears ON THE GROUND at pos, spinning, with
-// its aura, hum, charge bursts, a guiding beam and the "take me" glint (fx_zmb_tranzit_key_glint,
-// zm_transit_fx.gsc:105) 20 above it, charged or not (art audit S6.2: a bare disc at the diner with no
-// marker was the weakest AVAILABLE cue of the quest). The registry's base angles (df_model_angles) lay the
-// disc flat; the yaw is random. pos already includes df_s6_orb_rest_offset.
+// its aura, hum, charge bursts, a guiding beam and the "take me" glint (fx_zmb_tranzit_light_glow at
+// df_fx_point "orb_glint"), charged or not (art audit S6.2: a bare orb with no marker was the weakest
+// AVAILABLE cue of the quest). Kind "orb_ground" (the composer's ground pose); the yaw is random. pos already
+// includes df_s6_orb_rest_offset.
 df_s6_orb_show( pos )
 {
     orb = level.df_s6_orb;
@@ -915,8 +913,8 @@ df_s6_orb_show( pos )
     orb.ent thread df_s6_orb_charge_fx();
 }
 
-// The delivered orb on its table slot (owner 2026-09-08): the same disc with its aura and hum, spinning on
-// slot 2 for the rest of the game instead of vanishing into a panel. No guiding beam and no glint (it IS
+// The delivered orb on its table slot (owner 2026-09-08): the same rock, spinning on slot 2 for the rest of
+// the game, no aura or hum (owner 2026-09-23). No guiding beam and no glint (it IS
 // the destination) and no prompt (state "placed"). Step 7 borrows it for its wave (df_s6_table_orb_watch).
 df_s6_orb_table_show()
 {
@@ -935,7 +933,7 @@ df_s6_orb_table_show()
     df_debug_print( "DF: s6 orb resting on the table, slot 2 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
 }
 
-// Removes the disc and everything riding it (beam, glint, aura, hum, burst; the struct and its charges stay).
+// Removes the rock and everything riding it (beam, glint, aura, hum, burst; the struct and its charges stay).
 df_s6_orb_hide()
 {
     orb = level.df_s6_orb;
@@ -1196,7 +1194,7 @@ df_s6_orb_drop( pos )
     df_debug_print( "DF: s6 orb dropped at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", " + df_s6_drop_seconds() + " s to pick it up" );
 }
 
-// A disc left on the ground flies home (the nearer of the spawn and the table front, df_s6_home_pos;
+// A rock left on the ground flies home (the nearer of the spawn and the table front, df_s6_home_pos;
 // charges kept), df_soul_fly trail.
 df_s6_drop_timer( drop_id )
 {
@@ -1578,7 +1576,6 @@ df_s6_drain( node, player )
 
     orb = level.df_s6_orb;
     orb.charges++;
-    level.df_orbs_delivered = orb.charges;
     df_scav_carry_set( "orb", orb.charges, level.df_s6_target, player );
     ready_at = pos;
 
@@ -1676,7 +1673,7 @@ df_s6_socket_monitor()
 // (fx_zmb_tranzit_power_pulse, zm_transit_fx.gsc:117) 3 s + the side flash over the table (df_cue_side_flash)
 // and the part-add clink (zmb_buildable_piece_add, zm_transit_sq.gsc:1074). ONE sting only: the uniform
 // STEP DONE from df_complete (art audit S6.4: the 3D zmb_powerup_grabbed here doubled it within a second).
-// Owner 2026-09-08: the disc does not vanish any more, it stays on the table's slot 2 (df_s6_orb_table_show).
+// Owner 2026-09-08: the rock does not vanish any more, it stays on the table's slot 2 (df_s6_orb_table_show).
 df_s6_place( player )
 {
     orb = level.df_s6_orb;
@@ -1693,7 +1690,6 @@ df_s6_place( player )
     orb.carrier = undefined;
     orb.state = "placed";
     df_s6_orb_table_show();
-    level.df_orbs_delivered = level.df_s6_target;
     df_scav_carry_clear( "orb" ); // owner 2026-09-23: the "Rock 1/1" TAB notice goes with the placement
 
     socket_pos = df_coord( "DF_SOCKET" ).origin;

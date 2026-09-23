@@ -1,8 +1,8 @@
 // Dead Frequency - Act 3, Step 7 "The Line Holds" (spec 5, Step 7; owner redesign v3, polish pass 2026-09-08).
 //   A player powers the relay at the table under the tower (hold 3 s, a channelling action the owner
 //   validated; the radius is keyed on df_coord( "DF_SOCKET" ).origin, which IS the table since 2026-09-08).
-//   The charge orb (df_model( "orb" ): the turbine rotor disc p6_zm_buildable_turbine_fan since 2026-09-09,
-//   the same disc Step 6 left on the table, spun by rotateyaw) lifts off its slot and wanders under the tower
+//   The charge orb (the ROCK, df_model( "orb" ) = the meteor piece p6_zm_buildable_sq_meteor, the same rock
+//   Step 6 left on table slot 2, spun by rotateyaw) lifts off its slot and wanders under the tower
 //   for the wave's seconds; it has orb hp per player count. Our own spawner raises sprinting zombies at the
 //   tower's spawn structs, close and fast (alive cap per side and player count, snapshotted at wave start),
 //   and every zombie near the tower hunts the orb instead of the players (vanilla enemyoverride pattern:
@@ -10,7 +10,8 @@
 //   of the tower centre (10 s cumulative absence fails; 5 s back inside resets the count).
 //   NUMBERS (steps audit v2 #4, section 6; the df_steps rows win when they exist, else the local tables in
 //   df_act3_hold_init): spawn period "s7_period" 1.3/1.0/0.8/0.7 s, alive cap "s7_cap_rich" 10/14/18/22 /
-//   "s7_cap_maxis" 14/18/22/26, "orb_hp" 3000/3600/4200/4800, "hold_time" 75/90/105/120 s, swing 30,
+//   "s7_cap_maxis" 14/18/22/26, "orb_hp" 3000/4200/5400/6600 (the df_steps row; the local fallback is
+//   3000/3600/4200/4800), "hold_time" 75/90/105/120 s, swing 30,
 //   strikes every 10-20 s heal 10 %. Solo is no longer the hardest lobby.
 //   GUARD BONUS (steps audit v2 #5, the step's name made literal): while a living player stands within 200
 //   of the orb (df_s7_guarded) a swing does 15 instead of 30 and a strike heals 15 % instead of 10 %. The
@@ -22,9 +23,9 @@
 //   art audit S7.6). The Easter Egg song plays during the wave (one start per song length, df_s7_song_seconds:
 //   stopsounds does not end the stream).
 //   Success = the countdown runs out with the orb alive: it glides back onto the table (slot 2, rising sound,
-//   tower fx), Step 6's resting disc takes the slot over again for the finale, D7_DONE and the ONE uniform
+//   tower fx), Step 6's resting rock takes the slot over again for the finale, D7_DONE and the ONE uniform
 //   STEP DONE sting from df_complete (art audit #1: the navcard chime here is gone). Failure: the orb bursts
-//   in the side family (df_s7_orb_burst; emp sound) and our disc vanishes, D7_FAIL, then the Step 6 contract
+//   in the side family (df_s7_orb_burst; emp sound) and our rock vanishes, D7_FAIL, then the Step 6 contract
 //   (agreed with the Step 6 owner, 2026-09-08): level notify( "df_s6_restart" ) makes Step 6 put the charged
 //   orb back IN FRONT OF THE TABLE, pickable (its own model, not ours); a player picks it up and places it
 //   again, Step 6 fires "df_s6_redelivered" and the table is armed again. The charges are not lost.
@@ -194,18 +195,16 @@ df_s7_socket()
     return df_coord( "DF_SOCKET" ).origin;
 }
 
-// Height of the orb's origin above the ground when it rests / rolls, and above the table top when it
-// sits on its slot (df_s7_orb_slot): df_model_rest_z( "orb" ) from the df_coords registry (world agent
-// 2026-09-09: the turbine rotor disc p6_zm_buildable_turbine_fan, 25 x 25 x 10, pivot at its base, hovers
-// 5 = half its thickness under the aura). Same source in df_act3_vacuum (df_s6_orb_rest_offset): a model
-// swap in df_coords moves both at once.
+// Offset of the orb's origin above the ground when it rests / rolls: df_model_offset( "orb_ground" ) from the
+// df_coords registry (the meteor piece, centre pivot; set in the Prop Composer). Same source in df_act3_vacuum
+// (df_s6_orb_rest_offset): a registry change moves both at once.
 df_s7_orb_rest_offset()
 {
     return df_model_offset( "orb_ground" ); // the registry (kind orb_ground), set in the Prop Composer
 }
 
 // One slow turn every 8 s (rotateyaw, the tombstone skull's spin _zm_tombstone.gsc:332), the same spin Step 6
-// gives the resting disc, so it does not "stop" when the wave takes it. rotateyaw turns the angles while
+// gives the resting rock, so it does not "stop" when the wave takes it. rotateyaw turns the angles while
 // moveto (df_s7_orb_wander) moves the origin: independent movers. self = the wave orb; ends with it.
 df_s7_orb_spin()
 {
@@ -545,7 +544,7 @@ df_s7_skip_cleanup()
 // The orb (df_model( "orb" ), precached by df_coords_precache) lifted off the table's slot 2 - where
 // Step 6 left it (df_s7_orb_slot) - the thing zombies swing at, with its side aura, a linked hum
 // (zmb_meteor_loop, zm_transit.gsc:3349), the slow spin and the side flash (df_cue_side_flash) as it
-// appears. The registry's base angles (df_model_angles) lay the disc flat, the yaw is the table's. Step 6's
+// appears. The registry's base angles (df_model_angles) pose the rock, the yaw is the table's. Step 6's
 // resting model is hidden for as long as ours exists: level notify( "df_s7_orb_taken" ) tells it to
 // (contract with the Step 6 owner, 2026-09-08), and "df_s7_orb_returned" (success or a skip) gives the
 // slot back.
@@ -725,13 +724,13 @@ df_s7_charge_strikes()
 }
 
 // One charge strike on the wave orb. Build-up (2 s): the reactor rise sound (zmb_power_rise_start,
-// zm_transit_power.gsc:399) on the disc and a fresh side burst (elec_md zm_transit_fx.gsc:36 / lava_burning
+// zm_transit_power.gsc:399) on the rock and a fresh side burst (elec_md zm_transit_fx.gsc:36 / lava_burning
 // :40) every 0.25 s on top of the normal pulse, so the static visibly thickens. Strike, per side (art audit
 // #9: no blue on the fire side): Richtofen = Avogadro's arrival bolt from the sky (avogadro_descend =
 // fx_zmb_avog_descend, _zm_ai_avogadro.gsc:33 loadfx, :814 playfx on the ground under him) on the ground
-// under the disc, the lightning orb (sq_common_lightning, zm_transit_fx.gsc:20) and the side flash
-// (df_cue_side_flash: the blue one-shot) on the disc; Maxis = the side flash (df_cue_side_flash: 0.8 s of
-// fire_lrg), a second fire_lrg burst riding the disc (fx_zmb_tranzit_fire_lrg, :100), 0.8 s of ash on the
+// under the rock, the lightning orb (sq_common_lightning, zm_transit_fx.gsc:20) and the side flash
+// (df_cue_side_flash: the blue one-shot) on the rock; Maxis = the side flash (df_cue_side_flash: 0.8 s of
+// fire_lrg), a second fire_lrg burst riding the rock (fx_zmb_tranzit_fire_lrg, :100), 0.8 s of ash on the
 // ground under it (fx_zmb_ash_rising_md, :81, df_fx_burst) and the lava ignite sound ("ignite",
 // zm_transit_lava.gsc:275). Both: his
 // thunder crack (zmb_avogadro_spawn_3d, _zm_ai_avogadro.gsc:810) and a short rumble (earthquake, as the
@@ -878,14 +877,14 @@ df_s7_orb_return()
 
     df_cue_side_flash( dest, undefined );
     df_s7_orb_remove();
-    level notify( "df_s7_orb_returned" ); // Step 6 shows its resting disc on the slot again
+    level notify( "df_s7_orb_returned" ); // Step 6 shows its resting rock on the slot again
     df_debug_print( "DF: s7 orb back on the table, slot 2" );
 }
 
 // Failure: the orb bursts in the side family (art audit #9): two side flashes (df_cue_side_flash: blue
 // one-shots on Richtofen, fire bursts on Maxis), a 0.8 s side burst (elec_md / lava_burning, df_fx_burst)
 // left behind at the spot, on Maxis 0.8 s of ash too (fx_zmb_ash_rising_md, zm_transit_fx.gsc:81), and the
-// bus EMP sound (zmb_bus_emp_shutdown, zm_transit_bus.gsc:3097). Our disc, aura, hum and riding fx are
+// bus EMP sound (zmb_bus_emp_shutdown, zm_transit_bus.gsc:3097). Our rock, aura, hum and riding fx are
 // deleted right here (df_s7_orb_remove): the burst fx stand alone at the spot, and Step 6 spawns its own
 // pickable orb at the socket on df_s6_restart, so nothing of ours may linger.
 df_s7_orb_burst()

@@ -3,19 +3,23 @@
 //                       relay socket: DF_SOCKET resolves to DF_TABLE since 2026-09-08); it dies there and
 //                       opens an orange portal into the Nacht bunker, where a timed denizen hunt takes
 //                       place (spec 5, M1). Timeout: everyone is sent back and the latch starts again.
-//                       The last kill leaves a SKULL on the bunker floor: one press TAKES it in hand (carry
-//                       notice, no fire, no lamp portals, dropped at the feet on down), everyone is sent back,
-//                       and one press within 150 of the table PLACES it on slot 1: that completes M1. Nobody
-//                       took it before the return: it lies at the tower return point instead, still pickable.
-//   M2 "Fire and Ash":  FOUR braziers (graves) in Town exist from game start (owner spots 2026-09-23; ember
-//                       glow). M2 lights brazier 1; a player takes ONE ember from any lit brazier and keeps it in
-//                       hand (burns 5 hp/s, no portals, lost on down) while lighting the other three in any order;
-//                       it is consumed when all four burn. Each lit brazier then swallows five zombies killed
-//                       beside it, burning or not (owner 2026-09-23);
-//                       the flames grow in stages (spec 5, M2). Act 3's node is the cabin hearth (one).
+//                       The last kill leaves a SKULL (df_model "skull" = zombie_skull) on the bunker floor: one
+//                       press TAKES it in hand (carry notice, no fire, no lamp portals, dropped at the feet on
+//                       down), everyone is sent back, and one press within 150 of table slot 1 PLACES it at its
+//                       own pose on the table: that completes M1. Nobody took it before the return: it lies at
+//                       the tower return point instead, still pickable.
+//   M2 "Fire and Ash":  FOUR graves (df_model "brazier" = ch_tombstone1; "brazier" names are historical) stand
+//                       in Town from game start (owner spots 2026-09-23), each with one small flame. M2 puts the
+//                       FIRE HAND (kind "ember", p6_zm_buildable_pswitch_hand) on the table: one press takes it
+//                       (burns 5 hp/s down to half health, not beside a lit grave; no portals; back on the table
+//                       when the carrier goes down), one press within 100 of a grave lights it, any order, and
+//                       the hand stays in hand. Each lit grave runs a sprinter wave and a cold timer and needs
+//                       df_m2_quota kills beside it (five at least, burning or not); a full grave vanishes.
+//                       All four spent: the hand is charged and goes back on the table (one press within 150),
+//                       where it rests until Step 6. Act 3's node is the cabin hearth (one).
 //   Side rules (audit 2.4, Maxis = fog / fire / silence): after M1 denizens leave players alone within 400
-//                       of the table or a lit brazier, denizen spawns are doubled, and power ON at the end
-//                       of a round costs every brazier one stage while M2 runs.
+//                       of any grave while M2 runs (of the cabin hearth while Step 6 is open), denizen spawns are
+//                       doubled, and power ON at the end of a round costs the fullest lit grave its kills.
 // Vanilla facts this file relies on (Maps\Tranzit\maps\mp\zombies\_zm_ai_screecher.gsc,
 // Maps\Tranzit\maps\mp\zm_transit_ai_screecher.gsc, zm_transit.gsc):
 //   - player.screecher = the denizen riding that player (set when it jumps, cleared when it detaches or dies);
@@ -30,6 +34,7 @@
 //     clientfield for 0.05 s and the client fades the black screen out by itself (about 1.5 s).
 //   - A downed player's revive trigger is linked to the player (_zm_laststand.gsc:656-658), so setorigin on
 //     a downed player moves the trigger with them (M1 teleports downed players too).
+// History below: the passes as they were written; the M2 summary above is the current design.
 // Polish 2026-09-08 (tools/polish_act2_maxis.md): models through df_model( "portal" | "brazier" ); the hole
 //   spins with an orbiting orange light; cold fog at the Nacht anchors; dig sound where a denizen rises; a
 //   distinct final sting; an ash burst at the return point; braziers crackle and each counted kill is heard.
@@ -190,7 +195,7 @@ df_m1_after_rules()
     df_m1_hooks_install();
     df_s7_tower_safety_volume( 1 );
     level.zombie_ai_limit_screecher = 4;
-    df_debug_print( "DF: m1 side rules on: denizens avoid the table and lit braziers (400), fog spawns doubled" );
+    df_debug_print( "DF: m1 side rules on: denizens avoid the graves (M2) and the cabin fireplace (Step 6) within 400, fog spawns doubled" );
 }
 
 // ---- vanilla hooks -----------------------------------------------------------------------
@@ -1160,20 +1165,9 @@ df_act2_maxis_trail( from, to, flash )
 // The last kill leaves a skull on the bunker floor. One press within 100 TAKES it into the hand (carry notice
 // via df_scav_carry_set "skull", no fire; lamp portals must refuse player.df_skull like the ember: df_portal_use,
 // requests_M2fix.md). The return brings the carrier home; one press within 150 of table slot 1 PLACES it
-// (df_coords df_table_slot, the slot the key card fills on the other side) under an orange glow, and M1
-// completes on that. Nobody took it before the return: it lies at the tower return point under its glint,
+// (df_coords df_table_slot, the slot the key card fills on the other side; the skull itself sits at its own
+// table pose, no glow), and M1 completes on that. Nobody took it before the return: it lies at the tower return point under its glint,
 // still pickable, never auto-placed. A carrier who goes down drops it at the feet (like the ember).
-
-// Registry kind "skull" (df_coords df_models_init_items); the "orb" model if the kind is ever removed.
-df_m1_skull_model()
-{
-    fallback = df_model( "orb" ); // also runs df_models_init
-
-    if ( isdefined( level.df_models ) && isdefined( level.df_models["skull"] ) )
-        return level.df_models["skull"];
-
-    return fallback;
-}
 
 // Success: the skull drops at the last corpse and Maxis names it (ITEM_SKULL_MAXIS, the TAKE line since the
 // dialogue audit v2), then a 30 s window (steps audit v2 #9: co-op players are still shooting when it drops)
@@ -1224,13 +1218,13 @@ df_m1_skull_follow_return()
     df_debug_print( "DF: m1 skull lies at the tower return point, take it to the table" );
 }
 
-// The skull lies on the floor under a glint (fx_zmb_tranzit_key_glint, the part glint, zm_transit_fx.gsc:105)
+// The skull lies on the floor under a glint (fx_zmb_tranzit_light_glow at df_fx_point "skull_glow")
 // and the poll (prompts / presses) runs from here until the placement.
 df_m1_skull_drop( ground )
 {
     df_m1_skull_remove_floor();
     level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, df_model_rest_z( "skull" ) ) ); // resting on its base
-    level.df_m1_skull setmodel( df_m1_skull_model() );
+    level.df_m1_skull setmodel( df_model( "skull" ) );
     level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", ground + df_fx_point( "skull_glow" ) );
     playsoundatposition( "zmb_buildable_piece_add", ground );
     level thread df_m1_skull_poll();
@@ -1450,8 +1444,8 @@ df_m1_skull_remove_floor()
     level.df_m1_skull_fx = undefined;
 }
 
-// Skull on table slot 1 (the slot registry, df_coords df_table_slots_init, already carries its lift), slow spin like the hole,
-// orange lamp light (zm_transit_fx.gsc:114) 8 above it. quiet = 1 (goto): no trail. The line (M1_DONE) is
+// Skull on the table at its own pose (df_coords df_model_def "skull" offset, table frame), slow spin like the hole,
+// no glow (the placing snap only). quiet = 1 (goto): no snap, no trail. The line (M1_DONE) is
 // df_m1_finish's; ITEM_SKULL_MAXIS moved to the drop. Any floor or carried skull is gone first (debug / goto
 // paths). The "df_m1_skull_placed" notify is LAST on purpose: it ends the poll (which may be the calling
 // thread) and wakes df_m1_wait_placed.
@@ -1466,9 +1460,9 @@ df_m1_skull_place_table( quiet )
     // Prop Composer (df_coords df_model_def "skull" offset); slot 1 stays the card's
     pos = df_table_point( df_model_offset( "skull" ) );
     level.df_m1_skull_table = spawn( "script_model", pos );
-    level.df_m1_skull_table setmodel( df_m1_skull_model() );
+    level.df_m1_skull_table setmodel( df_model( "skull" ) );
     level.df_m1_skull_table.angles = df_model_angles( "skull", df_table_yaw() );
-    // owner 2026-09-23: no glow on the stone (one glow per step on the relay); the placing snap only
+    // owner 2026-09-23: no glow on the skull (one glow per step on the relay); the placing snap only
     if ( !is_true( quiet ) )
         df_cue_table_place( pos );
     level thread df_m1_skull_spin();
@@ -2116,7 +2110,7 @@ df_m2_prompt_clear( player )
     player df_prompt( 0, undefined );
 }
 
-// The player takes an ember from lit brazier b: flag, carry notice (df_scav kind "ember"), burning fx, damage
+// The player takes the fire hand from the table: flag, carry notice (df_scav kind "ember"), burning fx, damage
 // tick, drop watch, first-time line.
 df_m2_ember_take( player )
 {

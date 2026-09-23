@@ -11,8 +11,9 @@
 // and the event hints obey level.df_text_hints (df_systems df_text_hints_on, default on), NOT the puzzle
 // prompt switch level.df_hints (dialogue audit v2 2026-09-09 section 1.0: the old shared gate muted the
 // whole ladder in a normal game).
-// Cues (art audit 2026-09-09 #1 / #2): STEP AVAILABLE = zmb_spawn_powerup to all + key glint on the step's
-// focus (df_step_focus) until the first df_touch; STEP DONE = zmb_powerup_grabbed to all (df_complete).
+// Cues (art audit 2026-09-09 #1 / #2, owner picks 2026-09-11): STEP AVAILABLE = zmb_screecher_portal_arrive
+// to all + a fx_zmb_tranzit_light_glow on the step's focus (df_step_focus) until the first df_touch;
+// STEP DONE = evt_bridge_collapse_start (the bridge groan) to all (df_complete).
 // Own helpers are prefixed df_step_ / df_scale_.
 #include common_scripts\utility;
 #include maps\mp\_utility;
@@ -187,16 +188,6 @@ df_init_steps()
     level.df_hint_repeat_s = 360;
     level.df_intro_delay_s = 2;
 
-    // step -> first rung key, kept for readers of the old table (`!df` helpers, reports). The finale has
-    // no stall hints (df_step_finale_reached), so it is not listed.
-    level.df_hint_key = [];
-
-    foreach ( key, prefix in level.df_step_dlg )
-    {
-        if ( key != "finale" )
-            level.df_hint_key[key] = prefix + "_HINT_1";
-    }
-
     level.df_done = [];
     level.df_step_func = [];
     level.df_step_setup = [];
@@ -309,8 +300,8 @@ df_is_done( key )
 }
 
 // Marks a step done, removes its AVAILABLE glint, plays the uniform STEP DONE sting and wakes the parked
-// runners. The sting is the ONLY "step done" sound of the quest (art audit 2026-09-09 #1: zmb_powerup_grabbed
-// means "step done" and nothing else; steps play zmb_sq_navcard_success for their sub-goals instead), so the
+// runners. The sting is the ONLY "step done" sound of the quest (art audit 2026-09-09 #1: the sting means
+// "step done" and nothing else; steps play zmb_sq_navcard_success for their sub-goals instead), so the
 // quiet flag is the one way to skip it: quiet = 1 as the 2nd argument, or level.df_quiet_complete = 1 right
 // before the call for callers that cannot change the call (consumed here). Steps should NOT pass it just
 // because their tower fx plays: players must hear the same sting at every step end. Debug exception: no
@@ -337,9 +328,8 @@ df_complete( key, quiet )
     level notify( "df_step_done", key );
 }
 
-// The one "step done" sting, heard by everyone: zmb_powerup_grabbed (owner 2026-09-08, was
-// zmb_cha_ching_loud), on the owner's list of aliases audible as 2D sounds (tools/POLISH_BRIEF.md);
-// vanilla plays it on every power-up grab (Core/maps/mp/zombies/_zm_powerups.gsc:953).
+// The one "step done" sting, heard by everyone: evt_bridge_collapse_start, the bridge groan (owner pick
+// 2026-09-11; was zmb_powerup_grabbed, before that zmb_cha_ching_loud).
 // playsoundtoplayer( alias, player ) as in Core/maps/mp/zombies/_zm.gsc:1843.
 df_step_complete_cue()
 {
@@ -347,9 +337,9 @@ df_step_complete_cue()
         player playsoundtoplayer( "evt_bridge_collapse_start", player ); // owner pick 2026-09-11: STEP DONE = the bridge groan
 }
 
-// STEP AVAILABLE cue (art audit 2026-09-09 #2): zmb_spawn_powerup to every player (the power-up drop sound,
-// zmeat.gsc:2080 = "something new is in the world") right after "df_step_available", plus the vanilla
-// "take me" glint (fx_zmb_tranzit_key_glint, zm_transit_fx.gsc:105) on the step's focus point until the
+// STEP AVAILABLE cue (art audit 2026-09-09 #2): zmb_screecher_portal_arrive to every player (owner pick
+// 2026-09-11, was zmb_spawn_powerup) right after "df_step_available", plus a fx_zmb_tranzit_light_glow
+// (df_step_glint_start) on the step's focus point until the
 // first df_touch, df_complete or skip. A step without a registered focus gets the sound only. Nothing
 // during a goto (the target step's runner still plays it once the jump is over).
 df_step_available_cue( key )
