@@ -2527,10 +2527,10 @@ df_m2_fists_loop()
     }
 }
 
-// ---- grave waves (owner 2026-09-11) --------------------------------------------------------------
-// A player within 300 of a lit, hungry grave pulls one zombie every 4 s from the zone spawn structs within 700 of
-// that grave (they cross the lava to reach him and burn), while fewer than 16 live. Gentler than the R2 lamps:
-// five kills are enough.
+// ---- grave waves (owner 2026-09-23) --------------------------------------------------------------
+// Lighting a grave starts a WAVE at it: two sprinting zombies every 2 s from the spawn structs within 1200 of that
+// grave, while fewer than 8 (+3 per extra player) of ours live around it. The wave ends the moment the grave is
+// full (b.done) or goes out. Every lit hungry grave runs its own wave.
 df_m2_grave_spawner()
 {
     level endon( "end_game" );
@@ -2539,22 +2539,25 @@ df_m2_grave_spawner()
 
     while ( true )
     {
-        wait 4;
+        wait 2;
 
-        if ( !isdefined( level.zombie_spawners ) || level.zombie_spawners.size == 0 )
+        if ( !isdefined( level.zombie_spawners ) || level.zombie_spawners.size == 0 || !isdefined( level.df_m2_braziers ) )
             continue;
 
-        foreach ( player in getplayers() )
+        cap = 8 + 3 * ( getplayers().size - 1 );
+
+        foreach ( b in level.df_m2_braziers )
         {
-            if ( !is_player_valid( player ) )
+            if ( !isdefined( b ) || !is_true( b.lit ) || is_true( b.done ) )
                 continue;
 
-            b = df_m2_nearest( player.origin, 300, 1 );
+            if ( !is_true( b.df_wave_on ) )
+            {
+                b.df_wave_on = 1;
+                df_debug_print( "DF: m2 wave ON at " + b.name );
+            }
 
-            if ( !isdefined( b ) )
-                continue;
-
-            if ( df_zombies_near( player.origin, 1200 ) >= 10 || getfreeactorcount() < 1 )
+            if ( df_m2_wave_count( b ) >= cap )
                 continue;
 
             spots = df_m2_grave_spots( b );
@@ -2562,20 +2565,69 @@ df_m2_grave_spawner()
             if ( spots.size == 0 )
                 continue;
 
-            spot = random( spots );
-            spawner = random( level.zombie_spawners );
-            ai = spawn_zombie( spawner, spawner.targetname, spot );
+            for ( k = 0; k < 2; k++ )
+            {
+                if ( getfreeactorcount() < 1 )
+                    break;
 
-            if ( !isdefined( ai ) )
-                continue;
+                spot = random( spots );
+                spawner = random( level.zombie_spawners );
+                ai = spawn_zombie( spawner, spawner.targetname, spot );
 
-            if ( isdefined( spot.script_noteworthy ) && issubstr( spot.script_noteworthy, "riser_location" ) )
-                ai._rise_spot = spot;
-            else
-                ai.spawn_point_override = spot;
+                if ( !isdefined( ai ) )
+                    continue;
 
-            df_debug_print( "DF: m2 one zombie pulled to " + b.name + " (" + player.name + " beside it)" );
+                if ( isdefined( spot.script_noteworthy ) && issubstr( spot.script_noteworthy, "riser_location" ) )
+                    ai._rise_spot = spot;
+                else
+                    ai.spawn_point_override = spot;
+
+                ai.df_m2_wave = b;
+                ai thread df_m2_wave_sprint();
+            }
         }
+
+        foreach ( b in level.df_m2_braziers )
+        {
+            if ( isdefined( b ) && is_true( b.df_wave_on ) && ( !is_true( b.lit ) || is_true( b.done ) ) )
+            {
+                b.df_wave_on = 0;
+                df_debug_print( "DF: m2 wave OFF at " + b.name );
+            }
+        }
+    }
+}
+
+// Our live wave zombies of grave b.
+df_m2_wave_count( b )
+{
+    n = 0;
+
+    foreach ( ai in getaiarray( level.zombie_team ) )
+    {
+        if ( isdefined( ai ) && isalive( ai ) && isdefined( ai.df_m2_wave ) && ai.df_m2_wave == b )
+            n++;
+    }
+
+    return n;
+}
+
+// self = wave zombie: sprints once it has risen (the same switch the Step 7 wave uses).
+df_m2_wave_sprint()
+{
+    self endon( "death" );
+
+    while ( true )
+    {
+        wait 0.5;
+
+        if ( is_true( self.in_the_ground ) || is_true( self.is_traversing ) || !is_true( self.completed_emerging_into_playable_area ) )
+            continue;
+
+        if ( is_true( self.has_legs ) && isdefined( self.zombie_move_speed ) && self.zombie_move_speed != "sprint" )
+            self set_zombie_run_cycle( "sprint" );
+
+        return;
     }
 }
 

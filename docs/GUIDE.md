@@ -165,8 +165,7 @@ An EMBER flame now burns on the table. Press F to take it: fire on your body, 5 
 it (it never brings you below 15 by itself), and it stays in hand for the whole step.
 
 Four tombstones stand in a row along the lava on the way from the tower to the cornfield. Press F on any of
-them with the ember to light it (any order, as many as you like). A player standing near a lit grave pulls
-zombies across the lava; they arrive burning. Kill 5 burning zombies near a lit grave (5 / 5 / 6 / 7): the
+them with the ember to light it (any order, as many as you like). Lighting a grave starts a wave of sprinting zombies at it that ends when the grave is full; a player standing near a lit grave pullszombies across the lava; they arrive burning. Kill 5 burning zombies near a lit grave (5 / 5 / 6 / 7): the
 Denizens leave you alone within a few steps of any of the four graves while M2 runs. tombstone bursts and vanishes, and a scorched glow stays on the ground. A burning kill at an UNLIT grave does
 not count.
 
