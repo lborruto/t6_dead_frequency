@@ -926,19 +926,7 @@ df_table_demo_prop( kind, pos, offset )
     if ( kind == "relay" || kind == "relay_coil" || kind == "relay_top" || kind == "relay_mast" )
         yaw = yaw + df_relay_table_turn();
 
-    ent = spawn( "script_model", pos + // The relay's turn off its carrier's front: on the bus roof (approved in game since 2026-09-11) and on the table
-// (owner composer 2026-09-22; the preview's -135 was a mirror image, so the game value is +135).
-df_relay_roof_turn()
-{
-    return -45;
-}
-
-df_relay_table_turn()
-{
-    return 135;
-}
-
-df_offset_rotate( offset, yaw ) );
+    ent = spawn( "script_model", pos + df_offset_rotate( offset, yaw ) );
     ent setmodel( df_model( kind ) );
     ent.angles = df_model_angles( kind, yaw );
     return ent;
@@ -1675,6 +1663,18 @@ df_model_offset( kind )
 df_model_offset_at( kind, yaw )
 {
     return df_offset_rotate( df_model_offset( kind ), yaw );
+}
+
+// The relay's turn off its carrier's front: on the bus roof (approved in game since 2026-09-11) and on the table
+// (owner composer 2026-09-22; the preview's -135 was a mirror image, so the game value is +135).
+df_relay_roof_turn()
+{
+    return -45;
+}
+
+df_relay_table_turn()
+{
+    return 135;
 }
 
 df_offset_rotate( offset, yaw )
