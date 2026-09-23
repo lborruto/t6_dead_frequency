@@ -161,23 +161,23 @@ completes M1. While M1 waits for a denizen, denizens can rise at the tower itsel
 <details><summary><b>M2 - Fire and Ash (Town)</b> (click to reveal)</summary>
 
 
-An EMBER flame now burns on the table. Press F to take it: fire on your body, 5 health a second while you carry
+A FIRE HAND (a burning hand) now lies on the table. Press F to take it: fire on your body, 5 health a second while you carry
 it (it never brings you below 15 by itself), and it stays in hand for the whole step.
 
-Four tombstones stand in Town. Carry the ember there (the bus is fine; the lamp portals refuse you) and press F
+Four tombstones stand in Town. Carry the fire hand there (the bus is fine; the lamp portals refuse you) and press F
 on any of them to light it (any order, as many as you like). Lighting a grave starts a wave of sprinting
 zombies at it that ends when the grave is full. Kill 5 zombies near a lit grave (5 / 5 / 6 / 7), burning or
 not (a Galvaknuckle kill does not count): the tombstone vanishes and a scorched glow stays on the ground. A
 kill at an UNLIT grave does not count (a buzz tells you). Denizens leave you alone within a few steps of any of the four graves while
 M2 runs.
 
-All four gone: chime, the flame on you grows. Go back to the table and press F to return the ember. That
+All four gone: chime, the flame on you grows. Go back to the table and press F to return the fire hand. That
 completes M2 and the Act 2 reward drops at once. If nobody in the team carries a Jet Gun, Maxis says you need one:
 Step 6 is drawn with it.
 
-Going down with the ember sends it back to the table (take it again; lit graves keep their count). Ending a
+Going down with the fire hand sends it back to the table (take it again; lit graves keep their count). Ending a
 round with the power ON makes every lit, unfinished grave forget its kills. The Galvaknuckles are refused near
-the graves and while you hold the ember.
+the graves and while you hold the fire hand.
 
 Maxis side rules from here on: denizens leave you alone near the table and near a lit grave, and there are
 twice as many elsewhere in the fog. After M2 the lamp portals open without a turbine.
@@ -232,7 +232,7 @@ at the node when it overheats. You need a Jet Gun in the team (your patron says 
 nobody carries one).
 
 - RICHTOFEN: the sparking transformer block on the small bridge at the Power station exit. Fire from the bridge.
-- MAXIS: when the step opens, the ember on the table bursts and its fire flies off to where the rock falls. The node is the fireplace of the hunter's cabin in the woods. Stand in front of it (crouched or standing) and fire
+- MAXIS: when the step opens, the fire hand on the table bursts and its fire flies off to where the rock falls. The node is the fireplace of the hunter's cabin in the woods. Stand in front of it (crouched or standing) and fire
   into the opening. Denizens leave you alone near the cabin while this step is open.
 
 Fully charged (three clinks, an aura and a hum on the orb and on you): press F at the table to place it. If you

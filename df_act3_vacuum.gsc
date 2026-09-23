@@ -681,6 +681,7 @@ df_s6_setup()
         df_s6_node_fx_off( node );
     }
 
+    df_s6_hand_remove(); // goto past step6: the fire hand already burnt away
     df_s6_orb_reset( level.df_s6_nodes.size );
     level.df_s6_orb.state = "placed";
     df_s6_orb_table_show();
@@ -1815,10 +1816,36 @@ df_s6_aim_debug( range2 )
     df_debug_print( "DF: s6 firing near node " + node.index + ", aim " + int( dot * 100 ) + "/100 (need " + int( df_s6_draw_cos() * 100 ) + ")" );
 }
 
-// Maxis Step 6 opening: the spent ember on the table slot 2 bursts and its fire flies to `pos` (the rock's landing spot).
+// The M2 fire hand resting on the table goes (df_act2_maxis df_m2_ember_table_remove, which this file does not
+// include): its tiny flame and the model.
+df_s6_hand_remove()
+{
+    level.df_m2_ember_on_table = 0;
+
+    if ( isdefined( level.df_m2_ember_table_fx ) )
+    {
+        foreach ( fx in level.df_m2_ember_table_fx )
+            df_fx_stop( fx );
+    }
+
+    level.df_m2_ember_table_fx = [];
+
+    if ( isdefined( level.df_m2_hand_table ) )
+        level.df_m2_hand_table delete();
+
+    level.df_m2_hand_table = undefined;
+}
+
+// Maxis Step 6 opening: the spent fire hand on the table bursts and its fire flies to `pos` (the rock's landing spot).
 df_s6_ember_burst( pos )
 {
     from = df_table_slot( 2 );
+
+    // owner 2026-09-23: the fire hand resting on the table is what bursts; it burns away and frees slot 2 for the orb
+    if ( isdefined( level.df_m2_hand_table ) )
+        from = level.df_m2_hand_table.origin;
+
+    df_s6_hand_remove();
     df_fx_burst( "fx_zmb_tranzit_fire_med", from, 0.8 );
     playsoundatposition( "zmb_phdflop_explo", from );
     df_say( "S6_EMBER_MAXIS" );
@@ -1840,5 +1867,5 @@ df_s6_ember_burst( pos )
     trail moveto( pos + ( 0, 0, 200 ), t );
     wait( t );
     df_fx_stop( trail );
-    df_debug_print( "DF: s6 the ember burst on the table, its fire flew to the landing spot" );
+    df_debug_print( "DF: s6 the fire hand burst on the table, its fire flew to the landing spot" );
 }

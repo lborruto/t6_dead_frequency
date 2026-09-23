@@ -1527,7 +1527,7 @@ df_m2_run()
     level.df_m2_ember_charged = 0;
     df_m2_ember_spawn_table();
     df_step_focus( "m2", level.df_m2_ember_pos + ( 0, 0, 10 ) );
-    df_debug_print( "DF: m2 the ember burns on the table: take it (one press), touch any tombstone with it, " + level.df_m2_target + " zombies killed at a lit one make it vanish; all four gone = bring the charged ember back to the table" );
+    df_debug_print( "DF: m2 the fire hand burns on the table: take it (one press), touch any tombstone with it, " + level.df_m2_target + " zombies killed at a lit one make it vanish; all four gone = bring the charged fire hand back to the table" );
 
     while ( !df_m2_all_done() || !is_true( level.df_m2_ember_returned ) )
         level waittill( "df_m2_check" );
@@ -1591,6 +1591,7 @@ df_m2_setup()
 
     level.df_m2_ember_returned = 1;
     level.df_m2_ember_charged = 1;
+    df_m2_ember_spawn_table( 1 ); // goto past m2: the charged fire hand rests on the table
     df_m2_export_nodes();
     level thread df_m2_debug_restage_hook();
 }
@@ -1666,7 +1667,7 @@ df_m2_debug_hook()
             df_m2_fill( b );
 
         level.df_m2_ember_returned = 1;
-        df_debug_print( "DF: m2 stones spent and ember returned by debug" );
+        df_debug_print( "DF: m2 stones spent and fire hand returned by debug" );
         level notify( "df_m2_check" );
     }
 }
@@ -1878,12 +1879,7 @@ df_m2_set_stage( b, stage )
         df_m2_crackle_start( b );
 
     // owner 2026-09-23: one small flame only, no smoke or ash; `set df_m2_fire_fx <fx key>` swaps it at the next lighting
-    fire_fx = getdvar( "df_m2_fire_fx" );
-
-    if ( !isdefined( fire_fx ) || fire_fx == "" )
-        fire_fx = "character_fire_death_sm";
-
-    f = df_fx_loop( fire_fx, top );
+    f = df_fx_loop( df_m2_small_fire_fx(), top );
 
     if ( isdefined( f ) )
     {
@@ -2020,7 +2016,7 @@ df_m2_ember_poll()
                 {
                     if ( distancesquared( player.origin, df_coord( "DF_SOCKET" ).origin ) <= 150 * 150 )
                     {
-                        df_m2_prompt_set( player, "Press [{+activate}] to return the ember" );
+                        df_m2_prompt_set( player, "Press [{+activate}] to return the fire hand" );
 
                         if ( player df_press_use() )
                             df_m2_ember_return( player );
@@ -2054,7 +2050,7 @@ df_m2_ember_poll()
                 continue;
             }
 
-            df_m2_prompt_set( player, "Press [{+activate}] to take the ember" );
+            df_m2_prompt_set( player, "Press [{+activate}] to take the fire hand" );
 
             if ( player df_press_use() )
                 df_m2_ember_take( player );
@@ -2094,7 +2090,7 @@ df_m2_ember_take( player )
     player thread df_m2_ember_carry();
     level thread df_m2_ember_monitor( player );
     df_touch( "m2" );
-    df_debug_print( "DF: m2 ember taken from the table by " + player.name + " (5 hp/s while carried; it stays in hand for the whole step)" );
+    df_debug_print( "DF: m2 fire hand taken from the table by " + player.name + " (5 hp/s while carried; it stays in hand for the whole step)" );
 
     if ( is_true( level.df_m2_ember_said ) )
         return;
@@ -2169,7 +2165,7 @@ df_m2_ember_monitor( player )
             df_cue_fail( player.origin );
             df_m2_ember_spawn_table();
             df_say( "M2_EMBER_LOST" );
-            df_debug_print( "DF: m2 ember lost (" + player.name + " went down), it waits on the table again" );
+            df_debug_print( "DF: m2 fire hand lost (" + player.name + " went down), it waits on the table again" );
             return;
         }
     }
@@ -2202,7 +2198,7 @@ df_m2_light( b, player )
         df_touch( "m2" );
         who = player.name;
         player playsoundtoplayer( "zmb_buildable_piece_add", player );
-        tail = ", the ember stays in hand";
+        tail = ", you keep the fire hand";
     }
 
     df_debug_print( "DF: m2 " + b.name + " lit by " + who + " (" + df_m2_lit_count() + "/4 lit, " + left + " to go" + tail + ")" );
@@ -2445,28 +2441,30 @@ df_m2_export_nodes()
     df_debug_print( "DF: m2 done: Step 6 node = the cabin hearth at " + int( c.origin[0] ) + " " + int( c.origin[1] ) + " " + int( c.origin[2] ) + " (one draw: fire until the Jet Gun overheats)" );
 }
 
-// ---- the ember on the table (owner 2026-09-11 rework) --------------------------------------------
-// The flame waits ON table slot 2 (empty until Step 6) with the "take me" glint: the slot registry
-// (df_coords df_table_slots_init) gives the height, nothing is added here. Take: df_m2_ember_take.
-df_m2_ember_spawn_table()
+// ---- the fire hand on the table (owner 2026-09-11 rework; the FIRE HAND since 2026-09-23) ----------------
+// The hand (df_model "ember", the power switch hand piece) waits on the table at its own pose (df_coords
+// df_model_def "ember" offset, in the table frame: df_table_point) with the tiny flame the graves carry.
+// resting = 1: it came back charged and stays there, no prompt, until Step 6 bursts it (df_s6_ember_burst).
+// Take: df_m2_ember_take.
+df_m2_ember_spawn_table( resting )
 {
     df_m2_ember_table_remove();
-    level.df_m2_ember_pos = df_table_slot( 2 );
-    level.df_m2_ember_on_table = 1;
+    yaw = df_table_yaw();
+    level.df_m2_ember_pos = df_table_point( df_model_offset( "ember" ) );
+    level.df_m2_ember_on_table = !is_true( resting );
     level.df_m2_ember_table_fx = [];
-    // owner 2026-09-23: the fire stayed on the table after the ember was taken. World fx now (spawnfx + triggerfx,
-    // the vanilla createfx pattern): deleting that entity always ends the effect
-    f = df_fx_world( "fx_zmb_tranzit_fire_med", level.df_m2_ember_pos );
+    level.df_m2_hand_table = spawn( "script_model", level.df_m2_ember_pos );
+    level.df_m2_hand_table setmodel( df_model( "ember" ) );
+    level.df_m2_hand_table.angles = df_model_angles( "ember", yaw );
+    f = df_fx_loop( df_m2_small_fire_fx(), level.df_m2_ember_pos + df_fx_point_at( "hand_fire", yaw ) );
 
     if ( isdefined( f ) )
+    {
         level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = f;
+        level thread df_fx_keepalive( f );
+    }
 
-    g = df_fx_world( "fx_zmb_tranzit_light_glow", level.df_m2_ember_pos + df_fx_point( "ember_glow" ) );
-
-    if ( isdefined( g ) )
-        level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = g;
-
-    df_debug_print( "DF: m2 the ember burns on the table (slot 2)" );
+    df_debug_print( "DF: m2 the fire hand is on the table" );
 }
 
 df_m2_ember_table_remove()
@@ -2480,6 +2478,22 @@ df_m2_ember_table_remove()
     }
 
     level.df_m2_ember_table_fx = [];
+
+    if ( isdefined( level.df_m2_hand_table ) )
+        level.df_m2_hand_table delete();
+
+    level.df_m2_hand_table = undefined;
+}
+
+// The one small flame of M2 (graves and the fire hand); `set df_m2_fire_fx <fx key>` swaps it.
+df_m2_small_fire_fx()
+{
+    fire_fx = getdvar( "df_m2_fire_fx" );
+
+    if ( !isdefined( fire_fx ) || fire_fx == "" )
+        fire_fx = "character_fire_death_sm";
+
+    return fire_fx;
 }
 
 // All four stones are spent: the ember in hand (or on the table) is charged. In hand: the carrier's flame grows,
@@ -2503,21 +2517,21 @@ df_m2_ember_charged()
         return;
     }
 
-    df_debug_print( "DF: m2 all four stones spent, the ember is charged: return it to the table (one press within 150)" );
+    df_debug_print( "DF: m2 all four stones spent, the fire hand is charged: return it to the table (one press within 150)" );
 }
 
-// The charged ember goes into the table: fire burst at the socket, the hand is empty, M2 completes (df_m2_run).
+// The charged fire hand goes back on the table (it rests there until Step 6), the carrier's hand is empty, M2 completes (df_m2_run).
 df_m2_ember_return( player )
 {
     if ( isdefined( player ) )
         df_m2_ember_release( player );
 
-    df_m2_ember_table_remove();
+    df_m2_ember_spawn_table( 1 ); // owner 2026-09-23: the charged hand rests on the table until Step 6
     level.df_m2_ember_returned = 1;
     socket = df_coord( "DF_SOCKET" ).origin;
-    df_cue_table_place( df_table_slot( 2 ) ); // owner 2026-09-23: the one placing snap, no fire burst or ash
+    df_cue_table_place( level.df_m2_ember_pos ); // owner 2026-09-23: the one placing snap, no fire burst or ash
     playsoundatposition( "zmb_buildable_complete", socket );
-    df_debug_print( "DF: m2 the charged ember is back in the table" );
+    df_debug_print( "DF: m2 the charged fire hand is back in the table" );
     level notify( "df_m2_check" );
 }
 

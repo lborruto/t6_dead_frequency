@@ -92,7 +92,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   spools), and the Richtofen side rules (Avogadro every round, turrets without turbine,
   power-off penalty).
 - `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt
-  in Nacht, the stone), M2 Fire and Ash (ember, four graves in Town, kills at a lit grave burning or not, the scorched glows; at completion it
+  in Nacht, the stone), M2 Fire and Ash (fire hand, four graves in Town, kills at a lit grave burning or not, the scorched glows; at completion it
   exports the ONE Step 6 node, the hunter's cabin fireplace `DF_CABIN_HEARTH`, and warns when nobody has a Jet
   Gun), and the Maxis side rules (denizen safety near the table and lit graves, near the cabin fireplace while Step 6
   is open, doubled fog spawns, power-on penalty).
@@ -200,7 +200,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | `!df say <KEY>` | show a dialogue key (`!df say s1_start` works too) |
 | `!df scale` | print a few scaled values for the current player count |
 | `!df simon` | solve the R1 Simon (storm + summon follow) |
-| `!df souls` | fill every soul / carry counter of the open step: R1 refill (all four boxes charged), R2 (lamps filled AND every spool counted), M1 kills, M2 graves (all spent, ember returned), Step 5 penalty |
+| `!df souls` | fill every soul / carry counter of the open step: R1 refill (all four boxes charged), R2 (lamps filled AND every spool counted), M1 kills, M2 graves (all spent, fire hand returned), Step 5 penalty |
 | `!df avogadro` | force Avogadro back from the cloud (only when he is in the cloud) |
 | `!df side_fx` / `!df side_fx stop` | start / stop the tower visuals for the locked side |
 | `!df power on` / `!df power off` | flip TranZit power (fires the real switch if built, else the flags) |
@@ -229,7 +229,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 |---|---|
 | Act 1 | `a1_solve1` (Step 1 solved, the coil arrives), `a1_tv` (kick the next expected pipe), `a1_parts` (take every part, coil included), `a1_hit` (200 dmg to the relay), `a1_stop` (count the running sweep), `a1_relay` (relay to your feet), `a1_build` (vanilla build hands demo), `a1_receiver` (the coil arrives at DF_COIL_DROP now, without the pipes), `a1_corn` (the Maxis cornfield line at the relay) |
 | R1 / R2 | `simon_solved` (= `!df simon`), `souls_done` (= `!df souls`), `r1_captured`, `r1_sounds` (click / buzzer / arpeggio), `r1_soul` (ONE box gets its battery without the bus trip), `r1_card` (card arrival fx), `r2_soul` (one soul into the first unfilled lamp), `r2_punch` (every full lamp gives its spool without the knuckles), `r2_spool` (one spool counts as placed) |
-| M1 / M2 | `m1_latch`, `m1_kills`, `m1_cue` (kill cue demo), `m1_burst`, `m1_fog` (toggle bunker fog), `m1_ride` (first-ride cue: table pulse + line + hint, no denizen needed), `m1_skull` (drop the stone in front of you; fire again to send it to the table), `m2_ember` (you hold the ember now), `m2_light` (light the next unlit grave), `m2_fill` (spend every grave and return the ember), `m2_restage` (re-skin the graves after `!df model brazier ...`), `m2_penalty` (the power-ON penalty now), `m2_column` (the 20 s smoke column at the tower top) |
+| M1 / M2 | `m1_latch`, `m1_kills`, `m1_cue` (kill cue demo), `m1_burst`, `m1_fog` (toggle bunker fog), `m1_ride` (first-ride cue: table pulse + line + hint, no denizen needed), `m1_skull` (drop the stone in front of you; fire again to send it to the table), `m2_ember` (you hold the fire hand now), `m2_light` (light the next unlit grave), `m2_fill` (spend every grave and return the fire hand), `m2_restage` (re-skin the graves after `!df model brazier ...`), `m2_penalty` (the power-ON penalty now), `m2_column` (the 20 s smoke column at the tower top) |
 | Step 5 | `s5_anchor`, `s5_all`, `s5_time` (needs one anchor first), `s5_penalty` |
 | Step 6 | `s6_orb` (orb to your feet), `s6_draw` (one charge), `s6_deliver`, `s6_restart`, `orb_aura` (next aura candidate) |
 | Step 7 | `s7_start`, `s7_time` (win), `s7_fail`, `s7_hp`, `s7_dmg` (100 dmg; solo 3000 hp: damaged under 900, destroyed at 0, strikes heal in between), `s7_strike` (one charge strike now) |
@@ -315,7 +315,7 @@ The older way (the owner's `cheats_zm.gsc`: `!place <model>`, `!nudge`, `!spot <
 | DF_CARD_SPAWN | card = `p6_zm_keycard` (the strike lands it 36 above the floor under the anchor) | barn wall (8614 -5864 91) |
 | (battery / spool, no anchor) | battery = `p6_zm_buildable_battery`, spool = `p6_zm_buildable_jetgun_wires` | bus dashboard / the foot of a punched lamp |
 | DF_BRAZIER_1..4 | brazier = `ch_tombstone1` (the graves, 31 tall, one player clip each) | four owner spots in Town, 2026-09-23 (1738 273, 1179 255, 1693 -978, 473 -275) |
-| (ember, stone, no anchor) | ember = a flame fx (the registry kind `ember` is unused in hand), skull = `p6_zm_buildable_sq_meteor` (the STONE, rests 3 above its base) | table slot 2 / carried, then table slot 1 |
+| (fire hand, stone, no anchor) | fire hand = kind `ember`, `p6_zm_buildable_pswitch_hand` with a tiny flame (hand_fire), posed in the table frame by its df_model_def offset (df_table_point), skull = `p6_zm_buildable_sq_meteor` (the STONE, rests 3 above its base) | table slot 2 / carried, then table slot 1 |
 | DF_NACHT_SPAWN_1..4 | none, stand there | inside the Nacht bunker, owner spots 2026-09-23 (13137 -719, 13154 -906, 13371 -876, 13291 -597; z -189) |
 | DF_TOWER_RETURN | none, stand there | return point after the Cold Room (7552 -512 -72) |
 | DF_ORB_SPOT_1..3 | orb = `p6_zm_buildable_sq_meteor` (the same stone model, rests 3 above the ground) | the three Step 6 landing spots: diner (-5991 -7686 34), Town (1401 -445 -67), power station (11720 8491 -575) |

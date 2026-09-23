@@ -218,7 +218,7 @@ df_scav_display_name( kind )
         case "battery":
             return "Battery";
         case "ember":
-            return "Ember";
+            return "Fire hand";
         case "skull":
             return "Stone";
         case "parts":

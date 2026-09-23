@@ -160,8 +160,8 @@ df_dialogue_act2_rich()
 // Act 2M (Maxis only; Richtofen heckles once per step). Mechanics (df_act2_maxis.gsc): M1 a denizen
 // riding a player is carried within 300 of the socket and opens a hole into the Nacht bunker; six denizen
 // kills (df_scaled cold_room_kills / cold_room_time) and the stone strikes down, the hole waits until
-// someone walks in; M2 the ember waits on the table, any of the four graves in Town (owner 2026-09-23) lights
-// it, zombies killed within 250 of a lit grave (5, burning or not) make it vanish, all four charge the ember
+// someone walks in; M2 the fire hand waits on the table, any of the four graves in Town (owner 2026-09-23) lights
+// it, zombies killed within 250 of a lit grave (5, burning or not) make it vanish, all four charge the fire hand
 // (brazier_burns).
 df_dialogue_act2_maxis()
 {
@@ -180,16 +180,16 @@ df_dialogue_act2_maxis()
     df_add_line( "ITEM_SKULL_MAXIS", "maxis", "Lightning left you a stone. Take it. Set it on the table under the Spire." );
 
     // M2 - Fire and Ash
-    df_add_line( "M2_START", "maxis", "Four graves in Town: the men who laid the line. The flame is on the table." );
-    df_add_line( "M2_HINT_1", "maxis", "Four graves stand in Town. Touch each with the flame from the table." );
+    df_add_line( "M2_START", "maxis", "Four graves in Town: the men who laid the line. A burning hand waits on the table." );
+    df_add_line( "M2_HINT_1", "maxis", "Four graves stand in Town. Touch each with the fire hand from the table." );
     df_add_line( "M2_HINT_2", "maxis", "Light a grave in Town. Kill five of the dead beside it. Then the next one." );
     df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. The fire remembers it." );
-    // ITEM_EMBER_MAXIS: the ember taken from the table; a grave lights it, then the lit graves want
+    // ITEM_EMBER_MAXIS: the fire hand taken from the table; a grave lights it, then the lit graves want
     // kills beside them, burning or not (dialogue audit v2, M2: the take touches the ladder, so this line
     // carries the second half)
-    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "It burns you. Carry it to the graves in Town and touch each one." );
-    df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. The flame is heavy now. Bring it back to the table." );
-    df_add_line( "M2_EMBER_LOST", "maxis", "The flame went out with you. It waits on the table again." );
+    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "The fire hand burns you. Carry it to the graves in Town and touch each one." );
+    df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. The hand burns heavy now. Bring it back to the table." );
+    df_add_line( "M2_EMBER_LOST", "maxis", "The fire hand fell with you. It waits on the table again." );
     df_add_line( "M2_KNUCKLES_MAXIS", "maxis", "Nein! His current will not touch my graves. Fire. Only fire." );
     // M2_POWER_MAXIS: the grid was ON at the end of a round and a brazier stage is lost (df_m2_power_penalty;
     // dialogue audit v2 section 3, optional key; the caller is requested in tools/requests_V2dialogue.md)
@@ -253,8 +253,8 @@ df_dialogue_act3_vacuum()
     df_add_line( "S6_START_RICH", "rich", "That crackle at the power plant, Samuel? My storm wants out. Find it a jar." );
     df_add_line( "S6_START_RICH", "maxis", "He has you carrying his batteries now. Follow his light, if you must." );
     df_add_line( "S6_START_MAXIS", "maxis", "The hunter's cabin in the woods keeps a fire. The rock must drink from it." );
-    // S6_EMBER_MAXIS: the ember on the table bursts and its fire flies off to where the rock will fall (df_s6_ember_burst)
-    df_add_line( "S6_EMBER_MAXIS", "maxis", "The ember could not hold the fire. It fell again, far away, as a rock." );
+    // S6_EMBER_MAXIS: the fire hand on the table bursts and its fire flies off to where the rock will fall (df_s6_ember_burst)
+    df_add_line( "S6_EMBER_MAXIS", "maxis", "The fire hand could not hold the fire. It fell again as a rock, under the Spire." );
     df_add_line( "S6_START_MAXIS", "rich", "A ROCK, Samuel! He wants you to carry a rock! Oh, I could not make this up!" );
     df_add_line( "S6_HINT_1_RICH", "rich", "Where the lightning struck, Samuel: a rock. Emptier than it looks. Fetch it." );
     df_add_line( "S6_HINT_1_MAXIS", "maxis", "A rock fell with the lightning. Carry it to the hunter's cabin in the woods." );

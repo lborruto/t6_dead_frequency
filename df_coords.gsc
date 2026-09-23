@@ -431,6 +431,18 @@ df_table_slot( n )
     return c.origin + df_offset_rotate( ( off[0], off[1], 0 ), df_table_yaw() ) + ( 0, 0, df_model_top_z( "table" ) + off[2] );
 }
 
+// A point in the table's own frame (x forward, y left, z from the floor under the table origin), turned with
+// the table: the fire hand's pose (owner 2026-09-23).
+df_table_point( offset )
+{
+    c = df_coord( "DF_TABLE" );
+
+    if ( !isdefined( c ) )
+        return ( 7771, -448, -202 ) + offset;
+
+    return c.origin + df_offset_rotate( offset, df_table_yaw() );
+}
+
 // The floor 40 units in front of the table: where a dropped or returned orb rests (Step 6 restart) and
 // the reference point the M1 denizen hole opens further out from.
 df_table_front()
@@ -1431,7 +1443,10 @@ df_models_init_items()
     // ember: the carried ember of the M2 chain (audit 9). The EE meteor piece (zm_transit, ALWAYS, sq_common
     // "tag_part_04"), 5 x 5 x 6: a small glowing rock; the step wraps it in fire fx (lava_burning / lava glow).
     // No other always-loaded coal-like prop exists (zombie_meteor_chunk_sml2 is gump_busstation).
-    df_model_def( "ember", "p6_zm_buildable_sq_meteor", 0, 0, 0 );
+    // owner 2026-09-23: the ember is now the FIRE HAND, the power switch hand piece (zm_transit, 9 x 8 x 9) with a tiny flame.
+    // Offset = its place in the TABLE's frame from the table origin (z from the floor; default = slot 2 on the top),
+    // df_table_point; the owner poses it in the Prop Composer ("Table, Maxis loaded").
+    df_model_def( "ember", "p6_zm_buildable_pswitch_hand", 0, 0, 0, ( -7.5, -1, 46 ) );
 }
 
 // =========================================================================================
@@ -1486,7 +1501,7 @@ df_models_init_items()
 //   df_act2_maxis.gsc:779       portal  fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 50 )    portal_burst_light
 //   df_act2_maxis.gsc:1177      skull   fx_zmb_tranzit_light_glow               ( 0, 0, 20 )    skull_glow
 //   df_act2_maxis.gsc:1411      skull   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 8 )     skull_table_glow
-//   df_act2_maxis.gsc:2396      ember   fx_zmb_tranzit_light_glow               ( 0, 0, 14 )    ember_glow
+//   df_act2_maxis.gsc:2396      ember   character_fire_death_sm (fire hand)     ( 0, 0, 4 )     hand_fire
 //   df_act2_maxis.gsc:2108      brazier zmb_phdflop_explo                       rim + 0         brazier_rim_fire
 //   df_act2_maxis.gsc:1798      brazier fx_zmb_tranzit_fire_med (stage fx)      rim + 0         brazier_rim_fire
 //   df_act2_maxis.gsc:1815      brazier zmb_fire_loop (crackle, playloopsound)  rim + 0         brazier_rim_fire
@@ -1574,7 +1589,7 @@ df_fx_points_init()
     df_fx_point_def( "card_barn_glint", "card_barn", ( 0, 0.5, 0.5 ) ); // the glint on the floating barn card (was card_glint)
     df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
     df_fx_point_def( "skull_table_glow", "skull", ( 0, 0, 8 ) );
-    df_fx_point_def( "ember_glow", "ember", ( 0, 0, 0.5 ) );        // owner composer 2026-09-22
+    df_fx_point_def( "hand_fire", "ember", ( 0, 0, 4 ) );          // owner 2026-09-23: the tiny flame on the fire hand        // owner composer 2026-09-22
 
     // ---- the barn fuse boxes and the Step 6 nodes
     df_fx_point_def( "fuse_led", "fuse", ( 0, 0, 5 ) );             // owner composer 2026-09-22; the LED face: glow, spark and Simon flash

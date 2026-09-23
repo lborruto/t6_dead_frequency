@@ -480,6 +480,14 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
       ? ( fx_part( name => 'card_glint', parent => 'card' ), fx_part( name => 'card_glow', parent => 'card' ) )
       : ( fx_part( name => 'skull_table_glow', parent => 'skull' ), fx_part( name => 'skull_glow', parent => 'skull' ) );
 
+    # owner 2026-09-23: the FIRE HAND (kind "ember") on the Maxis table, a child of the table: its export is the
+    # df_model_def "ember" offset in the table frame (df_table_point), shown here where M2 leaves it before Step 6
+    my @hand = $is_rich ? () : (
+        model_part( kind => 'ember', model => $model_def{ember}{name}, x => $model_def{ember}{ox} // 0, y => $model_def{ember}{oy} // 0, z => $model_def{ember}{oz} // 46,
+                    pitch => $model_def{ember}{pitch}, roll => $model_def{ember}{roll}, yaw => $table_front_yaw + ($model_def{ember}{yawoff} // 0), parent => 'table' ),
+        fx_part( name => 'hand_fire', parent => 'ember' ),
+    );
+
     add_preset(
         $key, $label, $note,
         model_part( kind => 'table', model => $model_def{table}{name}, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw ),
@@ -500,6 +508,7 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
         model_part( kind => 'orb', model => $model_def{orb}{name}, x => $orb_pos[0], y => $orb_pos[1], z => $orb_pos[2], pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll}, yaw => $orb_yaw, slot => 2 ),
         table_common_fx(),
         @occupant_fx,
+        @hand,
     );
 }
 
@@ -536,15 +545,12 @@ add_preset(
 
 add_preset(
     'tombstone', 'Tombstone',
-    'Base = kind "brazier" (' . $model_def{brazier}{name} . ') at (0,0,0). Ember = kind "ember" (' . $model_def{ember}{name}
-      . ') snapped to its own live top bound. brazier_rim_fire / brazier_ash: base = the RIM the game uses, df_m2_rim_height("' . $model_def{brazier}{name} . '") = ' . $brazier_rim_z
-      . '. brazier_ember, ember_glow: registry offset only.',
+    'Base = kind "brazier" (' . $model_def{brazier}{name} . ') at (0,0,0). brazier_rim_fire / brazier_ash: base = the RIM the game uses, df_m2_rim_height("' . $model_def{brazier}{name} . '") = ' . $brazier_rim_z
+      . '. brazier_ember: registry offset only (the fire hand is on the Maxis table preset).',
     model_part( kind => 'brazier', model => $model_def{brazier}{name}, pitch => $model_def{brazier}{pitch}, roll => $model_def{brazier}{roll} ),
-    model_part( kind => 'ember', model => $model_def{ember}{name}, pitch => $model_def{ember}{pitch}, roll => $model_def{ember}{roll}, snapTop => 1 ),
     fx_part( name => 'brazier_rim_fire', parent => 'brazier' ),
     fx_part( name => 'brazier_ash',      parent => 'brazier' ),
     fx_part( name => 'brazier_ember',    parent => 'brazier' ),
-    fx_part( name => 'ember_glow',       parent => 'ember' ),
 );
 
 add_preset(

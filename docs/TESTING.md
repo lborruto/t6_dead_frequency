@@ -11,7 +11,7 @@ Install first: `perl tools/deploy.pl` from the repo (Git Bash). Today the source
 else from the repo. `!df status` prints the version: `DF <version> | side none | players 1 | round 1 | prompts off | texthints on`.
 
 Every `!df` answer and every quest event lands in the console as `[DF] ...`: paste those lines when something is off.
-ONE press of F = every pickup and placement (parts, coil, relay, card, battery, spools, stone, ember, orb) and every
+ONE press of F = every pickup and placement (parts, coil, relay, card, battery, spools, stone, fire hand, orb) and every
 pipe kick / grave touch.
 Holds only: build the relay (3 s, vanilla bar + builder hands), tune a lamp (5 s, heard not seen), power the relay (3 s,
 small bar "Powering the relay"), open the frequency (5 s, bar "Opening the frequency"). NO timer on screen anywhere:
@@ -65,7 +65,7 @@ Everything below must already be there. Missing = the biggest bug of this build.
   `!df fire lamps` lists 3 lamps `set 1 state off`. None of them is diner or townbridge; one is the lamp nearest the tower.
 - Bus parts: the ladder lies at the Depot (-7313 5441), the hatch at the Diner (-3537 -7214). `!df fire busparts`
   re-runs the pin and prints the pools.
-- Not there yet, correct: coil, key card, orb, battery on the bus, spools, stone, ember.
+- Not there yet, correct: coil, key card, orb, battery on the bus, spools, stone, fire hand.
 
 ## 2. Models, effects, sounds (once)
     !df show
@@ -204,15 +204,15 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - Timeout: `m1 cold room over: timeout`, back at the tower with an ash burst + EMP thump, Maxis's fail line, `m1 failed
   (timeout), back to the latch`.
 
-**M2 Fire and Ash**. Skips: `!df fire m2_ember` (you hold it), `m2_light` (next grave lit), `m2_fill` (all four spent, ember returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
-- M2 opens: `m2 the ember burns on the table: take it (one press), touch any tombstone with it, 5 zombies killed at a
-  lit one make it vanish; all four gone = bring the charged ember back to the table`. A FLAME burns on the table's
+**M2 Fire and Ash**. Skips: `!df fire m2_ember` (you hold it), `m2_light` (next grave lit), `m2_fill` (all four spent, fire hand returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
+- M2 opens: `m2 the fire hand burns on the table: take it (one press), touch any tombstone with it, 5 zombies killed at a
+  lit one make it vanish; all four gone = bring the charged fire hand back to the table`. The FIRE HAND lies on the table's
   RIGHT slot with the glint; the four graves stand dark.
-- "Press F to take the ember" within 100 of the table: pickup sound, ignite crack, lava fire on your body, health drops
-  5/s (never below 15 by the ember alone), `m2 ember taken from the table by <you> (5 hp/s while carried; it stays in
+- "Press F to take the fire hand" within 100 of the table: pickup sound, ignite crack, lava fire on your body, health drops
+  5/s (never below 15 by the fire hand alone), `m2 fire hand taken from the table by <you> (5 hp/s while carried; it stays in
   hand for the whole step)`, Maxis names it once. Lamp portal: deny, refused.
 - Within 100 of a DARK grave: "Press F to light the grave". One press: whoosh + ignite + ash puff, a SMALL flame at the
-  base of the tombstone, a clink, the ember STAYS in your hand: `m2 brazier_n lit by <you> (1/4 lit, 3 to go, the ember
+  base of the tombstone, a clink, the fire hand STAYS in your hand: `m2 brazier_n lit by <you> (1/4 lit, 3 to go, the fire hand
   stays in hand)`. Any order, any number lit at once. Console `m2 brazier_n: N spawn structs for its waves`.
 - A lit grave starts its wave (`m2 wave ON at brazier_n`): two sprinting zombies every 2 s from the Town spawn structs
   within 1200 (N above must not be 0), up to 8 (+3 per extra player). Kill one within 250 of that grave, burning or
@@ -221,13 +221,13 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   count either (deny buzz). At 5: `m2 brazier_n spent and gone (k/4)`: the tombstone bursts (large fire + rising ash)
   and VANISHES, a scorched lava glow stays on the ground.
 - All four gone: NavCard chime + fire flash + a runner from YOU to the tower, the flame on your body grows, `m2 all four
-  stones spent, the ember is charged: return it to the table (one press within 150)`. At the table "Press F to return
-  the ember": fire burst at the table, `m2 the charged ember is back in the table`, `step complete m2`, tower orange
+  stones spent, the fire hand is charged: return it to the table (one press within 150)`. At the table "Press F to return
+  the fire hand": the lightning snap at the table, the hand stays there lit until Step 6, `m2 the charged fire hand is back in the table`, `step complete m2`, tower orange
   12 s, `m2 smoke column at the tower top for 20 s`, M2_DONE, act 2 reward at once (`act 2 reward given (maxis)`, Max
   Ammo, Maxis line, orange runners on the tower). Nobody holding a Jet Gun: Maxis's "The rock needs a Jet Gun" line
   (Step 6 is drawn with it). `m2 done: Step 6 node = the cabin hearth at 5430 6874 -24`. `!df fire lamps`: `silent 1` on all 8 lamps; a denizen dropping at any
   lamp opens a portal, no turbine.
-- Galvaknuckles (`!gun tazer_knuckles_zm`) melee within 100 of a grave, or anywhere with the ember in hand: deny buzz +
+- Galvaknuckles (`!gun tazer_knuckles_zm`) melee within 100 of a grave, or anywhere with the fire hand in hand: deny buzz +
   "His current will not touch my graves", console `m2 <you> used the knuckles at the stones: refused`.
 - Wrong: paste the `m2 brazier_n ...` lines, the `spawn structs` count, and what killed the zombie.
 
@@ -346,7 +346,7 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - R1, power OFF at the end of a round during the lock: `power off: box n emptied` (one more panel to charge).
 - R2, full lamp punched with the wrong tool: deny + "Bare steel? No.", no spool; `!df fire r2_punch` frees every ready spool.
 - M1, timeout: see 4M. M1, stone carrier down: `m1 skull dropped`, take it again.
-- M2, carrier down: EMP thump + ash, `m2 ember lost (<you> went down), it waits on the table again`, the fire on you
+- M2, carrier down: EMP thump + ash, `m2 fire hand lost (<you> went down), it waits on the table again`, the fire on you
   stops; the flame is back on the right slot, take it again. Lit graves keep their count.
 - M2, power ON at the end of a round: EMP thump + ash, Maxis's M2_POWER line, `m2 power ON at end of round: N lit
   stone(s) forget their dead (Maxis wants the dark)`: every lit hungry grave is back to 0/5 (spent graves stay gone);
@@ -371,7 +371,7 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   later with no side: `no side locked, defaulting to rich`; type `!df side maxis` FIRST for a Maxis test.
 - `!df goto step5` RICH from round 1: boxes with a steady glow, card glowing on the middle slot, lamps filled (steady
   glow, no sparks), three glows on the post, `act 2 reward given silently (goto)` (no Max Ammo, no line). MAXIS: stone on
-  the middle slot, four scorched glows where the graves stood (cosmetic, not Step 6 nodes), no ember prompts. `!df goto step7` / `finale`: the stone
+  the middle slot, four scorched glows where the graves stood (cosmetic, not Step 6 nodes), no fire hand prompts. `!df goto step7` / `finale`: the stone
   rests on the right slot, tracker runners on.
 - Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched)` + one line, then at 10 min and every
   6 min; an event hint earlier (`event hint ...`) skips that rung once. `!df texthints off` mutes them (the clock keeps
