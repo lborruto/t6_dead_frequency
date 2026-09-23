@@ -1835,7 +1835,13 @@ df_m2_set_stage( b, stage )
     }
 
     df_m2_crackle_start( b );
-    f = df_fx_loop( "fx_zmb_tranzit_fire_med", top );
+    // owner 2026-09-23: one small flame only, no smoke or ash; `set df_m2_fire_fx <fx key>` swaps it at the next lighting
+    fire_fx = getdvar( "df_m2_fire_fx" );
+
+    if ( !isdefined( fire_fx ) || fire_fx == "" )
+        fire_fx = "character_fire_death_sm";
+
+    f = df_fx_loop( fire_fx, top );
 
     if ( isdefined( f ) )
     {
@@ -2144,7 +2150,6 @@ df_m2_light( b, player )
     // fire whoosh, 1.4 s, 750 range: the closest thing to an ignition in the banks (zmb_firetrap_start and
     // "ignite" are Buried / lava-script aliases that no TranZit bank carries: both were silent)
     playsoundatposition( "zmb_phdflop_explo", df_m2_rim_pos( b ) );
-    df_fx_once( "fx_zmb_ash_rising_md", df_m2_ash_pos( b ) );
     who = "m2";
     left = 4 - df_m2_lit_count();
     tail = "";
@@ -2194,7 +2199,6 @@ df_m2_on_zombie_death( zombie )
     df_touch( "m2" );
     best.count++;
     // the soul leaves the burning body as it bursts (owner 2026-09-11): a fire burst at the zombie, then the trail
-    df_fx_burst( "fx_zmb_tranzit_fire_med", zombie.origin + ( 0, 0, 30 ), 0.6 );
     df_snd_near( "evt_player_swiped", zombie.origin, 600 );
     level thread df_act2_maxis_trail( zombie.origin, df_m2_ash_pos( best ) );
     level thread df_m2_kill_cue( best );
@@ -2218,7 +2222,6 @@ df_m2_puff( b )
 {
     top = df_m2_rim_pos( b );
     df_snd_loop_burst( "zmb_fire_loop", top, 1.2 ); // owner pick 2026-09-11: puff = fire loop burst
-    df_fx_once( "fx_zmb_ash_rising_md", df_m2_ash_pos( b ) );
 }
 
 // Audit 4 cue: a burning zombie (zombie.is_on_fire) entering 250 of a lit unfinished brazier makes it puff
@@ -2283,8 +2286,6 @@ df_m2_fill( b, quiet )
 
     if ( !is_true( quiet ) )
     {
-        df_fx_burst( "fx_zmb_tranzit_fire_lrg", top, 0.8 );
-        df_fx_once( "fx_zmb_ash_rising_md", df_m2_ash_pos( b ) );
         playsoundatposition( "zmb_explo_sweet", top );
     }
 
@@ -2386,8 +2387,6 @@ df_m2_power_drop()
             first = b;
             df_cue_fail( rim );
         }
-        else
-            df_fx_once( "fx_zmb_ash_rising_md", rim );
     }
 
     if ( dropped == 0 )
