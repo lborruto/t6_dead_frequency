@@ -212,11 +212,15 @@ df_m1_hooks_install()
 // denizen zone in vanilla (the cornfield fog has no safety volume) and stays one: no permanent camp.
 df_m1_protected( pos )
 {
-    if ( !is_true( level.df_m2_armed ) )
-        return false;
+    // owner 2026-09-23: near ANY of the four graves while M2 runs, lit or not (the walk to light one was a denizen trap),
+    // and near their scorched spots while Step 6 draws the charges there (standing in the lava with the rock)
+    if ( is_true( level.df_m2_armed ) )
+        return df_m2_grave_near( pos, 400 );
 
-    // owner 2026-09-23: near ANY of the four graves while M2 runs, lit or not (the walk to light one was a denizen trap)
-    return df_m2_grave_near( pos, 400 );
+    if ( isdefined( level.df_step_avail_round ) && isdefined( level.df_step_avail_round["step6"] ) && !df_is_done( "step6" ) )
+        return df_m2_grave_near( pos, 400 );
+
+    return false;
 }
 
 // True when one of the M2 graves stands within radius of pos, whatever its state.
