@@ -53,7 +53,7 @@ df_act3_sweep_init()
 // Tunables in one place (seconds / units / counts / text).
 df_s5_config()
 {
-    level.df_s5_need = 3;
+    level.df_s5_need = 3; // owner 2026-09-23: replaced by the set's size once the lamps are collected (df_s5_need_all)
     level.df_s5_tune_time = 5; // audit #2: the anchor is the puzzle, the hold is a short channelling (was 20)
     level.df_s5_wait_time = 15;
     level.df_s5_drain_time = 10;
@@ -65,6 +65,13 @@ df_s5_config()
     level.df_s5_timer_warn = 30;
     level.df_s5_timer_tick = 10;
     level.df_s5_hint = "Hold [{+activate}] to tune";
+}
+
+// owner 2026-09-23: every set lamp must be anchored (a 4-lamp set used to need only 3 of 4). Call it after
+// df_s5_collect_lamps.
+df_s5_need_all()
+{
+    level.df_s5_need = level.df_s5_lamps.size;
 }
 
 // Penalty souls per unanchored lamp (audit 1.1: 8/10/12/14). A "sweep_souls" row in df_steps wins when the
@@ -117,8 +124,7 @@ df_s5_run()
         return;
     }
 
-    if ( level.df_s5_need > level.df_s5_lamps.size )
-        level.df_s5_need = level.df_s5_lamps.size;
+    df_s5_need_all();
 
     level.df_s5_phase = "tuning";
     level.df_s5_end_ms = undefined;
@@ -176,6 +182,7 @@ df_s5_setup()
     if ( !df_s5_collect_lamps() )
         return;
 
+    df_s5_need_all();
     n = 0;
 
     foreach ( lamp in level.df_s5_lamps )

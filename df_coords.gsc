@@ -83,9 +83,8 @@ df_coords_init()
 
     // ---- Salvage parts A/B: an unused alternate of the vanilla jet gun part spawns (cabin = gauges,
     //      tunnel = engine), re-evaluated whenever needed so they never overlap the real part.
-    //      Part C: dog spawn point at the cornfield edge, away from the lamp post.
+    //      (owner 2026-09-23: the unused DF_PART_C anchor at the cornfield edge is removed.)
     df_coords_refresh_dynamic();
-    df_coord_set( "DF_PART_C", df_ground( ( 10123.5, -1477.5, -217 ) ), ( 0, 90, 0 ), df_model( "part_c" ) );
 
     // ---- Tower: legs at x 7452/7844, y -268/-660. NavCard table on the west side (7462, -457),
     //      so the relay socket goes between the two east legs. Derived fallback only: since 2026-09-08 the
@@ -112,7 +111,7 @@ df_coords_init()
     df_coord_set( "DF_ORB_DINER", df_ground( ( -5991, -7686, 34 ) ) + ( 0, 0, 1 ), ( 0, 0, 0 ), df_model( "orb" ) );
 
     // ---- Step 6 orb landing: one of three spots at random, on both sides (owner 2026-09-11): the diner (as before),
-    //      Town (1401 -445 -67) and the power station (11720 8491 -575). Picked when the side locks (df_orb_spawn_sync).
+    //      Town (1401 -445 -67) and the power station (11720 8491 -575). Drawn once per game at boot (df_orb_spawn_sync, owner 2026-09-23).
     df_coord_set( "DF_ORB_SPOT_1", df_ground( ( -5991, -7686, 34 ) ) + ( 0, 0, 1 ), ( 0, 0, 0 ), df_model( "orb" ) );
     df_coord_set( "DF_ORB_SPOT_2", df_ground( ( 900, 130, -39 ) ) + ( 0, 0, 1 ), ( 0, 165, 0 ), df_model( "orb" ) ); // owner 2026-09-23: Town, new spot
     df_coord_set( "DF_ORB_SPOT_3", df_ground( ( 11720, 8491, -575 ) ) + ( 0, 0, 1 ), ( 0, -88, 0 ), df_model( "orb" ) );
@@ -187,20 +186,26 @@ df_coords_init()
 // The anchor struct of the locked side (DF_ORB_DINER for "rich", DF_ORB_TOWER otherwise, including no side).
 // One of the three landing spots at random, either side (owner 2026-09-11). The old per-side anchors stay as
 // fallbacks when the spots are missing.
+// owner 2026-09-23: the spot is drawn ONCE per game (level.df_orb_spot_key); side locks and anchor tweaks re-copy
+// the same pick. Only a live tune of a DF_ORB_SPOT_n itself changes it (df_orb_spot_pick: that spot becomes the pick).
 df_orb_spawn_for_side()
 {
-    spots = [];
+    if ( isdefined( level.df_orb_spot_key ) && isdefined( level.df_coords[level.df_orb_spot_key] ) )
+        return level.df_coords[level.df_orb_spot_key];
+
+    keys = [];
 
     for ( i = 1; i <= 3; i++ )
     {
         if ( isdefined( level.df_coords["DF_ORB_SPOT_" + i] ) )
-            spots[spots.size] = level.df_coords["DF_ORB_SPOT_" + i];
+            keys[keys.size] = "DF_ORB_SPOT_" + i;
     }
 
-    if ( spots.size > 0 )
+    if ( keys.size > 0 )
     {
-        pick = random( spots );
-        df_debug_print( "DF: orb landing spot " + int( pick.origin[0] ) + " " + int( pick.origin[1] ) + " " + int( pick.origin[2] ) );
+        level.df_orb_spot_key = random( keys );
+        pick = level.df_coords[level.df_orb_spot_key];
+        df_debug_print( "DF: orb landing spot " + level.df_orb_spot_key + " " + int( pick.origin[0] ) + " " + int( pick.origin[1] ) + " " + int( pick.origin[2] ) + " (drawn once per game)" );
         return pick;
     }
 
@@ -228,7 +233,20 @@ df_orb_spawn_sync()
     d.overridden = 1;
 }
 
-// Re-syncs on every side lock (Step 4 socket, "!df side", "!df goto"; df_steps df_set_side notifies it).
+// A live tune of one landing spot (`!df move DF_ORB_SPOT_2 ...`): that spot becomes this game's pick, so the
+// owner sees the edited spot used, and DF_ORB_SPAWN is re-copied from it.
+df_orb_spot_pick( key )
+{
+    if ( !isdefined( level.df_coords[key] ) )
+        return;
+
+    level.df_orb_spot_key = key;
+    df_orb_spawn_sync();
+    df_debug_print( "DF: orb landing spot now " + key + " (edited)" );
+}
+
+// Re-syncs on every side lock (Step 4 socket, "!df side", "!df goto"; df_steps df_set_side notifies it). The
+// landing spot itself is not re-drawn (df_orb_spawn_for_side keeps the first pick).
 df_orb_spawn_side_watch()
 {
     level endon( "end_game" );
@@ -275,11 +293,11 @@ df_apply_overrides()
     df_coord_override_rest( "DF_TV_3", ( -7234, 4588, -55 ), ( 0, 175, 0 ), "tv" ); // owner move 2026-09-11
     df_coord_override_rest( "DF_TV_4", ( -6884, 5627, -55 ), ( 0, 285, 0 ), "tv" ); // owner move 2026-09-11
 
-    // Salvage parts on the ground at the spots (A Diner garage behind the box, B Farm barn upper level, C Nacht bunker: unused).
+    // Salvage parts on the ground at the spots (A Diner garage behind the box, B Farm barn upper level; the unused
+    // C in the Nacht bunker was removed 2026-09-23).
     // owner-placed with !df grab on 2026-09-08
     df_coord_override( "DF_PART_A", ( -4830, -7978, -29 ), ( 0, 130, 0 ) );
     df_coord_override( "DF_PART_B", ( 8149, -5088, 52 ), ( 0, 401, 0 ) );
-    df_coord_override( "DF_PART_C", ( 14077, -538, -137 ), ( 0, 345, 0 ) );
 
     // Where the coil lands after Step 1 (owner-placed with !df grab on 2026-09-11, Depot floor near the phone)
     df_coord_override( "DF_COIL_DROP", ( -6311, 5019, -46 ), ( 0, 390, 0 ) ); // owner move 2026-09-11 (second spot)
@@ -1074,7 +1092,8 @@ df_coord_tune_move( key, player, f, r, u )
 }
 
 // After any live tune: re-spawn that preview and, for the table, keep DF_SOCKET on it and print the new
-// slot positions. Tuning a side's orb anchor (DF_ORB_TOWER / DF_ORB_DINER) re-copies it into DF_ORB_SPAWN.
+// slot positions. Tuning a side's orb anchor (DF_ORB_TOWER / DF_ORB_DINER) re-copies the current pick into
+// DF_ORB_SPAWN (no new draw); tuning a landing spot DF_ORB_SPOT_n makes it the pick (df_orb_spot_pick).
 df_coord_tune_done( key )
 {
     if ( key == "DF_TABLE" )
@@ -1082,6 +1101,9 @@ df_coord_tune_done( key )
 
     if ( key == "DF_ORB_TOWER" || key == "DF_ORB_DINER" )
         df_orb_spawn_sync();
+
+    if ( key == "DF_ORB_SPOT_1" || key == "DF_ORB_SPOT_2" || key == "DF_ORB_SPOT_3" )
+        df_orb_spot_pick( key );
 
     df_preview_refresh( key );
 
@@ -1203,7 +1225,7 @@ df_beam_stop( b )
 // hard-coding a model name, so a model swap is one line here. Kinds: "relay" (bus roof radio / tower relay,
 // the base), "relay_top" (the low slab stacked on the ROOF relay, offset df_model_offset( "relay_top" )),
 // "relay_mast" (the tall post stacked on the TABLE relay after Step 4, offset df_model_offset( "relay_mast" )),
-// "orb" (Step 6/7 charge core), "part_a" "part_b" "part_c" (Step 2 parts), "tv", "phone", "fuse", "socket",
+// "orb" (Step 6/7 charge core), "part_a" "part_b" "part_c" (Step 2 parts; part_c unused), "tv", "fuse", "socket",
 // "brazier", "card" (R1 key card), "portal" (M1 hole), "beacon" (Step 5 anchor marker), "table" (the bench
 // under the tower the relay / card / orb are deposited on, DF_TABLE + df_table_slot), and the audit items of
 // 2026-09-08 (section 9): "skull" (M1 trophy on table slot 1), "receiver" (S1 handset part), "spool" (R2
@@ -1312,7 +1334,7 @@ df_models_init()
     //   zombie_pickup_perk_bottle     so_zclassic_zm_transit, the perk-bottle powerup (_zm_powerups.gsc:103)
     //   test_sphere_silver            common_zm, chrome sphere (mirrors the black sky, reads dark)
     //   semtex_bag                    zm_transit, a rounded canvas bag
-    // owner pick 2026-09-11 (Prop Picker): the EE meteor piece, 5 x 6 x 5, centre pivot (the skull is the same model,
+    // owner pick 2026-09-11 (Prop Picker): the EE meteor piece, 5 x 6 x 5, centre pivot (the skull was the same model until 2026-09-23,
     // owner's choice; the orb spins and wears the aura, the skull sits still on slot 1).
     df_model_def( "orb", "p6_zm_buildable_sq_meteor", 0, 0, 0 );
     // orb_ground: the rock where it lands and rests on the floor (Step 6 landing spots, drops, Step 7 wander). Offset z = its rest
@@ -1336,6 +1358,8 @@ df_models_init()
 
     // part_c: cornfield, the "chassis" of spec 10. Vanilla EE power box piece (zm_transit, sq_common
     // "tag_part_02", zm_transit_buildables.gsc:135, HUD icon zm_hud_icon_sq_powerbox): the transmitter housing.
+    // 2026-09-23: no anchor or step uses it any more (DF_PART_C removed); kept only because df_act2_rich's spool
+    // fallback (df_r2_spool_kind) still returns this kind.
     df_model_def( "part_c", "p6_zm_buildable_sq_electric_box", 0, 0, 0 );
 
     // tv: the electric trap's CRT picture tube, a vanilla piece (so_zclassic_zm_transit ALWAYS, spawned
@@ -1347,11 +1371,6 @@ df_models_init()
     // the DF_TV anchors and "top of the tube" = anchor + 11. p_jun_old_tv (the farmhouse TV) is gump_farm and
     // renders black at the depot; the power station monitors are gump_powerstation: same problem.
     df_model_def( "tv", "pb_pole_telephone_bulb", 0, 0, 0 ); // owner 2026-09-09: the chimney pipe again, not the tube
-
-    // phone: the depot wall payphone (zm_transit + gump_busstation: the depot IS the bus station gump, so
-    // its textures are resident where the phones are). The two real phones are map statics (not in the
-    // entity dump); this is for any script-spawned phone prop.
-    df_model_def( "phone", "com_payphone_america", 0, 0, 0 );
 
     // fuse: the four Simon boxes on the barn walls. Art audit section 2: the EE power box
     // (p6_zm_buildable_sq_electric_box, 13 x 20 x 4) read from 3 m only; the vanilla power switch panel piece
@@ -1424,7 +1443,10 @@ df_models_init_items()
     // the turbine disc, so this is the only skull on the table; the zombie head gib c_zom_zombie_head_a
     // (so_zclassic_zm_transit, ALWAYS, 14 x 10 x 11, precached by character/c_zom_zombie1_01.gsc:34) stays in
     // the catalog as the one-line alternative.
-    df_model_def( "skull", "p6_zm_buildable_sq_meteor", 0, 0, 0 ); // owner pick 2026-09-11 (Prop Picker)
+    // owner 2026-09-23: a real skull again (was the meteor stone of the 2026-09-11 Prop Picker pick): zombie_skull,
+    // common_zm ALWAYS, 16 x 23 x 21, upright at pitch / roll 0 (the powerup spawns it with plain angles), faces
+    // the table front. Rest 14 / top +9 (df_model_rest_z / df_model_top_z). Table slot 1 keeps its value.
+    df_model_def( "skull", "zombie_skull", 0, 0, 0, ( -3, 8, 58 ) ); // owner 2026-09-23: pose in the TABLE frame (df_table_point, z from the floor: bench top 44 + the skull's rest 14), like the fire hand
 
     // receiver: the handset the depot phone drops after Step 1 (audit 9, the relay's 4th part). No phone
     // handset is always loaded (com_payphone_america is gump_busstation, black elsewhere); the jet gun handles
@@ -1432,7 +1454,9 @@ df_models_init_items()
     // a trigger, 11 x 4 x 10, proven to spawn as a buildable. Fallback: p6_zm_buildable_battery (16 x 14 x 9).
     // receiver (the phone's part) = the wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the
     // same model R2's spools use: the relay carries one on the radio.
-    df_model_def( "receiver", "p6_zm_buildable_sq_electric_box", 0, -10, 14 ); // owner composer 2026-09-22; roll sign checked in game 2026-09-23 (the engine rolls the other way than a right-hand turn about forward)
+    // owner 2026-09-23: the model is the wire bundle again (was the power box; so_zclassic_zm_transit ALWAYS,
+    // 25 x 7 x 25, base pivot). The small tilt below is the owner's composer pose of 2026-09-22 (kept).
+    df_model_def( "receiver", "p6_zm_buildable_jetgun_wires", 0, -10, 14 ); // owner composer 2026-09-22; roll sign checked in game 2026-09-23 (the engine rolls the other way than a right-hand turn about forward)
 
     // spool: the wire spool a filled lamp drops in R2 (audit 9). The jet gun wire bundle piece
     // (so_zclassic_zm_transit, ALWAYS, zm_transit_buildables.gsc jetgun pieces), 25 x 7 x 25: a coil of cable.
@@ -1738,6 +1762,7 @@ df_model_top_z( kind )
     tops["ch_tombstone1"] = 31;                  // tombstone brazier, base pivot, 31 tall
     tops["p6_zm_buildable_etrap_tvtube"] = 11;   // tv tube posed upright: origin at mid height, top +11
     tops["pb_pole_telephone_bulb"] = 9;          // tv = the chimney pipe (9 x 8 x 9, base pivot)
+    tops["zombie_skull"] = 9;                    // skull: 23 tall, pivot 14 above its lowest point (rest 14)
 
     if ( isdefined( tops[name] ) )
         return tops[name];
@@ -1768,7 +1793,7 @@ df_model_rest_z( kind )
     name = df_model( kind );
     rest = [];
     rest["p6_zm_buildable_turbine_fan"] = 5;   // orb: 25 x 25 x 10 disc, base pivot, hovers half its thickness
-    rest["p6_zm_buildable_sq_meteor"] = 3;     // orb / skull: the meteor piece, centre pivot, 4.5 tall
+    rest["p6_zm_buildable_sq_meteor"] = 3;     // orb / orb_ground / beacon: the meteor piece, centre pivot, 4.5 tall
     rest["p6_zm_buildable_etrap_tvtube"] = 11; // tv posed upright: origin at mid height, 21 tall
     rest["zombie_skull"] = 14;                 // skull: pivot 14 above its lowest point (top +9)
     rest["test_sphere_lambert"] = 16;          // the old debug sphere (centre pivot)
@@ -1887,6 +1912,10 @@ df_coords_precache()
         df_debug_print( "DF: extra model precached: " + name );
     }
 
+    // owner 2026-09-23: the skull's HUD icon (df_scav_icon "skull"): the scoreboard's dead-player skull. Vanilla only
+    // registers it as a status icon (_globallogic.gsc precachestatusicon), a hud elem setshader needs precacheshader.
+    precacheshader( "hud_status_dead" );
+
     df_debug_print( "DF: " + registry + " registry models precached, " + getarraykeys( done ).size + " with the catalog" );
 }
 
@@ -1894,8 +1923,8 @@ df_coords_precache()
 // Catalog for `!df catalog <keyword> [page]` (df_main): candidate models the owner can look at in game,
 // side by side, and pick into the registry with `!df catalog pick <n> <kind>`. Every name is from
 // tools/assets/xmodels_zm_transit.txt in an always-loaded zone (zm_transit, common_zm,
-// so_zclassic_zm_transit; com_payphone_america is the one gump_busstation exception, already in the
-// registry), so they render anywhere. All are precached at init by df_coords_precache(), which is what
+// so_zclassic_zm_transit; owner 2026-09-23: the gump_busstation payphone and the non-TranZit
+// berlin_wood_table are gone), so they render anywhere. All are precached at init by df_coords_precache(), which is what
 // makes a live pick render. Keep it around 45 names: each costs a model slot in the server tables.
 // The keyword filters by substring of the name, so group words are part of the names themselves
 // (buildable, rocks, sphere, pole, light, ...).
@@ -1908,7 +1937,7 @@ df_catalog_models()
     m[m.size] = "p6_zm_buildable_sq_transceiver";  // relay base (radio, 26 x 7 x 19)
     m[m.size] = "p6_zm_buildable_sq_scaffolding";  // relay_top / part_b (lattice slab, 83 x 4 x 24)
     m[m.size] = "p6_zm_chain_fence_piece_end";     // relay_mast (fence end post, 13 x 117 x 3)
-    m[m.size] = "p6_zm_buildable_sq_electric_box"; // part_c (the old fuse box, 13 x 20 x 4)
+    m[m.size] = "p6_zm_buildable_sq_electric_box"; // relay_coil / fuse / part_c (power box, 13 x 20 x 4)
     m[m.size] = "p6_zm_buildable_sq_meteor";       // beacon / ember (small rock, 5 x 5 x 6)
     m[m.size] = "p6_zm_buildable_battery";         // part_a (16 x 14 x 9)
     m[m.size] = "p6_zm_buildable_etrap_tvtube";    // tv (CRT tube, 21 x 21 x 22, pose 270/180)
@@ -1917,10 +1946,9 @@ df_catalog_models()
     m[m.size] = "p6_zm_keycard";                   // card
     m[m.size] = "p6_zm_screecher_hole";            // portal (108 x 18 x 105)
     m[m.size] = "p6_zm_rocks_small_cluster_03";    // brazier (lava-rock cairn, 88 x 16 x 77)
-    m[m.size] = "com_payphone_america";            // phone (depot only)
     m[m.size] = "p6_zm_work_bench";                // table (31 x 44 x 88)
-    m[m.size] = "p6_zm_buildable_jetgun_handles";  // receiver (hand grip, 11 x 4 x 10)
-    m[m.size] = "p6_zm_buildable_jetgun_wires";    // spool (wire bundle, 25 x 7 x 25)
+    m[m.size] = "p6_zm_buildable_jetgun_handles";  // receiver alternative (hand grip, 11 x 4 x 10)
+    m[m.size] = "p6_zm_buildable_jetgun_wires";    // spool / receiver (wire bundle, 25 x 7 x 25)
     m[m.size] = "zombie_skull";                    // skull (insta-kill skull, 16 x 23 x 21)
     m[m.size] = "c_zom_zombie_head_a";             // skull alternative (zombie head, 14 x 10 x 11)
 
@@ -1964,7 +1992,6 @@ df_catalog_models()
     m[m.size] = "p6_zm_keys";                      // key ring
     m[m.size] = "p_jun_caution_sign";              // caution sign
     m[m.size] = "com_stepladder_large_closed";     // step ladder
-    m[m.size] = "berlin_wood_table";               // wooden table (table alternative)
     m[m.size] = "p6_zm_buildable_pap_body";        // PaP machine body (table alternative, tall)
     return m;
 }

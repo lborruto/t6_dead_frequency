@@ -975,7 +975,7 @@ df_step3_nopower_watch()
 }
 
 // One sweep: controlled electric bursts (df_relay_fx_set "sweep") and a hum (zmb_meteor_loop, zm_transit.gsc:3349)
-// on the relay until an outcome arrives: "arrived" (stop counted), "destroyed", "emp", "empty". Lost sweeps
+// on the relay until an outcome arrives: "arrived" (stop counted), "destroyed", "emp", "empty", "nopower". Lost sweeps
 // go through the FAIL cue (df_cue_fail: zmb_bus_emp_shutdown to all + the one-shot where it was lost).
 df_step3_segment()
 {
@@ -1018,7 +1018,7 @@ df_step3_segment()
         return;
     }
 
-    // emp or empty bus: the stop does not count, the relay is kept
+    // emp, empty bus or no power at the stop (owner 2026-09-23, audit B14): the stop does not count, the relay is kept
     df_relay_idle_fx();
     df_cue_fail( level.the_bus.origin + ( 0, 0, 60 ) );
     df_say( "D3_FAIL" );
@@ -1112,6 +1112,15 @@ df_step3_arrival_watch()
     level endon( "df_step3_segment_end" );
 
     level.the_bus waittill( "reached_destination" );
+
+    // owner 2026-09-23 (audit B14): the departure check alone let a ride count when the power went off mid-way;
+    // no power at the stop = a lost sweep like emp / empty (relay kept, D3_FAIL; df_step3_nopower_watch complains)
+    if ( !flag( "power_on" ) )
+    {
+        df_debug_print( "DF: the bus reached the stop without power: not counted" );
+        level notify( "df_step3_outcome", "nopower" );
+        return;
+    }
 
     // the stop counts only if somebody rode with the relay into it (seen within the last 3 s: a ladder climb or
     // a moment in last stand must not lose an honest ride)
@@ -1393,14 +1402,21 @@ df_step3_roof_part( idx, origin, name )
 }
 
 // Moving part on the roof: poll players near it (no trigger can ride the bus), one press takes it.
+// owner 2026-09-23 (audit B21): the "roof_part_N" prompt is cleared for EVERY player when the part is taken, deleted
+// or skipped (it used to stay on a co-op partner's screen); df_roof_part_skip_clear covers the skip / goto.
 df_roof_part_watch( part )
 {
     level endon( "end_game" );
     level endon( "df_skip_step3" );
 
+    level thread df_roof_part_skip_clear( part.idx );
+
     while ( isdefined( part.model ) )
     {
         wait 0.1;
+
+        if ( !isdefined( part.model ) )
+            break;
 
         foreach ( player in getplayers() )
         {
@@ -1410,11 +1426,34 @@ df_roof_part_watch( part )
             if ( !near || !player df_press_use() )
                 continue;
 
-            player df_act1_prompt( 0, undefined, "roof_part_" + part.idx );
+            df_roof_part_prompt_clear( part.idx );
+            level notify( "df_roof_part_end_" + part.idx );
             df_a1_part_taken( part, player, "recovered from the roof" );
             return;
         }
     }
+
+    // the part model went away without a press (deleted by a reset / skip cleanup)
+    df_roof_part_prompt_clear( part.idx );
+    level notify( "df_roof_part_end_" + part.idx );
+}
+
+// owner 2026-09-23 (audit B21): clears one roof part's prompt on every player's screen.
+df_roof_part_prompt_clear( idx )
+{
+    foreach ( player in getplayers() )
+        player df_act1_prompt( 0, undefined, "roof_part_" + idx );
+}
+
+// owner 2026-09-23 (audit B21): "!df goto" past Step 3 ends df_roof_part_watch by its endon, so the prompt is
+// cleared here; the watch's own end ("df_roof_part_end_<idx>") retires this thread.
+df_roof_part_skip_clear( idx )
+{
+    level endon( "end_game" );
+    level endon( "df_roof_part_end_" + idx );
+
+    level waittill( "df_skip_step3" );
+    df_roof_part_prompt_clear( idx );
 }
 
 // Relay visual state on the roof (or dropped): "off", "idle" (powered: tiny glow + elec_sm bursts every
@@ -1625,14 +1664,16 @@ df_a1_table_clips_delete()
 }
 
 // Table light in the locked side's colour, over the middle of the table (lamp fx aliases
-// zm_transit_fx.gsc:114/115).
+// zm_transit_fx.gsc:114/115). Used by the Step 4 preview only: the plug removes it.
+// owner 2026-09-23 (audit P5): both branches used the colourless glow_xsm, so the preview showed no side;
+// Richtofen = the blue safety light, Maxis = the orange one.
 df_step4_socket_light( side )
 {
     df_fx_stop( level.df_socket_fx );
-    fxname = "fx_zmb_tranzit_light_glow_xsm";
+    fxname = "fx_zmb_tranzit_light_safety_max";
 
     if ( side == "rich" )
-        fxname = "fx_zmb_tranzit_light_glow_xsm";
+        fxname = "fx_zmb_tranzit_light_safety_ric";
 
     level.df_socket_fx = df_fx_loop( fxname, level.df_socket.origin + df_fx_point( "socket_glow" ) );
 }
@@ -1693,6 +1734,14 @@ df_step4_pickup_watch()
             df_touch( "step4" );
             df_a1_socket_marker_set( 1 ); // the AVAILABLE glint of the step ends with the touch: ours takes over
             player df_act1_prompt( 0, undefined, "relay_pickup" );
+
+            // owner 2026-09-23 (audit S6): the first lift off the bus roof announces the choice, once per game
+            if ( !is_true( level.df_a1_choose_said ) )
+            {
+                level.df_a1_choose_said = 1;
+                df_say( "S4_CHOOSE" );
+            }
+
             player df_relay_take();
             break; // the relay is gone: the other players' distance check would read an undefined origin
         }
@@ -1814,6 +1863,7 @@ df_relay_carry_monitor()
                 level.df_relay_carry_fx = undefined;
                 df_relay_drop_at( level.df_relay_carrier_pos, 0 );
                 df_debug_print( "DF: relay carrier left the game, relay dropped" );
+                level thread df_relay_orphan_return(); // owner 2026-09-23 (audit B20): no recovery before
             }
 
             continue;
@@ -1827,6 +1877,65 @@ df_relay_carry_monitor()
             carrier df_relay_release( carrier.origin );
         }
     }
+}
+
+// owner 2026-09-23 (audit B20): a relay dropped by a carrier who left the game could lie out of reach for good
+// (a ledge, the road far from the route). After 60 s on the ground untouched it goes home: onto the table
+// (slot 0, where the plug puts it) while Step 4 is open, else back onto the bus roof (riding the bus, like the
+// build). A pickup in the meantime (new entity or none in level.df_relay) cancels it.
+df_relay_orphan_return()
+{
+    level endon( "end_game" );
+    level endon( "df_skip_step4" );
+    level endon( "df_relay_plugged" );
+
+    relay = level.df_relay;
+
+    if ( !isdefined( relay ) )
+        return;
+
+    wait 60;
+
+    if ( !isdefined( relay ) || !isdefined( level.df_relay ) || level.df_relay != relay || is_true( level.df_relay_carried ) )
+        return;
+
+    df_relay_fx_set( "off" );
+    df_a1_relay_delete( level.df_relay );
+    level.df_relay = undefined;
+
+    to_table = isdefined( level.df_step_avail_ms["step4"] ) && !df_is_done( "step4" );
+
+    if ( !isdefined( level.the_bus ) || !isdefined( level.roof_trig ) )
+        to_table = 1;
+
+    if ( to_table )
+    {
+        pos = df_table_slot( 0 );
+        level.df_relay = df_a1_relay_spawn( pos, df_table_yaw() );
+        where = "the table";
+    }
+    else
+    {
+        top = level.roof_trig.origin;
+        pos = top - ( 0, 0, 40 );
+        trace = bullettrace( top + ( 0, 0, 40 ), top - ( 0, 0, 120 ), 0, undefined );
+
+        if ( isdefined( trace["position"] ) && trace["fraction"] < 1 )
+            pos = trace["position"];
+
+        level.df_relay = df_a1_relay_spawn( pos, level.the_bus.angles[1] );
+        level.df_relay linkto( level.the_bus );
+        where = "the bus roof";
+    }
+
+    level.df_relay_fx = undefined;
+    df_relay_idle_fx();
+
+    if ( is_true( level.df_relay_sick ) )
+        level thread df_a1_relay_sick_pulse();
+
+    df_fx_once( "building_dust", pos + df_fx_point( "relay_dust" ) );
+    df_debug_print( "DF: orphan relay untouched for 60 s, returned to " + where );
 }
 
 // The table at the tower base (exists since boot): the step's AVAILABLE glint marks it until the relay is
@@ -1934,7 +2043,7 @@ df_a1_table_preview( side )
     }
 }
 
-// The relay is plugged: side from the power flag, socket light, antenna at the socket, blue burst, a PROGRESS
+// The relay is plugged: side from the power flag, socket light, antenna at the socket, side burst (blue / fire), a PROGRESS
 // TICK click (df_cue_tick) and the switch-on sound (zmb_turn_on, zm_transit_power.gsc:60), 15 s of tower
 // visuals in the side's colour, the lock line and the canon first-contact voice once (df_vox_once, 3D at the
 // table): Richtofen vox_zmba_sidequest_power_on_0 (zm_transit_sq.gsc:1043) or Maxis vox_maxi_power_off_0
@@ -1946,12 +2055,24 @@ df_step4_plug( who )
 
     side = df_a1_side_of_power();
     df_set_side( side );
+
+    // owner 2026-09-23 (audit B1): the side lock is final; a debug `!df side` set before the plug keeps its side
+    if ( isdefined( level.df_side ) )
+        side = level.df_side;
+
     level.df_relay_plugged = 1;
     level.df_a1_preview = undefined;
     df_fx_stop( level.df_socket_fx ); // owner 2026-09-23: the preview light goes, the step glows climb the relay instead
     level.df_socket_fx = undefined;
     df_step4_plugged_relay_spawn();
-    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", level.df_socket.origin + df_fx_point_at( "socket_spark", df_table_yaw() ) ); // horizontal part: turned with the table (DF_SOCKET sits on DF_TABLE)
+    spark = level.df_socket.origin + df_fx_point_at( "socket_spark", df_table_yaw() ); // horizontal part: turned with the table (DF_SOCKET sits on DF_TABLE)
+
+    // owner 2026-09-23 (audit P4): the plug spark is the side's: blue for Richtofen, a fire snap for Maxis
+    if ( side == "maxis" )
+        df_fx_burst( "fx_zmb_tranzit_fire_med", spark, 0.3 );
+    else
+        df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", spark );
+
     df_cue_tick( level.df_socket.origin + ( 0, 0, 30 ) );
     playsoundatposition( "zmb_buildable_complete", level.df_socket.origin ); // 1.4 s "built" (zmb_turn_on = 14 s)
     df_tower_fx_start( side );

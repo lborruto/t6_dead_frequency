@@ -102,13 +102,22 @@ df_scaled_for( key, count )
 }
 
 // Spec section 6: scale on the player count recorded when `stepkey` became available, so a player
-// leaving mid-step does not lower an active target. Falls back to the live count.
+// leaving mid-step does not lower an active target.
+// owner 2026-09-23 (audit B12): frozen in every case. A step that never went through the runner (goto
+// fabrication, a read before availability) snapshots the live count on its first read and keeps it, so two
+// reads for the same step never disagree. No stepkey = the live count (df_scaled).
 df_scaled_step( key, stepkey )
 {
-    if ( isdefined( level.df_step_players[stepkey] ) )
-        return df_scaled_for( key, level.df_step_players[stepkey] );
+    if ( !isdefined( stepkey ) )
+        return df_scaled( key );
 
-    return df_scaled( key );
+    if ( !isdefined( level.df_step_players ) )
+        level.df_step_players = [];
+
+    if ( !isdefined( level.df_step_players[stepkey] ) )
+        level.df_step_players[stepkey] = df_player_count();
+
+    return df_scaled_for( key, level.df_step_players[stepkey] );
 }
 
 // --------------------------------------------------------- step machine ----
@@ -195,6 +204,7 @@ df_init_steps()
     level.df_step_avail_ms = []; // gettime() when it became available (console line of df_complete)
     level.df_step_players = []; // player count at that moment (df_scaled_step)
     level.df_step_touched = [];
+    level.df_step_touch_ms = []; // owner 2026-09-23 (audit B11): gettime() of the last df_touch, restarts the stall clock
     level.df_step_hint_said = []; // highest ladder rung an event hint spoke (df_hint_now)
     level.df_step_hint_ms = []; // gettime() of that event hint
     level.df_step_focus = []; // key -> origin of the AVAILABLE glint (df_step_focus)
@@ -418,28 +428,38 @@ df_step_elapsed_text( key )
     return " | round " + level.round_number + " | " + minutes + "m" + seconds + "s";
 }
 
-// A player interacted with the step: no stall hint for it any more (the watcher exits at its next tick)
-// and its AVAILABLE glint goes.
+// A player interacted with the step: its AVAILABLE glint goes and the stall clock restarts from now.
+// owner 2026-09-23 (audit B11): a touch used to end the ladder for good, so a team that touched a step once
+// and then got stuck never heard a hint again; df_step_stall_watcher now starts over at HINT_1,
+// df_hint_first_s after the LAST touch.
 df_touch( key )
 {
     level.df_step_touched[key] = 1;
+    level.df_step_touch_ms[key] = gettime();
     df_step_glint_stop( key );
 }
 
 // Locks the side (Step 4 socket: power ON = rich, OFF = maxis; also !df side / !df goto). The extra
 // "df_step_done" wakes the parked r1 / m1 runners, whose prerequisites depend on the side.
+// owner 2026-09-23 (audit B1): the lock is final. A second change removed both acts' world state (graves and
+// boxes) and broke the game, so a different side once one is locked is refused (debug line, returns 0);
+// callers read level.df_side afterwards. Returns 1 when level.df_side == side on return.
 df_set_side( side )
 {
     if ( isdefined( level.df_side ) && level.df_side == side )
-        return;
+        return 1;
 
     if ( isdefined( level.df_side ) )
-        df_debug_print( "DF: side changed from " + level.df_side + " to " + side + " (debug; running steps of the other act are not stopped)" );
+    {
+        df_debug_print( "DF: side change to " + side + " refused, " + level.df_side + " is locked for this game" );
+        return 0;
+    }
 
     level.df_side = side;
     df_debug_print( "DF: side locked " + side );
     level notify( "df_side_locked", side );
     level notify( "df_step_done", "side" );
+    return 1;
 }
 
 // Per-step intro (owner 2026-09-08): the step's <P>_START key, df_intro_delay_s after it became available
@@ -465,13 +485,39 @@ df_step_intro( key )
         return;
     }
 
+    // owner 2026-09-23 (audit D19): the end of Act 2 queues many lines (about 45 s); Step 5's START waits for the
+    // df_say pump to go idle (level.df_say_running / level.df_say_queue, df_systems df_say_pump). Capped at 90 s.
+    if ( key == "step5" )
+        df_step_wait_dialogue_idle( 90 );
+
     df_debug_print( "DF: intro " + intro + " (" + key + " available)" );
     df_say( intro );
 }
 
+// owner 2026-09-23 (audit D19): returns once the dialogue queue is empty and its pump idle, at most `cap` s.
+df_step_wait_dialogue_idle( cap )
+{
+    waited = 0;
+
+    while ( waited < cap )
+    {
+        busy = is_true( level.df_say_running );
+
+        if ( !busy && isdefined( level.df_say_queue ) && level.df_say_queue.size > 0 )
+            busy = 1;
+
+        if ( !busy )
+            return;
+
+        wait 0.5;
+        waited += 0.5;
+    }
+}
+
 // Stall hint ladder for one step (owner 2026-09-08): <P>_HINT_1 df_hint_first_s after the step became
 // available (cryptic), <P>_HINT_2 at df_hint_second_s (almost explicit), then HINT_2 every
-// df_hint_repeat_s, until a player touches the step (df_touch), the step completes or is skipped.
+// df_hint_repeat_s, until the step completes or is skipped. A touch (df_touch) restarts the clock: the
+// ladder starts over at HINT_1 df_hint_first_s after the last touch (owner 2026-09-23, audit B11; it used to end).
 // level.df_text_hints == 0 (`!df texthints off`, df_systems df_text_hints_on) mutes a rung but the clock
 // keeps running so hints resume when re-enabled; the puzzle prompt switch (level.df_hints, off by default)
 // has no say here any more. Nothing is said once the finale is reachable (df_step_finale_reached). A
@@ -497,16 +543,29 @@ df_step_stall_watcher( key )
     rung = 1;
     delay = level.df_hint_first_s;
     skipped = 0; // highest rung this clock already skipped because an event hint said it
+    clock = df_step_last_touch( key ); // owner 2026-09-23 (audit B11): the touch this clock runs from
 
     while ( true )
     {
         wait( delay );
 
-        if ( is_true( level.df_step_touched[key] ) )
-            return;
-
         if ( df_step_finale_reached() )
             return;
+
+        // owner 2026-09-23 (audit B11): touched during the wait = start over at HINT_1, df_hint_first_s after it
+        last = df_step_last_touch( key );
+
+        if ( last != clock )
+        {
+            clock = last;
+            rung = 1;
+            delay = level.df_hint_first_s - ( gettime() - last ) / 1000;
+
+            if ( delay < 1 )
+                delay = 1;
+
+            continue;
+        }
 
         hint = df_step_hint_key( key, rung );
         due = rung;
@@ -534,6 +593,15 @@ df_step_stall_watcher( key )
         df_debug_print( "DF: stall hint " + hint + " (" + key + " untouched)" );
         df_say( hint );
     }
+}
+
+// owner 2026-09-23 (audit B11): gettime() of the step's last df_touch, 0 = never touched.
+df_step_last_touch( key )
+{
+    if ( isdefined( level.df_step_touch_ms ) && isdefined( level.df_step_touch_ms[key] ) )
+        return level.df_step_touch_ms[key];
+
+    return 0;
 }
 
 // Event hint (audit 2026-09-08 section 4): a step file fires rung 1 or 2 of a step's ladder NOW, when a

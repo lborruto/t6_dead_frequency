@@ -19,8 +19,8 @@
 //   (camping the orb damages it; three knife hits banish him and drop a Max Ammo at the table, audit 8b(3))
 //   with fewer sprinters; Maxis lets the denizens loose on the tower (safety volume off) with the full
 //   sprinter cap and an ash / smoke column at the tower top for the whole wave (the fire side's far cue,
-//   art audit S7.6). The Easter Egg song plays during the wave (one start per 330 s: stopsounds does not
-//   end the stream).
+//   art audit S7.6). The Easter Egg song plays during the wave (one start per song length, df_s7_song_seconds:
+//   stopsounds does not end the stream).
 //   Success = the countdown runs out with the orb alive: it glides back onto the table (slot 2, rising sound,
 //   tower fx), Step 6's resting disc takes the slot over again for the finale, D7_DONE and the ONE uniform
 //   STEP DONE sting from df_complete (art audit #1: the navcard chime here is gone). Failure: the orb bursts
@@ -277,6 +277,7 @@ df_s7_run()
 
     level.df_s7_active = 0;
     level.df_s7_force_start = 0;
+    level.df_s7_skipped = 0;
     level thread df_s7_skip_cleanup();
     level thread df_s7_debug_start_watch();
     level thread df_s7_aura_change_watch();
@@ -300,6 +301,9 @@ df_s7_run()
         // again on the floor in front of the table, pickable; placing it again fires df_s6_redelivered and we re-arm
         df_debug_print( "DF: s7 notify df_s6_restart: orb back in front of the table, pick it up and place it again (waiting for df_s6_redelivered)" );
         level notify( "df_s6_restart" );
+
+        // owner 2026-09-23: "df_debug_s7_start" also ends Step 6's restart cycle, which puts its rock back on the table
+        // (df_s6_restart_end_watch), so the forced wave never runs next to a second rock left on the floor
         level waittill_either( "df_s6_redelivered", "df_debug_s7_start" );
         df_debug_print( "DF: s7 orb redelivered, the table is armed again" );
     }
@@ -477,7 +481,7 @@ df_s7_fail( result )
 // and stop 12 s later.
 df_s7_success()
 {
-    df_fx_once( "fx_zmb_tranzit_power_rising", df_s7_socket() );
+    df_fx_burst( "fx_zmb_tranzit_power_rising", df_s7_socket(), 3 ); // owner 2026-09-23: a loop, so 3 s (a one-shot never ended)
     level thread df_tower_fx_stop_after( 12 );
     df_say( "D7_DONE" );
     df_complete( "step7" );
@@ -523,6 +527,11 @@ df_s7_skip_cleanup()
     level endon( "df_step7_done" );
     level waittill( "df_skip_step7" );
 
+    // owner 2026-09-23: the teardown below starts the after-hold waves AFTER the skip notify, so their endon never
+    // fired and they ran up to a song length: the flag makes df_s7_afterwave refuse (and stop) after a skip
+    level.df_s7_skipped = 1;
+    level notify( "df_s7_afterwave_stop" );
+    level.df_s7_afterwave_on = 0;
     df_s7_teardown();
     df_s7_orb_remove();
     level notify( "df_s7_orb_returned" ); // give the table slot back to Step 6's resting ball
@@ -556,7 +565,12 @@ df_s7_orb_spawn()
 
     level.df_s7_orb_snd = spawn( "script_origin", pos );
     level.df_s7_orb_snd linkto( level.df_s7_orb );
-    level.df_s7_orb_snd playloopsound( "zmb_avogadro_loop" );
+    hum = "zmb_avogadro_loop";
+
+    if ( isdefined( level.df_side ) && level.df_side == "maxis" )
+        hum = "zmb_fire_loop"; // owner 2026-09-23: the fire side's rock crackles, the Avogadro hum is Richtofen's
+
+    level.df_s7_orb_snd playloopsound( hum );
     df_cue_side_flash( pos, undefined );
     df_debug_print( "DF: s7 orb taken from the table, slot 2 (aura " + df_s7_aura_fx() + ")" );
 }
@@ -1290,8 +1304,15 @@ df_s7_boost( on )
 // Song (mirrors zm_transit::sndplaymusicegg, guarded like the bears' waitfor_override)
 // =========================================================================================
 
+// Length of mus_zmb_secret_song in seconds (256.5 s): the one constant behind the restart guard below and the
+// end of the after-hold waves (owner 2026-09-23: the guard said 330 s while the waves used 256.5 s).
+df_s7_song_seconds()
+{
+    return 256.5;
+}
+
 // mus_zmb_secret_song (zm_transit.gsc sndplaymusicegg) on a script_origin over the tower, refused while
-// level.music_override is set or within 330 s of the previous start.
+// level.music_override is set or within one song length (df_s7_song_seconds) of the previous start.
 df_s7_song_start()
 {
     level endon( "end_game" );
@@ -1305,8 +1326,8 @@ df_s7_song_start()
     }
 
     // owner test 2026-09-08: two songs overlapped after a fail + retry, so stopsounds() does not end the
-    // streamed track. One start per song length (5.5 min): a retry inside that window keeps the running one.
-    if ( isdefined( level.df_s7_song_ms ) && gettime() - level.df_s7_song_ms < 330000 )
+    // streamed track. One start per song length (df_s7_song_seconds): a retry inside that window keeps the running one.
+    if ( isdefined( level.df_s7_song_ms ) && gettime() - level.df_s7_song_ms < df_s7_song_seconds() * 1000 )
     {
         df_debug_print( "DF: s7 song still running from the last attempt, not restarted" );
         return;
@@ -1320,7 +1341,7 @@ df_s7_song_start()
     df_debug_print( "DF: s7 song started" );
 }
 
-// stopsounds on the song entity (does not end an already streaming track: see the 330 s guard), then delete.
+// stopsounds on the song entity (does not end an already streaming track: see the song-length guard), then delete.
 df_s7_song_stop()
 {
     if ( !isdefined( level.df_s7_song_ent ) )
@@ -1345,8 +1366,9 @@ df_s7_song_delete( ent )
 // Zone and countdown
 // =========================================================================================
 
-// Nobody alive (is_player_valid) inside the 700 zone for more than 10 s cumulative fails the wave. The bus
-// horn (zmb_bus_horn_warn, zm_transit_bus.gsc:3067) at 5 s warns. df_s7_cfg_zone_reset s spent back inside
+// Nobody present (df_s7_zone_present: up, or downed in last stand) inside the 700 zone for more than 10 s
+// cumulative fails the wave. The bus horn (zmb_bus_horn_warn, zm_transit_bus.gsc:3067) at 5 s warns, with the
+// zone line (df_s7_zone_say, throttled to 30 s). df_s7_cfg_zone_reset s spent back inside
 // without a break clear the counter (audit section 5: three short trips no longer add up to a fail).
 df_s7_zone_watch()
 {
@@ -1365,7 +1387,7 @@ df_s7_zone_watch()
 
         foreach ( player in getplayers() )
         {
-            if ( is_player_valid( player ) && distancesquared( player.origin, center ) < 700 * 700 )
+            if ( df_s7_zone_present( player ) && distancesquared( player.origin, center ) < 700 * 700 )
             {
                 inside = 1;
                 break;
@@ -1396,6 +1418,8 @@ df_s7_zone_watch()
 
             foreach ( player in getplayers() )
                 player playsoundtoplayer( "zmb_bus_horn_warn", player );
+
+            df_s7_zone_say();
         }
 
         if ( level.df_s7_out_ms > 10000 )
@@ -1405,6 +1429,38 @@ df_s7_zone_watch()
             return;
         }
     }
+}
+
+// Counts as holding the zone (owner 2026-09-23): an up player (is_player_valid) or one downed in last stand
+// (player_is_in_laststand, _zm_laststand.gsc:56): a solo player bleeding out at the tower is still there.
+// The caller checks the radius.
+df_s7_zone_present( player )
+{
+    if ( !isdefined( player ) || !isplayer( player ) )
+        return 0;
+
+    if ( is_player_valid( player ) )
+        return 1;
+
+    if ( player maps\mp\zombies\_zm_laststand::player_is_in_laststand() )
+        return 1;
+
+    return 0;
+}
+
+// The zone rule said aloud at the horn (owner 2026-09-23: it was never spoken): D7_ZONE_RICH / D7_ZONE_MAXIS,
+// at most once per 30 s.
+df_s7_zone_say()
+{
+    if ( isdefined( level.df_s7_zone_said_ms ) && gettime() - level.df_s7_zone_said_ms < 30000 )
+        return;
+
+    level.df_s7_zone_said_ms = gettime();
+
+    if ( isdefined( level.df_side ) && level.df_side == "maxis" )
+        df_say( "D7_ZONE_MAXIS" );
+    else
+        df_say( "D7_ZONE_RICH" );
 }
 
 // Countdown at the top of the screen for every player (late joiners get one too).
@@ -1506,6 +1562,13 @@ df_s7_side_pressure()
 
     df_debug_print( "DF: s7 Maxis pressure: denizens from the start" );
     df_s7_denizens( 1 );
+
+    // owner 2026-09-23: Maxis says why the denizens come, once per game
+    if ( !is_true( level.df_s7_denizen_said ) )
+    {
+        level.df_s7_denizen_said = 1;
+        df_say( "S7_DENIZEN_MAXIS" );
+    }
 }
 
 // ---- Richtofen: Avogadro (same recall as R1: region = a player's, return_round = now, then warped) ----
@@ -1949,16 +2012,19 @@ df_s7_debug_strike_watch()
 // The Easter Egg song (mus_zmb_secret_song, 256 s, cannot be stopped once streaming) keeps playing after the hold.
 // While it plays: a regular zombie every df_s7_period() s near a random living player (zone spawn structs within
 // 900 of him, else the six nearest), while fewer than df_s7_cap() zombies live within 1500 of him. They hunt
-// normally, wherever the players go. Ends with the song, a new wave (a retry), or a skip.
+// normally, wherever the players go. Ends with the song, a new wave (a retry), or a skip (owner 2026-09-23: the
+// skip teardown starts this thread after "df_skip_step7", so df_s7_skipped / "df_s7_afterwave_stop" end it too).
 df_s7_afterwave()
 {
     level endon( "end_game" );
     level endon( "df_skip_step7" );
+    level endon( "df_skip_finale" );
+    level endon( "df_s7_afterwave_stop" );
 
-    if ( !isdefined( level.df_s7_song_ms ) || is_true( level.df_s7_afterwave_on ) )
+    if ( !isdefined( level.df_s7_song_ms ) || is_true( level.df_s7_afterwave_on ) || is_true( level.df_s7_skipped ) )
         return;
 
-    end_ms = level.df_s7_song_ms + 256500;
+    end_ms = level.df_s7_song_ms + df_s7_song_seconds() * 1000;
 
     if ( gettime() >= end_ms )
         return;

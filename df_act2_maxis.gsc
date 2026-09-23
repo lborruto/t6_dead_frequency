@@ -476,7 +476,7 @@ df_m1_debug_cue_hook()
         }
 
         if ( !isdefined( level.df_m1_target ) )
-            level.df_m1_target = df_scaled( "cold_room_kills" );
+            level.df_m1_target = df_scaled_step( "cold_room_kills", "m1" );
 
         pos = players[0].origin;
         level thread df_m1_kill_cue( 3, pos );
@@ -657,8 +657,8 @@ df_m1_cold_room( who )
 {
     level endon( "end_game" );
 
-    seconds = df_scaled( "cold_room_time" );
-    level.df_m1_target = df_scaled( "cold_room_kills" );
+    seconds = df_scaled_step( "cold_room_time", "m1" );
+    level.df_m1_target = df_scaled_step( "cold_room_kills", "m1" );
     level.df_m1_kills = 0;
     level.df_m1_phase = 1;
     level.df_m1_mode = "room";
@@ -1088,7 +1088,7 @@ df_m1_kill_cue( k, pos )
     }
 
     level thread df_act2_maxis_trail( pos + ( 0, 0, 30 ), to );
-    df_fx_once( "fx_zmb_ash_rising_md", pos );
+    df_fx_burst( "fx_zmb_ash_rising_md", pos, 0.8 ); // owner 2026-09-23: a loop fx, df_fx_once left it running
     df_cue_tick( pos, 1 );
     wait 0.4;
 
@@ -1229,7 +1229,7 @@ df_m1_skull_follow_return()
 df_m1_skull_drop( ground )
 {
     df_m1_skull_remove_floor();
-    level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, 8 ) );
+    level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, df_model_rest_z( "skull" ) ) ); // resting on its base
     level.df_m1_skull setmodel( df_m1_skull_model() );
     level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", ground + df_fx_point( "skull_glow" ) );
     playsoundatposition( "zmb_buildable_piece_add", ground );
@@ -1273,7 +1273,7 @@ df_m1_skull_poll()
                     continue;
                 }
 
-                df_m1_skull_prompt_set( player, "Press [{+activate}] to place the stone" );
+                df_m1_skull_prompt_set( player, "Press [{+activate}] to place the skull" );
 
                 if ( player df_press_use() )
                     df_m1_skull_place_by( player );
@@ -1291,7 +1291,7 @@ df_m1_skull_poll()
             }
 
             df_m1_skull_room_prompt( player, 0 );
-            df_m1_skull_prompt_set( player, "Press [{+activate}] to take the stone" );
+            df_m1_skull_prompt_set( player, "Press [{+activate}] to take the skull" );
 
             if ( player df_press_use() )
                 df_m1_skull_take( player );
@@ -1317,7 +1317,7 @@ df_m1_skull_room_prompt( player, show )
             return;
 
         player.df_m1_skull_room_prompt = 1;
-        player df_prompt_puzzle( 1, "Take the stone before the cold closes" );
+        player df_prompt_puzzle( 1, "Take the skull before the cold closes" );
         return;
     }
 
@@ -1462,9 +1462,12 @@ df_m1_skull_place_table( quiet )
 
     df_m1_skull_remove_floor();
     df_m1_skull_clear_hands();
-    pos = df_table_slot( 1 );
+    // owner 2026-09-23: the skull (zombie_skull, pivot 14 over its base) has its own pose in the table frame, set in the
+    // Prop Composer (df_coords df_model_def "skull" offset); slot 1 stays the card's
+    pos = df_table_point( df_model_offset( "skull" ) );
     level.df_m1_skull_table = spawn( "script_model", pos );
     level.df_m1_skull_table setmodel( df_m1_skull_model() );
+    level.df_m1_skull_table.angles = df_model_angles( "skull", df_table_yaw() );
     // owner 2026-09-23: no glow on the stone (one glow per step on the relay); the placing snap only
     if ( !is_true( quiet ) )
         df_cue_table_place( pos );
@@ -1540,6 +1543,7 @@ df_m2_run()
     level thread df_m2_power_penalty();
     level thread df_m2_fists_loop(); // owner 2026-09-11 (fists 7): the knuckles are the wrong tool here
     level thread df_m2_grave_spawner(); // owner 2026-09-11: gentle waves near a lit grave
+    level thread df_m2_grave_clock(); // owner 2026-09-23: the cold timer ticks (one shared clock)
     level.df_m2_ember_returned = 0;
     level.df_m2_ember_charged = 0;
     df_m2_ember_spawn_table();
@@ -1558,9 +1562,10 @@ df_m2_run()
     df_say( "M2_DONE" );
 
     // owner 2026-09-23: Step 6 on this side is a Jet Gun draw at the cabin fireplace, as on Richtofen's side (R2 says
-    // its warning there): with no Jet Gun in any inventory the team hears now that one is needed, not at the pickup
+    // its warning there): with no Jet Gun in any inventory the team hears now that one is needed, not at the pickup.
+    // owner 2026-09-23: its own line here (A2_JETGUN_MAXIS); S6_NOJETGUN_MAXIS stays for the Step 6 pickup only
     if ( !df_s6_any_jetgun() )
-        df_say( "S6_NOJETGUN_MAXIS" );
+        df_say( "A2_JETGUN_MAXIS" );
 
     df_complete( "m2" );
 }
@@ -1586,7 +1591,7 @@ df_m2_column( seconds )
 // Kills per lit brazier (owner 2026-09-09; burning or not since 2026-09-23): five, fixed for solo; a bigger brazier_burns row wins.
 df_m2_quota()
 {
-    q = df_scaled( "brazier_burns" );
+    q = df_scaled_step( "brazier_burns", "m2" );
 
     if ( !isdefined( q ) || q < 5 )
         q = 5;
@@ -1683,8 +1688,25 @@ df_m2_debug_hook()
         foreach ( b in level.df_m2_braziers )
             df_m2_fill( b );
 
+        // owner 2026-09-23: the hand really goes back (it stayed in the carrier's hand for good): a carrier returns
+        // it, else it rests on the table
+        level.df_m2_ember_charged = 1;
+        carried = 0;
+
+        foreach ( player in getplayers() )
+        {
+            if ( is_true( player.df_ember ) )
+            {
+                carried = 1;
+                df_m2_ember_return( player );
+            }
+        }
+
+        if ( !carried )
+            df_m2_ember_spawn_table( 1 );
+
         level.df_m2_ember_returned = 1;
-        df_debug_print( "DF: m2 stones spent and fire hand returned by debug" );
+        df_debug_print( "DF: m2 graves spent and fire hand returned by debug" );
         level notify( "df_m2_check" );
     }
 }
@@ -2169,12 +2191,24 @@ df_m2_ember_monitor( player )
     level endon( "end_game" );
     level endon( "df_skip_m2" );
 
+    fx = undefined;
+
     while ( isdefined( player ) && is_true( player.df_ember ) )
     {
+        fx = player.df_m2_ember_fx;
         wait 0.1;
 
+        // owner 2026-09-23: the carrier left the match: the hand goes back on the table (takeable, charged or not:
+        // level.df_m2_ember_charged stays, so the next carrier just returns it) and the carry notice clears
         if ( !isdefined( player ) )
+        {
+            df_fx_stop( fx );
+            df_scav_carry_clear( "ember" );
+            df_m2_ember_spawn_table();
+            df_debug_print( "DF: m2 the fire hand carrier left, it waits on the table again" );
+            level notify( "df_m2_check" );
             return;
+        }
 
         if ( player maps\mp\zombies\_zm_laststand::player_is_in_laststand() || !is_player_valid( player ) )
         {
@@ -2268,6 +2302,58 @@ df_m2_grave_timer( b )
         df_debug_print( "DF: m2 " + b.name + " went cold (not filled within " + df_m2_grave_time() + " s): light it again and fill it from 0" );
         level notify( "df_m2_check" );
         return;
+    }
+}
+
+// Owner 2026-09-23: the cold timer was silent. ONE shared countdown clock (df_sys_clock_run: tick-tock, then the
+// tombstone ticks in the last 30 s) runs for the lit unfinished grave that goes cold first; re-aimed every 0.5 s
+// when that grave fills, cools or a sooner one exists, and stopped ("df_m2_clock_stop") when none is lit.
+// One clock and not one per grave: the helper's tick-tock rides every player and would stack.
+df_m2_grave_clock()
+{
+    level endon( "end_game" );
+    level endon( "df_m2_done" );
+    level endon( "df_skip_m2" );
+
+    running = undefined;
+
+    while ( true )
+    {
+        wait 0.5;
+        soonest = undefined;
+        limit = df_m2_grave_time() * 1000;
+
+        foreach ( b in level.df_m2_braziers )
+        {
+            if ( b.done || !b.lit || !isdefined( b.lit_ms ) )
+                continue;
+
+            end_ms = b.lit_ms + limit;
+
+            if ( !isdefined( soonest ) || end_ms < soonest )
+                soonest = end_ms;
+        }
+
+        if ( isdefined( soonest ) && soonest <= gettime() )
+            soonest = undefined;
+
+        if ( !isdefined( soonest ) )
+        {
+            if ( isdefined( running ) )
+                level notify( "df_m2_clock_stop" );
+
+            running = undefined;
+            continue;
+        }
+
+        if ( isdefined( running ) && running == soonest )
+            continue;
+
+        if ( isdefined( running ) )
+            level notify( "df_m2_clock_stop" );
+
+        running = soonest;
+        level thread df_sys_clock_run( soonest, "df_m2_clock_stop", "df_m2_done", "df_skip_m2" );
     }
 }
 
@@ -2439,41 +2525,36 @@ df_m2_power_penalty()
 // unlit again (only while another brazier stays lit, so an ember can always be taken). The PROGRESS LOST cue
 // (df_cue_fail: emp thump to all + ash) at the first brazier that shrank, an ash puff at every other one, and
 // Maxis says why (M2_POWER_MAXIS, dialogue audit v2: "the fires shrink while the grid hums"); the fx follow
-// the new stage.
+// the new stage. Owner 2026-09-23: softened, only the lit unfinished grave with the most kills forgets them.
 df_m2_power_drop()
 {
     if ( !isdefined( level.df_m2_braziers ) || !isdefined( level.df_m2_target ) )
         return;
 
-    dropped = 0;
-    first = undefined;
+    best = undefined;
 
     foreach ( b in level.df_m2_braziers )
     {
-        // owner 2026-09-11 rework: a spent stone stays spent; a lit hungry stone forgets its dead
+        // owner 2026-09-11 rework: a spent grave stays spent; a lit hungry grave forgets its dead.
+        // owner 2026-09-23 (softer): only ONE forgets, the lit unfinished grave with the most kills
         if ( b.done || !b.lit || b.count <= 0 )
             continue;
 
-        b.count = 0;
-
-        dropped++;
-        rim = df_m2_rim_pos( b );
-
-        if ( !isdefined( first ) )
-        {
-            first = b;
-            df_cue_fail( rim );
-        }
+        if ( !isdefined( best ) || b.count > best.count )
+            best = b;
     }
 
-    if ( dropped == 0 )
+    if ( !isdefined( best ) )
     {
         df_debug_print( "DF: m2 power on at end of round, nothing left to lose" );
         return;
     }
 
+    lost = best.count;
+    best.count = 0;
+    df_cue_fail( df_m2_rim_pos( best ) );
     df_say( "M2_POWER_MAXIS" );
-    df_debug_print( "DF: m2 power ON at end of round: " + dropped + " lit stone(s) forget their dead (Maxis wants the dark)" );
+    df_debug_print( "DF: m2 power ON at end of round: " + best.name + " forgets its " + lost + " dead (Maxis wants the dark)" );
 }
 
 // Step 6 node on Maxis's side (owner 2026-09-23): ONE node, the fireplace of the hunter's cabin in the woods
@@ -2577,14 +2658,6 @@ df_m2_small_fire_fx()
 df_m2_ember_charged()
 {
     level.df_m2_ember_charged = 1;
-    df_say( "M2_EMBER_CHARGED" );
-
-    // heard and seen (owner 2026-09-11): the sub-goal chime + flash + runner to the tower from the carrier
-    foreach ( player in getplayers() )
-    {
-        if ( is_true( player.df_ember ) )
-            df_cue_subgoal( player.origin + ( 0, 0, 40 ) );
-    }
 
     if ( is_true( level.df_m2_ember_on_table ) )
     {
@@ -2592,7 +2665,23 @@ df_m2_ember_charged()
         return;
     }
 
-    df_debug_print( "DF: m2 all four stones spent, the fire hand is charged: return it to the table (one press within 150)" );
+    // owner 2026-09-23: "bring it back" only when a player carries the hand (on the table it returns by itself)
+    carried = 0;
+
+    // heard and seen (owner 2026-09-11): the sub-goal chime + flash + runner to the tower from the carrier
+    foreach ( player in getplayers() )
+    {
+        if ( is_true( player.df_ember ) )
+        {
+            carried = 1;
+            df_cue_subgoal( player.origin + ( 0, 0, 40 ) );
+        }
+    }
+
+    if ( carried )
+        df_say( "M2_EMBER_CHARGED" );
+
+    df_debug_print( "DF: m2 all four graves spent, the fire hand is charged: return it to the table (one press within 150)" );
 }
 
 // The charged fire hand goes back on the table (it rests there until Step 6), the carrier's hand is empty, M2 completes (df_m2_run).
@@ -2640,7 +2729,7 @@ df_m2_fists_loop()
                 df_say( "M2_KNUCKLES_MAXIS" );
             }
 
-            df_debug_print( "DF: m2 " + player.name + " used the knuckles at the stones: refused" );
+            df_debug_print( "DF: m2 " + player.name + " used the knuckles at the graves: refused" );
         }
     }
 }

@@ -459,7 +459,7 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
 
     my @occupant = $is_rich
       ? ( model_part( kind => 'card', model => $model_def{card}{name}, x => $card_pos[0], y => $card_pos[1], z => $card_pos[2], pitch => $model_def{card}{pitch}, roll => $model_def{card}{roll}, yaw => $card_yaw, slot => 1 ) )
-      : ( model_part( kind => 'skull', model => $model_def{skull}{name}, x => $skull_pos[0], y => $skull_pos[1], z => $skull_pos[2], pitch => $model_def{skull}{pitch}, roll => $model_def{skull}{roll}, yaw => $skull_yaw, slot => 1 ) );
+      : ( model_part( kind => 'skull', model => $model_def{skull}{name}, x => $model_def{skull}{ox} // $skull_pos[0], y => $model_def{skull}{oy} // $skull_pos[1], z => $model_def{skull}{oz} // $skull_pos[2], pitch => $model_def{skull}{pitch}, roll => $model_def{skull}{roll}, yaw => $skull_yaw, parent => 'table' ) ); # owner 2026-09-23: own pose in the table frame (df_table_point), slot 1 stays the card's
 
     my @occupant_fx = $is_rich
       ? ()
@@ -558,10 +558,10 @@ add_preset(
 );
 
 add_preset(
-    'skull_floor', 'Stone (on the bunker floor)',
-    'The M1 stone where it falls in the Nacht bunker: the model 8 above the floor (df_m1_skull_drop), skull_glow = its "take me" glint, measured from the FLOOR under it. The table pose is slot 1 of "Table, Maxis loaded".',
-    model_part( kind => 'skull', model => $model_def{skull}{name}, z => 8, pitch => $model_def{skull}{pitch}, roll => $model_def{skull}{roll} ),
-    fx_part( name => 'skull_glow', parent => 'skull', bz => -8 ),
+    'skull_floor', 'Skull (on the bunker floor)',
+    'The M1 skull where it falls in the Nacht bunker: the model on its base, df_model_rest_z above the floor (df_m1_skull_drop), skull_glow = its "take me" glint, measured from the FLOOR under it. The table pose is slot 1 of "Table, Maxis loaded".',
+    model_part( kind => 'skull', model => $model_def{skull}{name}, z => $skull_rest, pitch => $model_def{skull}{pitch}, roll => $model_def{skull}{roll} ),
+    fx_part( name => 'skull_glow', parent => 'skull', bz => -$skull_rest ),
 );
 
 add_preset(

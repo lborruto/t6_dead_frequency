@@ -214,6 +214,7 @@ df_r1_run()
     level thread df_r1_hold_avogadro();
     level thread df_r1_debug_hooks();
     level thread df_fuse_prompt_poll();
+    df_r1_power_penalty_start(); // B16: the lock branch of the power-OFF penalty needs it during R1
 
     foreach ( fuse in level.df_fuses )
         level thread df_fuse_watch( fuse );
@@ -254,8 +255,14 @@ df_r1_run()
         // owner design: a key card appears between the boxes; inserting it at the tower calls him down
         df_r1_card_spawn();
         inserter = df_r1_wait_card_inserted();
-        df_r1_summon( inserter );
-        captured = df_r1_wait_capture();
+        // owner 2026-09-23 (B8): no Avogadro entity to call down = nothing to fight: df_r1_summon says
+        // R1_RICH_NOSTORM and returns 0, and the storm counts as caught (a capture that can never be decided
+        // looped fail / lock / battery / card forever)
+        captured = 1;
+
+        if ( df_r1_summon( inserter ) )
+            captured = df_r1_wait_capture();
+
         level notify( "df_r1_capture_over" );
 
         if ( captured )
@@ -266,6 +273,10 @@ df_r1_run()
 
         foreach ( fuse in level.df_fuses )
             df_rich_spark_set( fuse, fuse.led_origin, 0 );
+
+        // owner 2026-09-23 (B7): the inserted card leaves table slot 1 with the failed capture, so the next
+        // solve does not show two key cards (the barn one and the stale table one)
+        df_r1_card_table_remove();
 
         df_r1_lock_until_refilled();
         level thread df_r1_refilled_kick(); // the loop resumes by itself: no Simon to replay
@@ -595,7 +606,14 @@ df_fuse_watch( fuse )
 
         if ( is_true( level.df_r1_locked ) )
         {
-            df_simon_buzzer( fuse );
+            // owner 2026-09-23 (B15): the same press charges a box with the battery (df_r1_battery_player_tick,
+            // within 70): no deny + EMP for the carrier, nor for the press that just used the battery up
+            if ( !df_r1_press_is_charge( who ) )
+            {
+                level.df_fuse_last_who = who;
+                df_simon_buzzer( fuse );
+            }
+
             continue;
         }
 
@@ -603,6 +621,17 @@ df_fuse_watch( fuse )
         level notify( "df_fuse_pressed", fuse.idx );
         wait 0.2;
     }
+}
+
+// B15: true when `who` pressing a locked box is a battery charge, not a wrong input: the carrier, or the
+// player whose press charged a box within the last second (the fourth charge consumes the battery, and the
+// trigger may be read after that in the same frame).
+df_r1_press_is_charge( who )
+{
+    if ( is_true( who.df_carrying_bat ) )
+        return true;
+
+    return isdefined( who.df_bat_slot_ms ) && gettime() - who.df_bat_slot_ms < 1000;
 }
 
 // One spark on a box for `seconds`: medium electric arcs (elec_md, the trap effect) switched off by us so
@@ -1013,6 +1042,15 @@ df_r1_card_drop( pos, player )
 // df_r1_wait_chamber calls him down the moment he is free.
 df_r1_summon( inserter )
 {
+    // owner 2026-09-23 (B8): no entity, no storm: R1_RICH_NOSTORM (not "There he is!") and 0 so df_r1_run
+    // counts the capture as done instead of waiting for a fight that cannot happen. 1 otherwise.
+    if ( !isdefined( level.avogadro ) || !isdefined( level.avogadro.state ) )
+    {
+        df_say( "R1_RICH_NOSTORM" );
+        df_debug_print( "DF: no avogadro entity to summon, r1 counts as captured" );
+        return 0;
+    }
+
     tower_top = df_tower_center() + ( 0, 0, 900 );
     storm = df_fx_loop( "fx_zmb_avog_storm", tower_top );
     level thread df_fx_stop_after( storm, 25 );
@@ -1025,13 +1063,6 @@ df_r1_summon( inserter )
     foreach ( player in getplayers() )
         player playsoundtoplayer( "zmb_power_off_quad", player );
 
-    if ( !isdefined( level.avogadro ) || !isdefined( level.avogadro.state ) )
-    {
-        df_say( "R1_RICH_SUMMON" );
-        df_debug_print( "DF: no avogadro entity to summon" );
-        return;
-    }
-
     df_debug_print( "DF: avogadro state " + level.avogadro.state );
     level.df_r1_summoned = 1;
 
@@ -1040,7 +1071,7 @@ df_r1_summon( inserter )
         level.df_r1_in_chamber = 1;
         df_say( "R1_RICH_CHAMBER" );
         level thread df_r1_wait_chamber( inserter );
-        return;
+        return 1;
     }
 
     df_say( "R1_RICH_SUMMON" );
@@ -1051,6 +1082,7 @@ df_r1_summon( inserter )
     // roaming, on the bus or leaving right now ("exiting"): the tower thread waits for him to land and
     // calls him back should he reach the cloud again
     level thread df_r1_keep_avogadro_at_tower( inserter );
+    return 1;
 }
 
 // Polls Avogadro out of the power chamber (vanilla releases him when a player looks at the core with
@@ -1648,6 +1680,10 @@ df_r1_charged_count()
 df_r1_battery_slot( fuse, player )
 {
     fuse.souls = level.df_r1_refill_target;
+
+    if ( isdefined( player ) )
+        player.df_bat_slot_ms = gettime(); // B15: this press is a charge, df_fuse_watch stays silent
+
     df_r1_fuse_charged_look( fuse, 1 );
     df_cue_tick( fuse.led_origin, 1 ); // clink + the side's 0.6 s spark burst at the box
     df_debug_print( "DF: box " + ( fuse.idx + 1 ) + " charged " + df_r1_charged_count() + "/4" );
@@ -1691,7 +1727,7 @@ df_r1_fuse_charged_look( fuse, on )
 }
 
 // ---- Richtofen side rules (audit 2.4: "the noise") ---------------------------------------
-// From R1 on: Avogadro returns EVERY round until the finale; at end of round with the power OFF one filled
+// From R1 on: Avogadro returns EVERY round until the finale (not while Step 6 is open, A3); at end of round with the power OFF one filled
 // lamp / charged box loses 5 souls (console only). Turrets need no turbine from R2 on (df_r2_run). The Jet Gun
 // is left alone (rc5): Step 6 needs its overheat, and TranZit Enhanced rewrites the heat every tick anyway.
 df_r1_side_rules_start()
@@ -1701,6 +1737,17 @@ df_r1_side_rules_start()
 
     level.df_r1_rules = 1;
     level thread df_r1_avogadro_keeper();
+    df_r1_power_penalty_start();
+}
+
+// owner 2026-09-23 (B16): the power-OFF penalty has a branch for the R1 refill lock (a charged box loses its
+// battery), so it must run from the moment R1 opens (df_r1_run), not from R1 done. One thread per game.
+df_r1_power_penalty_start()
+{
+    if ( is_true( level.df_r1_penalty_on ) )
+        return;
+
+    level.df_r1_penalty_on = 1;
     level thread df_r1_power_penalty();
 }
 
@@ -1718,6 +1765,17 @@ df_r1_avogadro_keeper()
         if ( !isdefined( level.avogadro ) || !isdefined( level.avogadro.state ) || level.avogadro.state != "cloud" )
             continue;
 
+        // owner 2026-09-23 (A3): while Step 6 is open (the Jet Gun draw at the DF_CORE block) he stays in his cloud,
+        // the mirror of the Maxis side's denizen protection at the cabin hearth: no every-round return, and the
+        // vanilla one (2-5 rounds) is held two rounds ahead as df_r1_hold_avogadro does. The rule resumes after Step 6.
+        if ( df_r1_step6_open() )
+        {
+            if ( isdefined( level.avogadro.return_round ) && level.avogadro.return_round <= level.round_number + 1 )
+                level.avogadro.return_round = level.round_number + 2;
+
+            continue;
+        }
+
         if ( isdefined( level.avogadro.return_round ) && level.avogadro.return_round > level.round_number + 1 )
         {
             level.avogadro.return_round = level.round_number + 1;
@@ -1726,9 +1784,19 @@ df_r1_avogadro_keeper()
     }
 }
 
+// A3: Step 6 has become available (df_steps records df_step_avail_ms) and is not done yet.
+df_r1_step6_open()
+{
+    if ( df_is_done( "step6" ) || !isdefined( level.df_step_avail_ms ) )
+        return false;
+
+    return isdefined( level.df_step_avail_ms["step6"] );
+}
+
 // End of round with the power off (flag "power_on", zm_transit_power.gsc): one lamp with souls loses 5
 // (a filled lamp reopens: "souls" look, beam back); failing that, during the refill lock one charged box
-// loses its battery. Silent in game, one console line.
+// loses its battery. Richtofen says R2_POWER_RICH once per penalised round (D17), plus one console line.
+// Runs from R1 open (df_r1_power_penalty_start, B16) so the lock branch can fire.
 df_r1_power_penalty()
 {
     level endon( "end_game" );
@@ -1752,10 +1820,12 @@ df_r1_power_penalty()
             if ( lamp.filled && lamp.souls < level.df_r2_target )
             {
                 lamp.filled = 0;
+                lamp.spool_ready = 0; // B17: a hungry lamp is not punchable; df_r2_fill re-arms it when refilled
                 df_lamp_state_set( lamp, "souls" );
                 df_r2_beam_set( lamp, 1 );
             }
 
+            df_say( "R2_POWER_RICH" ); // owner 2026-09-23 (D17): the penalty was silent; once per penalised round
             df_debug_print( "DF: power off: lamp " + lamp.name + " -5, " + lamp.souls );
             continue;
         }
@@ -1770,6 +1840,7 @@ df_r1_power_penalty()
                 fuse.souls = 0;
                 df_r1_fuse_charged_look( fuse, 0 );
                 df_r1_battery_notice(); // the one battery is still out there: the carrier's count drops
+                df_say( "R2_POWER_RICH" ); // D17: said when a box actually loses its charge, once per round
                 df_debug_print( "DF: power off: box " + ( fuse.idx + 1 ) + " emptied" );
                 break;
             }
@@ -1778,6 +1849,8 @@ df_r1_power_penalty()
 }
 
 // The R2 lamp that pays the penalty: while R2 is open, the fullest lamp with souls; none otherwise.
+// Owner 2026-09-23 (B17): a lamp whose spool is already out (punched, carried or placed) is done for good and
+// never reopens (it kept its beam into Step 5 and stayed punchable while hungry).
 df_r1_penalty_lamp()
 {
     if ( !isdefined( level.df_r2_lamps ) || df_is_done( "r2" ) || !isdefined( level.df_r2_target ) )
@@ -1787,7 +1860,7 @@ df_r1_penalty_lamp()
 
     foreach ( lamp in level.df_r2_lamps )
     {
-        if ( lamp.souls <= 0 )
+        if ( lamp.souls <= 0 || is_true( lamp.spool_dropped ) )
             continue;
 
         if ( !isdefined( best ) || lamp.souls > best.souls )
@@ -1870,7 +1943,7 @@ df_r2_run()
     level endon( "end_game" );
 
     df_r2_pick_lamps();
-    level.df_r2_target = df_scaled( "lamp_souls" );
+    level.df_r2_target = df_scaled_step( "lamp_souls", "r2" ); // B12: the count snapshotted when R2 opened
     level.df_r2_spools = 0;
     level.df_r2_spools_need = level.df_r2_lamps.size;
     level.df_r2_spool_ents = [];
@@ -1901,11 +1974,14 @@ df_r2_run()
     }
 
     df_death_listen_remove( "r2" );
+    df_r2_lamps_settle();
     level.equipment_turret_needs_power = 0; // _zm_equip_turret.gsc:224-238 startturretdeploy: no turbine needed
     df_say( "R2_DONE" );
 
+    // owner 2026-09-23 (D14): the Jet Gun is a prerequisite of Step 6: hinted here with a line that does not name
+    // the rock yet (A2_JETGUN_RICH); S6_NOJETGUN_RICH belongs to the Step 6 pickup only (it played twice)
     if ( !df_s6_any_jetgun() )
-        df_say( "S6_NOJETGUN_RICH" ); // audit v3 #6: the Jet Gun is a prerequisite of Step 6, said here and not at the pickup
+        df_say( "A2_JETGUN_RICH" );
     // canon "the device is complete" in Richtofen's mouth (zm_transit_sq.gsc:1120 richtofensay), 2D to
     // Stuhlinger, once per game (df_vox_once threads the helper itself)
     df_vox_once( "vox_zmba_sidequest_jet_complete_0" );
@@ -1919,7 +1995,7 @@ df_r2_setup()
     df_r2_pick_lamps();
 
     if ( !isdefined( level.df_r2_target ) )
-        level.df_r2_target = df_scaled( "lamp_souls" );
+        level.df_r2_target = df_scaled_step( "lamp_souls", "r2" ); // B12
 
     foreach ( lamp in level.df_r2_lamps )
     {
@@ -1956,6 +2032,24 @@ df_r2_beam_set( lamp, on )
 
     df_beam_stop( lamp.r2_beam );
     lamp.r2_beam = undefined;
+}
+
+// Owner 2026-09-23 (B17): R2 done: every R2 beam goes out and every lamp of the set counts as filled, whatever a
+// late power penalty or a debug shortcut left behind (a reopened lamp kept its beam into Step 5).
+df_r2_lamps_settle()
+{
+    foreach ( lamp in level.df_r2_lamps )
+    {
+        df_r2_beam_set( lamp, 0 );
+        lamp.spool_ready = 0;
+
+        if ( is_true( lamp.filled ) )
+            continue;
+
+        lamp.filled = 1;
+        lamp.souls = level.df_r2_target;
+        df_lamp_state_set( lamp, "filled" );
+    }
 }
 
 // Owner 2026-09-08: the absorb radius is a plain sphere of 450 units around the lamp BASE (3D distance,
@@ -2226,7 +2320,7 @@ df_r2_spool_release( player )
 }
 
 // The spool goes into the array on the table: the PROGRESS TICK cue at the relay slot (df_cue_tick =
-// piece-add clink + side burst) and one more glow up the mast (df_r2_array_set). The struct leaves the
+// piece-add clink + side burst) and the array count (df_r2_array_set; no mast glow since P8). The struct leaves the
 // world list. The step's own sting comes from df_complete when the last one lands.
 df_r2_spool_deliver( player )
 {
@@ -2275,10 +2369,10 @@ df_r2_spools_deliver_all()
 }
 
 // The antenna array on the plugged relay (table slot 0): the act1 owner's stacking hook when present
-// (level.df_relay_array_func( n, total ), requested) and nothing else; otherwise n small glows ON the
-// table mast (fx_zmb_tranzit_light_glow_xsm, zm_transit_fx.gsc:55) at slot 0 + 40 / 56 / 72: the mast
-// is the 117-tall p6_zm_chain_fence_piece_end post (world agent, audit art #7), so the glows sit on its
-// lower half instead of floating over a 7-tall radio (audit art R2.4).
+// (level.df_relay_array_func( n, total ), requested), else a console line only.
+// Owner 2026-09-23 (P8): the n stacked fx_zmb_tranzit_light_glow_xsm glows on the table mast are gone: they
+// overlapped the per-step glows of df_finale, which carry the look now. level.df_r2_array_fx is no longer
+// filled (df_finale's cleanup of it is a no-op).
 df_r2_array_set( n )
 {
     if ( isdefined( level.df_relay_array_func ) )
@@ -2287,11 +2381,7 @@ df_r2_array_set( n )
         return;
     }
 
-    if ( !isdefined( level.df_r2_array_fx ) )
-        level.df_r2_array_fx = [];
-
-    for ( i = level.df_r2_array_fx.size; i < n; i++ )
-        level.df_r2_array_fx[i] = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", df_table_slot( 0 ) + df_fx_point( "relay_array_node" ) + df_fx_point( "relay_array_step" ) * i );
+    df_debug_print( "DF: r2 antenna array " + n + "/" + level.df_r2_spools_need );
 }
 
 // "!df goto" past r2: the listener, beams, spools and carrier state go; the set stays (one set per game)

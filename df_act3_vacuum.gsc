@@ -26,7 +26,8 @@
 //   Carrying: no lamp portals (df_portal_use in df_act1 checks player.df_orb). Going down drops the orb
 //   at the feet (charges kept); an orb left on the ground 60 s flies HOME = the nearer of DF_ORB_SPAWN and
 //   the table front (steps audit v2 #8: a Richtofen drop at the barn no longer flies back to the diner),
-//   or the table front during a Step 7 restart cycle (df_s6_home_pos).
+//   or the table front during a Step 7 restart cycle (df_s6_home_pos). A freshly landed rock nobody touches
+//   for 3 min flies to the table front too (df_s6_idle_timer, owner 2026-09-23).
 //   Guidance: every charged node and the waiting orb get the tower beam + rising light column
 //   (df_beam_start); a Jet Gun holder near a node gets a puzzle hint; the draw is heard (power-rise loop).
 //   Taking the orb with no Jet Gun in any inventory says S6_NOJETGUN_<SIDE> once (R2 / M2 completion already
@@ -296,8 +297,18 @@ df_s6_orb_aura_sync()
         // zmb_meteor_loop: the soft hum of the song meteors (zm_transit.gsc:3349), natural 3D falloff
         orb.snd = spawn( "script_origin", orb.ent.origin );
         orb.snd linkto( orb.ent );
-        orb.snd playloopsound( "zmb_avogadro_loop" );
+        orb.snd playloopsound( df_s6_hum_alias() );
     }
+}
+
+// The rock's / node's loop by side (owner 2026-09-23): Richtofen keeps the Avogadro hum, the fire side crackles
+// (zmb_fire_loop, the same loop the finale's Maxis pulses use).
+df_s6_hum_alias()
+{
+    if ( df_s6_is_maxis() )
+        return "zmb_fire_loop";
+
+    return "zmb_avogadro_loop";
 }
 
 // Aura and hum off (the ball itself stays).
@@ -359,11 +370,14 @@ df_s6_run()
     level.df_s6_said_nojet = 0;
     level.df_s6_said_hint = 0;
 
-    // the shared STEP AVAILABLE cue (df_steps) glints the focus until the first touch: 20 over the orb spawn
-    df_step_focus( "step6", df_s6_spawn_pos() + ( 0, 0, 20 ) );
     df_s6_orb_arrival( df_s6_spawn_pos() );
+
+    // the shared STEP AVAILABLE cue (df_steps) glints the focus until the first touch: 20 over the orb spawn
+    // (owner 2026-09-23: registered after the arrival, the glint used to hang over the empty spot during the strike)
+    df_step_focus( "step6", df_s6_spawn_pos() + ( 0, 0, 20 ) );
     df_s6_orb_reset( 0 );
     df_s6_monitors_start();
+    level thread df_s6_idle_timer( level.df_s6_orb.drop_id );
 
     df_debug_print( "DF: s6 started, orb waiting at DF_ORB_SPAWN, " + level.df_s6_target + " charge(s) to collect (" + level.df_s6_nodes_source + ")" );
 
@@ -392,8 +406,11 @@ df_s6_orb_arrival( pos )
 {
     // Maxis (owner 2026-09-23): the rock is the ember's fire. The ember on the table flares and bursts, its fire flies to
     // the landing spot as a trail, Maxis says why, then the usual build-up and strike bring the rock down there.
+    // Richtofen (owner 2026-09-23): the key card on the table discharges the same way (df_s6_card_discharge).
     if ( df_s6_is_maxis() )
         df_s6_ember_burst( pos );
+    else
+        df_s6_card_discharge( pos );
 
     top = df_tower_top();
 
@@ -528,8 +545,9 @@ df_s6_restart_listener()
 //   "df_s7_orb_taken"     the wave orb has been spawned on slot 2  -> hide ours
 //   "df_s7_orb_returned"  the wave orb glided back / Step 7 was skipped -> show ours on slot 2 again
 // A Step 7 FAILURE sends neither: it fires "df_s6_restart" instead and the restart cycle puts the charged
-// orb in front of the table (df_s6_socket_front_pos). Both watchers only act on a "placed" orb, so they
-// can never fight the restart cycle or the carried ball.
+// orb in front of the table (df_s6_socket_front_pos). The "taken" watcher only acts on a "placed" orb; a
+// "returned" during a restart cycle (Step 7 skipped) puts the rock on the table silently (df_s6_place_silent,
+// owner 2026-09-23), which ends that cycle.
 
 df_s6_table_orb_watch()
 {
@@ -555,8 +573,18 @@ df_s6_table_orb_return_watch()
     {
         level waittill( "df_s7_orb_returned" );
 
-        if ( !isdefined( level.df_s6_orb ) || level.df_s6_orb.state != "placed" )
+        if ( !isdefined( level.df_s6_orb ) )
             continue;
+
+        // owner 2026-09-23: Step 7 hands the slot back (a skip) while a restart cycle still has the rock on the
+        // floor or in a player's hands: it goes onto the table silently instead of being ignored
+        if ( level.df_s6_orb.state != "placed" )
+        {
+            if ( df_s6_place_silent() )
+                df_debug_print( "DF: s6 slot handed back by Step 7 during a restart cycle, the rock is back on the table" );
+
+            continue;
+        }
 
         df_s6_orb_table_show();
     }
@@ -607,6 +635,7 @@ df_s6_restart_cycle( gen )
         player playsoundtoplayer( "zmb_bus_emp_shutdown", player );
 
     df_debug_print( "DF: s6 restart: charged orb (" + orb.charges + "/" + level.df_s6_target + ") waiting in front of the table, pick it up and place it again" );
+    level thread df_s6_restart_end_watch( gen );
 
     while ( level.df_s6_orb.state != "placed" )
     {
@@ -616,10 +645,56 @@ df_s6_restart_cycle( gen )
             return;
     }
 
+    // ended by a skip / a forced wave (df_s6_restart_end_watch): the rock is on the table, nothing more to say
+    if ( is_true( level.df_s6_orb.placed_silent ) )
+        return;
+
     level notify( "df_s6_stop" );
     df_s6_cleanup();
     df_debug_print( "DF: s6 orb placed again, waiting for the next restart" );
     level notify( "df_s6_redelivered" );
+}
+
+// owner 2026-09-23: a restart cycle used to end only on end_game, so a goto past Step 7 / the finale left the floor
+// rock with its beam and prompt (the finale then lifted it from the floor or the carrier) and "!df fire s7_start"
+// ran the wave next to it. "df_skip_step7", "df_skip_finale" or "df_debug_s7_start" now end cycle `gen` by
+// placing the rock on the table silently (df_s6_place_silent). Dies with the cycle's own end ("df_s6_redelivered")
+// or a newer restart.
+df_s6_restart_end_watch( gen )
+{
+    level endon( "end_game" );
+    level endon( "df_s6_redelivered" );
+
+    what = level waittill_any_return( "df_skip_step7", "df_skip_finale", "df_debug_s7_start", "df_s6_restart" );
+
+    if ( what == "df_s6_restart" || level.df_s6_gen != gen )
+        return;
+
+    if ( df_s6_place_silent() )
+        df_debug_print( "DF: s6 restart cycle ended by " + what + ", the rock is back on the table" );
+}
+
+// The rock goes onto table slot 2 without a sound, cue or line (a skip, a forced Step 7 wave): monitors stop, the
+// floor rock (beam, glint, prompts) or the carrier's rock goes, the "Rock" TAB notice is cleared, and the waiting
+// restart cycle wakes (df_s6_check) and returns quietly (orb.placed_silent). Returns 1 when it placed the rock.
+// Callers must not endon "df_s6_stop" (notified here).
+df_s6_place_silent()
+{
+    orb = level.df_s6_orb;
+
+    if ( !isdefined( orb ) || orb.state == "placed" || orb.state == "consumed" )
+        return 0;
+
+    level notify( "df_s6_stop" );
+    df_s6_cleanup(); // prompts, bars, carry release, and the rock hidden (not "placed" yet)
+    orb.carrier = undefined;
+    orb.state = "placed";
+    orb.placed_silent = 1;
+    df_s6_orb_table_show();
+    level.df_orbs_delivered = level.df_s6_target;
+    df_scav_carry_clear( "orb" );
+    level notify( "df_s6_check" );
+    return 1;
 }
 
 // A node holds a charge again (unused by the restart contract since 2026-09-08, kept for the fallback
@@ -663,7 +738,7 @@ df_s6_node_fx_on( node )
     if ( !isdefined( node.own_snd ) )
     {
         node.own_snd = spawn( "script_origin", df_s6_orb_pos( node ) );
-        node.own_snd playloopsound( "zmb_avogadro_loop" );
+        node.own_snd playloopsound( df_s6_hum_alias() );
     }
 }
 
@@ -682,8 +757,17 @@ df_s6_setup()
     }
 
     df_s6_hand_remove(); // goto past step6: the fire hand already burnt away
-    df_s6_orb_reset( level.df_s6_nodes.size );
-    level.df_s6_orb.state = "placed";
+    // owner 2026-09-23: built here instead of df_s6_orb_reset, whose "Rock 1/1" notice popped up for everyone on a
+    // goto past this step (a placed rock carries no TAB notice)
+    if ( isdefined( level.df_s6_orb ) )
+        df_s6_orb_hide();
+
+    orb = spawnstruct();
+    orb.state = "placed";
+    orb.charges = level.df_s6_nodes.size;
+    orb.drop_id = 0;
+    level.df_s6_orb = orb;
+    df_scav_carry_clear( "orb" );
     df_s6_orb_table_show();
     level.df_s6_target = level.df_s6_nodes.size;
     level.df_orbs_delivered = level.df_s6_target;
@@ -822,8 +906,8 @@ df_s6_orb_show( pos )
     orb = level.df_s6_orb;
     df_s6_orb_hide();
     orb.ent = spawn( "script_model", pos );
-    orb.ent setmodel( df_model( "orb" ) );
-    orb.ent.angles = df_model_angles( "orb", randomint( 360 ) );
+    orb.ent setmodel( df_model( "orb_ground" ) );
+    orb.ent.angles = df_model_angles( "orb_ground", randomint( 360 ) ); // owner 2026-09-23 (audit P16): the ground pose from the composer
     orb.ent thread df_s6_orb_spin();
     orb.beam = df_beam_start( pos + df_fx_point( "orb_glint" ) );
     orb.glint = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point( "orb_glint" ) );
@@ -936,7 +1020,7 @@ df_s6_pickup_monitor()
                 continue;
             }
 
-            player df_s6_prompt_set( "orb", "Press [{+activate}] to take the orb" );
+            player df_s6_prompt_set( "orb", "Press [{+activate}] to take the rock" );
 
             if ( !player df_press_use() )
                 continue;
@@ -990,6 +1074,12 @@ df_s6_orb_take()
 
     level.df_s6_said_hint = 1;
     df_say( "D6_HINT" );
+}
+
+// True when `player` has either Jet Gun (jetgun_zm or jetgun_upgraded_zm) in the inventory.
+df_s6_has_jetgun( player )
+{
+    return player hasweapon( "jetgun_zm" ) || player hasweapon( "jetgun_upgraded_zm" );
 }
 
 // True when any player carries a Jet Gun (getweaponslistprimaries, the list _zm_weapons.gsc:197 walks).
@@ -1129,6 +1219,37 @@ df_s6_drop_timer( drop_id )
     df_debug_print( "DF: s6 orb returned home (" + int( home[0] ) + " " + int( home[1] ) + " " + int( home[2] ) + ")" );
 }
 
+// Seconds a freshly landed rock waits untouched at its landing spot before flying to the table front.
+df_s6_idle_seconds()
+{
+    return 180;
+}
+
+// owner 2026-09-23: a rock nobody touched since it landed never flew home (only a dropped one did). After
+// df_s6_idle_seconds() still "waiting" with the same drop_id (never picked up, dropped or moved by the debug
+// hook) it flies to the table front the way a dropped one does (df_soul_fly trail), charges kept.
+df_s6_idle_timer( drop_id )
+{
+    level endon( "end_game" );
+    level endon( "df_skip_step6" );
+    level endon( "df_s6_stop" );
+
+    wait( df_s6_idle_seconds() );
+    orb = level.df_s6_orb;
+
+    if ( !isdefined( orb ) || orb.state != "waiting" || orb.drop_id != drop_id || !isdefined( orb.ent ) )
+        return;
+
+    from = orb.ent.origin;
+    home = df_s6_socket_front_pos();
+    df_s6_orb_hide();
+    orb.drop_id++;
+    level thread df_soul_fly( from + ( 0, 0, 20 ), home + ( 0, 0, 20 ) );
+    df_s6_orb_show( home );
+    df_step_focus( "step6", home + ( 0, 0, 20 ) ); // the STEP AVAILABLE glint follows the rock (still untouched)
+    df_debug_print( "DF: s6 rock untouched " + df_s6_idle_seconds() + " s at its landing spot, flew to the table front (" + int( home[0] ) + " " + int( home[1] ) + " " + int( home[2] ) + ")" );
+}
+
 // ----------------------------------------------------------------- prompts ----
 // Several monitors want the player's prompt (orb pickup, socket, Jet Gun hint), so each one owns it by
 // name: a monitor only removes the prompt it set itself. Orb and socket prompts (mechanic, df_prompt) win
@@ -1199,10 +1320,10 @@ df_s6_hint_monitor()
 
             if ( show )
             {
-                text = "Fire the Jet Gun at it to draw the charge into the orb";
+                text = "Fire the Jet Gun at it to draw the charge into the rock";
 
                 if ( !isdefined( player.df_orb ) )
-                    text = "Bring the orb here to take this charge";
+                    text = "Bring the rock here to take this charge";
 
                 if ( !isdefined( player.df_s6_prompt_owner ) || player.df_s6_prompt_owner == "hint" )
                     player df_s6_prompt_set( "hint", text );
@@ -1342,14 +1463,23 @@ df_s6_overheat_watch( node, range2 )
     level endon( "df_s6_stop" );
 
     what = self waittill_any_return( "jetgun_overheated", "weapon_change", "player_downed", "death" );
-    self.df_s6_heat_watch = 0;
 
     // TranZit Enhanced takes the overheated gun away for its cooldown: that arrives as a weapon change, sometimes
     // before our thread reads the overheat notify (owner 2026-09-23: a full charge drew nothing). A weapon change
-    // with the gun cooling, locked or gone counts as the overheat.
-    if ( what == "weapon_change" && ( is_true( self.jgx_cooling ) || self isweaponoverheating( 0 ) || !self hasweapon( "jetgun_zm" ) ) )
-        what = "jetgun_overheated";
+    // counts as the overheat only with a REAL overheat signal (TE's jgx_cooling, vanilla's jetgun_overheating, the
+    // engine's isweaponoverheating), read a frame later since TE sets jgx_cooling right after its notify. The old
+    // "no jetgun_zm in the inventory" test made every swap count with the upgraded gun (jetgun_upgraded_zm).
+    if ( what == "weapon_change" )
+    {
+        wait 0.05;
 
+        if ( is_true( self.jgx_cooling ) || is_true( self.jetgun_overheating ) || self isweaponoverheating( 0 ) )
+            what = "jetgun_overheated";
+        else if ( !df_s6_has_jetgun( self ) )
+            df_debug_print( "DF: s6 jet gun gone without an overheat signal: nothing drawn" );
+    }
+
+    self.df_s6_heat_watch = 0;
     df_debug_print( "DF: s6 heat watch ended on " + what );
 
     if ( what != "jetgun_overheated" || !isdefined( node ) || node.state != "charged" )
@@ -1467,6 +1597,12 @@ df_s6_drain( node, player )
     {
         level thread df_s6_ready_clinks( ready_at );
         df_debug_print( "DF: s6 orb fully charged, bring it to the tower socket" );
+
+        // owner 2026-09-23: the full rock is said aloud by side
+        if ( df_s6_is_maxis() )
+            df_say( "D6_FULL_MAXIS" );
+        else
+            df_say( "D6_FULL_RICH" );
     }
 }
 
@@ -1519,11 +1655,11 @@ df_s6_socket_monitor()
 
             if ( missing > 0 )
             {
-                player df_s6_prompt_set( "socket", "The orb needs " + missing + " more charge(s)" );
+                player df_s6_prompt_set( "socket", "The rock needs " + missing + " more charge(s)" );
                 continue;
             }
 
-            player df_s6_prompt_set( "socket", "Press [{+activate}] to place the orb in the relay" );
+            player df_s6_prompt_set( "socket", "Press [{+activate}] to place the rock in the relay" );
 
             if ( !player df_press_use() )
                 continue;
@@ -1558,6 +1694,7 @@ df_s6_place( player )
     orb.state = "placed";
     df_s6_orb_table_show();
     level.df_orbs_delivered = level.df_s6_target;
+    df_scav_carry_clear( "orb" ); // owner 2026-09-23: the "Rock 1/1" TAB notice goes with the placement
 
     socket_pos = df_coord( "DF_SOCKET" ).origin;
 
@@ -1842,11 +1979,41 @@ df_s6_ember_burst( pos )
     playsoundatposition( "zmb_phdflop_explo", from );
     df_say( "S6_EMBER_MAXIS" );
 
-    trail = df_fx_loop( "fx_zmb_tranzit_fire_med", from + ( 0, 0, 20 ) );
+    df_s6_trail_fly( "fx_zmb_tranzit_fire_med", from, pos );
+    df_debug_print( "DF: s6 the fire hand burst on the table, its fire flew to the landing spot" );
+}
+
+// Richtofen Step 6 opening (owner 2026-09-23): the key card on table slot 1 (level.df_card_table, df_act2_rich)
+// discharges: a blue burst at the card (fx_zmb_tranzit_spark_blue_lg_os), a blue runner (richtofen_sparks, the
+// canon tower runner) flies to `pos` (the rock's landing spot), then S6_CARD_RICH. The card stays on the table.
+// Without a card on the table (debug run before R1) the burst starts from slot 1 all the same.
+df_s6_card_discharge( pos )
+{
+    from = df_table_slot( 1 );
+
+    if ( isdefined( level.df_card_table ) )
+        from = level.df_card_table.origin;
+
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", from );
+    playsoundatposition( "zmb_zombie_arc", from ); // the arc crack the finale pulses use on this side
+    df_s6_trail_fly( "richtofen_sparks", from, pos );
+    df_say( "S6_CARD_RICH" );
+    df_debug_print( "DF: s6 the key card discharged on the table, its charge flew to the landing spot" );
+}
+
+// A trail of `fxname` flies from 20 over `from` to 200 over `pos` (1-4 s by distance) and goes. Blocking. The ent
+// is kept in level.df_s6_arrival_fx while it flies (owner 2026-09-23: a skip mid-flight left it hanging), so the
+// skip cleanup (df_s6_cleanup -> df_s6_arrival_fx_stop) removes it.
+df_s6_trail_fly( fxname, from, pos )
+{
+    trail = df_fx_loop( fxname, from + ( 0, 0, 20 ) );
 
     if ( !isdefined( trail ) )
         return;
 
+    df_s6_arrival_fx_stop();
+    level.df_s6_arrival_fx = [];
+    level.df_s6_arrival_fx[0] = trail;
     wait 0.15;
     t = distance( from, pos ) / 1500;
 
@@ -1858,6 +2025,5 @@ df_s6_ember_burst( pos )
 
     trail moveto( pos + ( 0, 0, 200 ), t );
     wait( t );
-    df_fx_stop( trail );
-    df_debug_print( "DF: s6 the fire hand burst on the table, its fire flew to the landing spot" );
+    df_s6_arrival_fx_stop();
 }

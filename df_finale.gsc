@@ -377,7 +377,9 @@ df_fin_orb_rise( top, real )
     ent = undefined;
     level.df_fin_orb_temp = 0;
 
-    if ( is_true( real ) && isdefined( level.df_s6_orb ) && isdefined( level.df_s6_orb.ent ) )
+    // owner 2026-09-23: only a rock resting on the table rises; one still on the floor or carried (a Step 7
+    // restart cycle cut short) is left to df_fin_orb_after_burst, which hides it through df_fin_orb_consumed
+    if ( is_true( real ) && isdefined( level.df_s6_orb ) && isdefined( level.df_s6_orb.ent ) && isdefined( level.df_s6_orb.state ) && level.df_s6_orb.state == "placed" )
         ent = level.df_s6_orb.ent;
 
     if ( !isdefined( ent ) )
@@ -408,11 +410,9 @@ df_fin_orb_rise( top, real )
 df_fin_orb_after_burst( ent, real )
 {
     if ( is_true( level.df_fin_orb_temp ) )
-    {
         df_fx_stop( ent );
-        return;
-    }
 
+    // owner 2026-09-23: sent after a stand-in too when real, so a Step 6 rock that was not on the table goes as well
     if ( is_true( real ) )
     {
         level notify( "df_fin_orb_consumed" );
@@ -562,8 +562,18 @@ df_fin_pulses( socket, seconds, side )
     {
         if ( side == "maxis" )
         {
-            df_fx_burst( "fx_zmb_tranzit_fire_lrg", socket + df_fx_point( "socket_glow" ), 0.4 );   // df_systems, self-cleaning
-            df_snd_loop_burst( "zmb_fire_loop", socket, 0.6 ); // owner pick 2026-09-11: puff = fire loop burst
+            // owner 2026-09-23: each burst lasts at most the current interval, so bursts never stack as it shrinks
+            fx_len = 0.4;
+            snd_len = 0.6;
+
+            if ( fx_len > interval )
+                fx_len = interval;
+
+            if ( snd_len > interval )
+                snd_len = interval;
+
+            df_fx_burst( "fx_zmb_tranzit_fire_lrg", socket + df_fx_point( "socket_glow" ), fx_len );   // df_systems, self-cleaning
+            df_snd_loop_burst( "zmb_fire_loop", socket, snd_len ); // owner pick 2026-09-11: puff = fire loop burst
         }
         else
         {

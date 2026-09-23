@@ -28,7 +28,8 @@
 // Shaders: all vanilla, listed in tools/assets/shaders_zm_transit.txt (zm_hud_icon_battery :131,
 // zm_hud_icon_jetgun_wires :141, zm_hud_icon_spool :150, zm_hud_icon_sq_keycard :151, zm_hud_icon_sq_meteor :154,
 // zm_hud_icon_sq_powerbox :155, zm_hud_icon_sq_scafold :156, zm_hud_icon_sq_tranceiver :157), all precached by
-// the map (Scavenger only re-precaches four of them). Sound on pickup stays in the acts: zmb_buildable_pickup,
+// the map (Scavenger only re-precaches four of them); plus hud_status_dead :40 for the skull (owner 2026-09-23),
+// which vanilla only registers as a status icon, so df_coords_precache precaches it as a shader. Sound on pickup stays in the acts: zmb_buildable_pickup,
 // the vanilla part pickup (zm_transit_buildables.gsc:249 onpickup_common) that a Scavenger collect also plays.
 // Polling: the only permanent loop is the per-player TAB loop, asleep on a waittill until TAB goes down and
 // then 0.05 s ticks that compare one integer (level.df_scav_rev) and redraw only when a value changed.
@@ -185,8 +186,9 @@ df_scav_icon( kind )
         case "battery":
             return "zm_hud_icon_battery";
         case "ember":
+            return "zm_hud_icon_sq_meteor"; // owner 2026-09-23: the rock picture on the fire hand too
         case "skull":
-            return "zm_hud_icon_sq_meteor";
+            return "hud_status_dead"; // owner 2026-09-23: the scoreboard skull (precached by df_coords_precache)
         case "part_a":
             return "zm_hud_icon_sq_tranceiver"; // the radio
         case "part_b":
@@ -220,7 +222,7 @@ df_scav_display_name( kind )
         case "ember":
             return "Fire hand";
         case "skull":
-            return "Stone";
+            return "Skull"; // owner 2026-09-23: a real skull again (was "Stone" on the meteor model)
         case "parts":
         case "part_a":
         case "part_b":
@@ -748,7 +750,7 @@ df_scav_debug_slot_demo()
     df_scav_carry_set( "parts", 2, 3, undefined, "part_b" );
     df_debug_print( "DF: scav demo: hold TAB, the square shows 2/3 (20 s), then complete (10 s), then idle" );
     wait 20;
-    df_scav_carry_set( "parts", 3, 3, undefined, "part_c" );
+    df_scav_carry_set( "parts", 3, 3, undefined, "receiver" ); // the third part is the receiver since part_c was cut
     wait 10;
     df_scav_carry_clear( "parts" );
 }

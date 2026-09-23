@@ -181,6 +181,13 @@ df_debug_cmd_quest( sub, arg )
                 return 1;
             }
 
+            // owner 2026-09-23 (audit B1): a second side change removed both acts' world state; the lock is final
+            if ( isdefined( level.df_side ) && level.df_side != tolower( arg ) )
+            {
+                self df_out( "DF: side " + level.df_side + " is already locked, it cannot change in this game (start a fresh game to test " + tolower( arg ) + ")" );
+                return 1;
+            }
+
             df_set_side( tolower( arg ) );
             self df_out( "DF: side = " + level.df_side );
             return 1;
@@ -749,7 +756,7 @@ df_debug_catalog_pick( args )
 {
     if ( args.size < 5 || !isdefined( level.df_catalog_shown ) || level.df_catalog_shown.size == 0 )
     {
-        self df_out( "Usage: !df catalog pick <n> <kind>   after a !df catalog <keyword>; kinds: relay relay_top orb part_a part_b part_c tv phone fuse socket brazier card portal beacon" );
+        self df_out( "Usage: !df catalog pick <n> <kind>   after a !df catalog <keyword>; kinds: relay relay_top orb part_a part_b part_c tv fuse socket brazier card portal beacon" );
         return;
     }
 
@@ -1015,6 +1022,28 @@ df_debug_goto( target )
         return;
     }
 
+    // owner 2026-09-23 (audit B1): the side lock is final, a step of the other side is out of reach
+    if ( isdefined( level.df_step_side[target] ) && isdefined( level.df_side ) && level.df_side != level.df_step_side[target] )
+    {
+        self df_out( "DF: " + target + " belongs to the " + level.df_step_side[target] + " side but " + level.df_side + " is locked in this game (start a fresh game)" );
+        return;
+    }
+
+    // owner 2026-09-23 (audit B13): a goto only moves forward; a done or earlier step cannot be replayed
+    if ( df_is_done( target ) )
+    {
+        self df_out( "DF: " + target + " is already done, goto only moves forward" );
+        return;
+    }
+
+    current = df_debug_goto_current();
+
+    if ( current >= 0 && df_step_index( target ) <= current )
+    {
+        self df_out( "DF: " + target + " is not ahead of the current step " + level.df_step_order[current] + ", goto only moves forward" );
+        return;
+    }
+
     // Set before any notify: runners stay parked in df_wait_prereq until the jump is finished, so
     // intermediate steps are never started for a frame and then skipped.
     level.df_goto_busy = 1;
@@ -1033,11 +1062,49 @@ df_debug_goto( target )
 
     // level thread: a player leaving mid-jump must not leave df_goto_busy stuck at 1
     level thread df_debug_goto_run( target );
+    level thread df_debug_goto_watchdog( target );
+}
+
+// owner 2026-09-23 (audit B13): index in level.df_step_order of the furthest step that is done or available
+// (the step the game is at), -1 before Step 1 opens.
+df_debug_goto_current()
+{
+    current = -1;
+
+    for ( i = 0; i < level.df_step_order.size; i++ )
+    {
+        key = level.df_step_order[i];
+
+        if ( df_is_done( key ) || isdefined( level.df_step_avail_round[key] ) )
+            current = i;
+    }
+
+    return current;
+}
+
+// owner 2026-09-23 (audit B13): df_goto_busy was only cleared at the end of df_debug_goto_run, so a setup func
+// that errored or blocked left every runner parked for the rest of the game. After 20 s the run is aborted
+// ("df_goto_abort", which df_debug_goto_run endons), the flag cleared and the parked runners woken.
+df_debug_goto_watchdog( target )
+{
+    level endon( "end_game" );
+    level endon( "df_goto_finished" );
+
+    wait 20;
+
+    if ( !is_true( level.df_goto_busy ) )
+        return;
+
+    level notify( "df_goto_abort" );
+    level.df_goto_busy = 0;
+    level notify( "df_step_done", "goto" );
+    df_debug_print( "DF: goto " + target + " did not finish in 20 s, aborted (goto flag cleared)" );
 }
 
 df_debug_goto_run( target )
 {
     level endon( "end_game" );
+    level endon( "df_goto_abort" ); // owner 2026-09-23 (audit B13): df_debug_goto_watchdog gave up on this run
 
     for ( i = 0; i < level.df_step_order.size; i++ )
     {
@@ -1062,6 +1129,7 @@ df_debug_goto_run( target )
     }
 
     level.df_goto_busy = 0;
+    level notify( "df_goto_finished" ); // owner 2026-09-23 (audit B13): stops df_debug_goto_watchdog
     level notify( "df_step_done", "goto" );
     df_debug_print( "DF: jumped to " + target );
 }

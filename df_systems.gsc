@@ -738,8 +738,16 @@ df_cue_side_flash( origin, side )
 
 // ITEM ON THE TABLE (owner 2026-09-23): the one lightning snap when anything is put on the table (relay, stone, ember, orb),
 // the blue one-shot spark the relay plug always used. Nothing stays behind: the lasting look is the step glow.
+// owner 2026-09-23: on the Maxis side a short fire snap instead (0.3 s of fx_zmb_tranzit_fire_med); Richtofen and
+// no side keep the blue spark.
 df_cue_table_place( pos )
 {
+    if ( isdefined( level.df_side ) && level.df_side == "maxis" )
+    {
+        df_fx_burst( "fx_zmb_tranzit_fire_med", pos + ( 0, 0, 10 ), 0.3 );
+        return;
+    }
+
     df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + ( 0, 0, 10 ) );
 }
 
