@@ -17,7 +17,7 @@ Holds only: build the relay (3 s, vanilla bar + builder hands), tune a lamp (5 s
 small bar "Powering the relay"), open the frequency (5 s, bar "Opening the frequency"). NO timer on screen anywhere:
 every clock is the Pack-a-Punch tick-tock loop on every player plus dry ticks in the last 30 s (every second, doubled
 under 10 s). `set df_hud_timers 1` before loading brings the old top-centre timers back for a test.
-Two switches: `!df hints on|off` = on-screen PUZZLE prompts ("kick the pipe", Simon boxes, Jet Gun / lava hints, "take
+Two switches: `!df hints on|off` = on-screen PUZZLE prompts ("kick the pipe", Simon boxes, Jet Gun hints, "take
 the skull" in the bunker), default OFF; mechanic prompts (take / place / build / hold, kick the pipe, the Simon boxes) always stay. `!df texthints on|off`
 = the spoken HINT_1 (4 min) / HINT_2 (10 min, then every 6 min) ladder and the event hints, default ON; START / FAIL /
 DONE lines play whatever it says.
@@ -223,7 +223,8 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   stones spent, the ember is charged: return it to the table (one press within 150)`. At the table "Press F to return
   the ember": fire burst at the table, `m2 the charged ember is back in the table`, `step complete m2`, tower orange
   12 s, `m2 smoke column at the tower top for 20 s`, M2_DONE, act 2 reward at once (`act 2 reward given (maxis)`, Max
-  Ammo, Maxis line, orange runners on the tower). `!df fire lamps`: `silent 1` on all 8 lamps; a denizen dropping at any
+  Ammo, Maxis line, orange runners on the tower). Nobody holding a Jet Gun: Maxis's "The rock needs a Jet Gun" line
+  (Step 6 is drawn with it). `m2 done: Step 6 node = the cabin hearth at 5430 6874 -24`. `!df fire lamps`: `silent 1` on all 8 lamps; a denizen dropping at any
   lamp opens a portal, no turbine.
 - Galvaknuckles (`!gun tazer_knuckles_zm`) melee within 100 of a grave, or anywhere with the ember in hand: deny buzz +
   "His current will not touch my graves", console `m2 <you> used the knuckles at the stones: refused`.
@@ -254,23 +255,28 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   a bolt + thunder (RICH) or a fire burst + ignite (MAXIS) at the spot, `s6 strike at DF_ORB_SPAWN`, and the STONE lies
   on the ground there, glint + light shaft on it. The spot is the one printed at the side lock (`orb landing spot ...`):
   the diner, Town or the power station, on EITHER side (`!df tp DF_ORB_SPOT_1..3`). The Step 5 lamps go dark. Console
-  lists the nodes: RICH `s6 node 0 fuse fuse_1` .. 3 (the barn boxes, shaft + column + hum on each); MAXIS `s6 node 0
-  brazier brazier_1` .. 3 (the scorched spots where the graves stood, shaft + column + hum on each).
-- One press within 100 takes it (`s6 orb picked up by <you> (0/4 charges)`, notice, TAB square). No lamp portals while
-  carrying. MAXIS: Maxis's fire line once. RICH with no Jet Gun in any inventory: Richtofen's vacuum line once; otherwise
-  D6_HINT once per game.
-- RICH: `!gun jetgun_zm`, carry the orb to a panel, fire at it within 300 looking at it: a rising power sound (no bar),
-  `s6 drawing node k`, after 5 s cumulative NavCard chime + flash + runner to the tower + meteor ping + trail into you,
-  `s6 charge 1/4 in the orb (node ...)`, blue arcs on your torso. Refused: `jet gun firing but no charged node within
-  300` / `firing near node k, aim NN/100 (need 80)`; carrier with no Jet Gun in hand within 300 of a panel: deny buzz
-  once per approach (`draw refused at node k`). Heat is bled above 30 while you draw (`jet gun running hot` line once).
-- MAXIS: walk with the orb to a scorched spot: within 300 Maxis's lava line once. Stand IN the lava next to it 5 s
-  cumulative (step out = pause; you burn the whole time: Juggernog helps): rising sound, then `s6 charge 1/4`. Outside
-  the lava within 300: `carrier near node k but not on lava` and after 2 s one deny buzz. The Jet Gun does nothing here.
+  lists ONE node: RICH `s6 node 0 core core` (the sparking block on the power station bridge), MAXIS `s6 node 0 hearth
+  cabin hearth` (the fireplace of the hunter's cabin in the woods, `!df tp DF_CABIN_HEARTH`): shaft + column + hum on
+  it, MAXIS also a small glow in the fireplace opening.
+- One press within 100 takes it (`s6 orb picked up by <you> (0/1 charges)`, notice "Rock 0/1", TAB square). No lamp
+  portals while carrying. With no Jet Gun in any inventory: the side's "build a Jet Gun" line once (RICH vacuum line,
+  MAXIS "The rock needs a Jet Gun"); otherwise D6_HINT once per game.
+- BOTH SIDES, the same draw: `!gun jetgun_zm`, carry the orb to the node, fire at it within 350 looking at it (cone
+  55 degrees on the aim point): a rising power sound (no bar), `s6 drawing node 0`, side bursts at the node. Keep firing
+  until the gun OVERHEATS while still aimed: `s6 jet gun overheated at the node: the charge is drawn`, NavCard chime +
+  flash + runner to the tower + trail into you, `s6 charge 1/1 in the orb (node 0 ...)`. Overheat while looking away:
+  `overheated away from the node: nothing drawn`, try again. Refused: `jet gun firing but no charged node within 350`
+  / `firing near node 0, aim NN/100 (need 57)`; carrier with no Jet Gun in hand within 350: deny buzz once per approach
+  (`draw refused at node 0`).
+- MAXIS aim check at the fireplace: crouched at 5394 6872 looking straight in, standing at the same spot, and standing
+  a metre back (5357 6872) must all draw. Wrong: paste the `aim NN/100` line and your `!pos`. Denizens leave you alone
+  within 400 of the fireplace while Step 6 is open.
 - All charges: three clinks, `s6 orb fully charged, bring it to the tower socket`, aura + hum on the stone and on you
   (RICH avogadro_health_full, MAXIS powerup_on_caution; `!df fire orb_aura` cycles). At the table with charges missing:
   "The orb needs N more charge(s)". Full, one press within 150: "Press F to place the orb in the relay", power pulse +
   flash + clink, the stone rests on the RIGHT slot with its aura, glow on the slot, D6_DONE, `step complete step6`.
+- `!df goto step6` MAXIS (after `!df side maxis`): console `m2 done: Step 6 node = the cabin hearth ...` and `s6 node 0
+  hearth cabin hearth`; RICH `r1 done: Step 6 node = the transformer block ...`.
 - Drop test: go down while carrying: `s6 orb dropped at ..., 60 s to pick it up`; wait: `s6 orb returned home (...)` =
   the NEARER of the landing spot and the table front, charges kept.
 
@@ -293,7 +299,7 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   reset`. Leave 11 s straight: fail (`zone abandoned`). Horn at 5 s away (`zone empty for 5 s cumulative`).
 - `!df fire s7_dmg` until hp is under 900: `s7 orb damaged (...): warning beeps on`, faster bursts, a beep every 2 s.
   Keep firing to 0: `s7 orb destroyed`, `s7 wave over: fail_orb`, side flashes + EMP sound, D7_FAIL, `s6 restart:
-  charged orb (4/4) waiting in front of the table`. One press takes it, one press places it (`s7 orb redelivered, the
+  charged orb (1/1) waiting in front of the table`. One press takes it, one press places it (`s7 orb redelivered, the
   table is armed again`), hold again. Song must NOT play twice within 330 s. Never two stones at once.
 - Survive (or `!df fire s7_time`): `s7 wave over: success`, tower lights, the stone glides back onto the right slot in 2 s
   with the rising sound, `s7 orb back on the table, slot 2`, light column, D7_DONE, `step complete step7`, one more white
@@ -364,7 +370,7 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   later with no side: `no side locked, defaulting to rich`; type `!df side maxis` FIRST for a Maxis test.
 - `!df goto step5` RICH from round 1: boxes with a steady glow, card glowing on the middle slot, lamps filled (steady
   glow, no sparks), three glows on the post, `act 2 reward given silently (goto)` (no Max Ammo, no line). MAXIS: stone on
-  the middle slot, four scorched glows where the graves stood, no ember prompts. `!df goto step7` / `finale`: the stone
+  the middle slot, four scorched glows where the graves stood (cosmetic, not Step 6 nodes), no ember prompts. `!df goto step7` / `finale`: the stone
   rests on the right slot, tracker runners on.
 - Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched)` + one line, then at 10 min and every
   6 min; an event hint earlier (`event hint ...`) skips that rung once. `!df texthints off` mutes them (the clock keeps

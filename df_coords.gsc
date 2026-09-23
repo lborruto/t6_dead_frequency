@@ -118,9 +118,16 @@ df_coords_init()
     df_coord_set( "DF_ORB_SPOT_3", df_ground( ( 11720, 8491, -575 ) ) + ( 0, 0, 1 ), ( 0, -88, 0 ), df_model( "orb" ) );
 
     // ---- Step 6, Richtofen: the sparking transformer block on the small bridge at the power station exit (owner spot
-    //      2026-09-11, INSIDE the block: 11095 8365 -529; the player fires from the bridge at 11084 8445 -543). The four
-    //      Jet Gun draws happen here (df_act2_rich df_r1_export_nodes). No map entity marks it: the coordinate is the anchor.
+    //      2026-09-11, INSIDE the block: 11095 8365 -529; the player fires from the bridge at 11084 8445 -543). The one
+    //      Jet Gun draw happens here (df_act2_rich df_r1_export_nodes). No map entity marks it: the coordinate is the anchor.
     df_coord_set( "DF_CORE", ( 11092, 8361, -496 ), ( 0, 113, 0 ), undefined ); // owner placement 2026-09-11 (!df grab)
+
+    // ---- Step 6, Maxis (owner 2026-09-23): the fireplace of the hunter's cabin in the woods. ONE node, the same Jet Gun
+    //      overheat draw as DF_CORE (df_act2_maxis df_m2_export_nodes, kind "hearth"). Owner readings in front of it:
+    //      crouched 5394 6872 -23 | 0 4 0, standing same spot | 0 3 0, a metre back 5357 6872 -24 | 0 2 0: the opening is
+    //      straight ahead along +x, so the anchor is the floor under it; yaw 183 faces back into the room. No model: the
+    //      fireplace is map geometry. The aim / beam / glow point is the registry point cabin_hearth_node.
+    df_coord_set( "DF_CABIN_HEARTH", ( 5430, 6874, -24 ), ( 0, 183, 0 ), undefined );
     df_coord_set( "DF_ORB_SPAWN", df_ground( ( 7628, -471, -207 ) ) + ( 0, 0, 1 ), ( 0, 0, 0 ), df_model( "orb" ) );
 
     // ---- Farm barn: four fuse boxes, each on the wall the owner faced from these spots (recorded with !pos
@@ -1494,9 +1501,7 @@ df_models_init_items()
 //   df_act3_vacuum.gsc:151      lamp    orb hum / aim (no exploder found)       ( 0, 0, 148 )   lamp_bulb_glow
 //   df_act3_vacuum.gsc:157/170  fuse    zmb_avogadro_loop hum / beam aim        ( 0, 0, 20 )    fuse_aim
 //   df_act3_vacuum.gsc:158/173  core    zmb_avogadro_loop hum / beam aim        ( 0, 0, 30 )    core_node
-//   df_act3_vacuum.gsc:161      brazier zmb_avogadro_loop hum aim               ( 0, 0, 60 )    node_aim
-//   df_act3_vacuum.gsc:175      brazier beam aim                               ( 0, 0, 40 )    node_beam
-//   df_act3_vacuum.gsc:662      brazier fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 40 )    node_glow
+//   df_act3_vacuum.gsc          cabin_hearth zmb_avogadro_loop hum / beam aim   ( 0, 0, 18 )    cabin_hearth_node
 //   df_act3_vacuum.gsc:826/827  orb     df_beam_start / key glint               ( 0, 0, 20 )    orb_glint
 //   df_act3_vacuum.gsc:1633     table   fx_zmb_tranzit_spark_int_runner         ( 0, 0, 30 )    socket_glow
 //   df_act3_vacuum.gsc:464/465  tower   fx_zmb_ash_rising_md (side columns)     ( 60, 0, 0 )    tower_column_side
@@ -1564,9 +1569,7 @@ df_fx_points_init()
     df_fx_point_def( "fuse_aim", "fuse", ( 0, 0, 5 ) );             // owner composer 2026-09-22; where the orb hum and the guide beam land
     df_fx_point_def( "core_node", "core", ( 0, 0, 30 ) );
     df_fx_point_def( "lamp_bulb_glow", "lamp", ( 0, 0, 148 ) );     // fallback bulb height when the map exploder is not found
-    df_fx_point_def( "node_aim", "brazier", ( 0, 0, 30 ) );         // owner composer 2026-09-22; generic Step 6 node: the orb hum
-    df_fx_point_def( "node_beam", "brazier", ( 0, 0, 0.5 ) );       // owner composer 2026-09-22; generic Step 6 node: the guide beam
-    df_fx_point_def( "node_glow", "brazier", ( 0, 0, 0.5 ) );       // owner composer 2026-09-22; generic Step 6 node: its own glow
+    df_fx_point_def( "cabin_hearth_node", "cabin_hearth", ( 0, 0, 18 ) ); // owner 2026-09-23; Maxis Step 6 node: aim, beam, hum and glow, the centre of the fireplace opening
 
     // ---- the M2 braziers (tombstones): the rim is measured per brazier (df_m2_rim_height), the registry holds the extra.
     //      The composer page that produced the two numbers below drew the RIM at the tombstone's glTF top (31) while

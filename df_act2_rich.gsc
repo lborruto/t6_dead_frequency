@@ -445,8 +445,8 @@ df_r1_setup()
 // Audit #3: Richtofen's Step 6 nodes = the sparking block at the power station, DF_CORE (same node struct shape;
 // df_act3_vacuum reads kind "fuse"). The R2 lamps are NOT exported on this side.
 // Step 6 nodes on Richtofen's side (owner 2026-09-11): the reactor core of the power station, where Avogadro sleeps
-// (vanilla ent "core_mover", zm_transit_power.gsc powerevent). Four nodes 45 units around it, so the four charges
-// are four 5 s draws at the same place: the whole Jet Gun emptied into the core. The barn boxes stay R1's.
+// (vanilla ent "core_mover", zm_transit_power.gsc powerevent). ONE node (rc3): the whole Jet Gun emptied into it until
+// it overheats; the Maxis side draws the cabin hearth the same way (df_act2_maxis df_m2_export_nodes). The barn boxes stay R1's.
 // Fallback when the core ent is missing: the four boxes as before.
 df_r1_export_nodes()
 {

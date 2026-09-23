@@ -24,7 +24,7 @@
 //   tagged coop = 1 (4th arg) is
 //   dropped in solo by df_say ("one lamp each").
 //   Event keys added by the audit pass (2026-09-08), listed with their step: R1_RICH_CHAMBER, M1_EVENT,
-//   S5_ANCHOR_TURBINE_MAXIS / S5_ANCHOR_DENIZEN_RICH, S6_NOJETGUN_RICH / _MAXIS, S6_DRAW_LAVA_MAXIS,
+//   S5_ANCHOR_TURBINE_MAXIS / S5_ANCHOR_DENIZEN_RICH, S6_NOJETGUN_RICH / _MAXIS,
 //   S7_AVOGADRO_RICH, A2_REWARD_RICH / _MAXIS, FIN_WORLD_RICH / _MAXIS, ITEM_RECEIVER, ITEM_BATTERY_RICH,
 //   ITEM_SPOOL_RICH, ITEM_EMBER_MAXIS, ITEM_SKULL_MAXIS (tools/audit_A.md says who calls each), and
 //   M2_POWER_MAXIS (dialogue audit v2, 2026-09-09). Dead keys cut by that audit (no caller, string budget):
@@ -127,7 +127,7 @@ df_dialogue_act1()
 // posts (one always nearest the tower) each swallow a quota of kills (12 solo) within 400 units, a full lamp
 // glows steady and a Galvaknuckles punch on the post drops a wire spool that goes to the table (ITEM_SPOOL_RICH).
 // Story: the creature's energies were Maxis's plan (canon), Richtofen steals them (R1_MAXIS_TAUNT is a loss);
-// the stolen storm sits in the four barn boxes (the S6 nodes) until the orb carries it to the obelisk.
+// the stolen storm sits in the sparking block on the bridge (the S6 node) until the orb carries it to the obelisk.
 df_dialogue_act2_rich()
 {
     // R1 - Summon the Storm
@@ -241,29 +241,28 @@ df_dialogue_act3_sweep()
 
 // Act 3 Step 6 "Vacuum" (shared, sided keys). Mechanics (df_act3_vacuum.gsc): one small orb (a meteor
 // stone model) lands by lightning at one of three random spots, either side (the HINT_1 lines say "where
-// the lightning struck", never a fixed place); a player carries it to each charged node:
-// Richtofen the four barn power boxes, Jet Gun fired at the box 5 s while carrying; Maxis the scorched grave
-// spots, the carrier stands IN the lava beside one (requests_C / _E); full, it goes to table slot 2. D6_HINT is the
-// cue on every pickup of a not yet full orb (df_s6_orb_take).
+// the lightning struck", never a fixed place); a player carries it to the ONE charged node of the side and fires
+// the Jet Gun into it until the gun overheats: Richtofen the sparking block on the power station bridge, Maxis
+// (owner 2026-09-23) the fireplace of the hunter's cabin in the woods; full, it goes to table slot 2. D6_HINT is
+// the cue on every pickup of a not yet full orb (df_s6_orb_take). S6_NOJETGUN_<SIDE>: R2 / M2 completion and the
+// pickup, when no player carries a Jet Gun.
 df_dialogue_act3_vacuum()
 {
     df_add_line( "S6_START_RICH", "rich", "That crackle at the power plant, Samuel? My storm wants out. Find it a jar." );
     df_add_line( "S6_START_RICH", "maxis", "He has you carrying his batteries now. Follow his light, if you must." );
-    df_add_line( "S6_START_MAXIS", "maxis", "The ash by the lava still holds what it drank. Something must gather it up." );
+    df_add_line( "S6_START_MAXIS", "maxis", "The hunter's cabin in the woods keeps a fire. The rock must drink from it." );
     df_add_line( "S6_START_MAXIS", "rich", "A ROCK, Samuel! He wants you to carry a rock! Oh, I could not make this up!" );
     df_add_line( "S6_HINT_1_RICH", "rich", "Where the lightning struck, Samuel: a rock. Emptier than it looks. Fetch it." );
-    df_add_line( "S6_HINT_1_MAXIS", "maxis", "A rock fell with the lightning. It is a vessel, and empty. Pick it up." );
+    df_add_line( "S6_HINT_1_MAXIS", "maxis", "A rock fell with the lightning. Carry it to the hunter's cabin in the woods." );
     df_add_line( "S6_HINT_2_RICH", "rich", "Hold the rock at the sparking block on the bridge. Empty the Jet Gun into it." );
-    df_add_line( "S6_HINT_2_MAXIS", "maxis", "Hold the rock in the lava by each spent grave. Let it drink. Then the table." );
+    df_add_line( "S6_HINT_2_MAXIS", "maxis", "Hold the rock at the cabin fireplace. Fire a full Jet Gun charge into it." );
     df_add_line( "D6_HINT", "rich", "Someone built a big vacuum cleaner, Samuel. Aim it at the sparking block." );
-    df_add_line( "D6_HINT", "maxis", "The rock is empty. Each burnt grave still holds what you fed it. Draw it out." );
+    df_add_line( "D6_HINT", "maxis", "The rock is empty. Fire a Jet Gun into the fireplace of the hunter's cabin." );
     df_add_line( "D6_HINT_RICH", "rich", "Someone built a big vacuum cleaner, Samuel. Aim it at the sparking block." );
-    df_add_line( "D6_HINT_MAXIS", "maxis", "The rock is empty. Each burnt grave still holds what you fed it. Draw it out." );
-    // S6_NOJETGUN_*: the orb is taken and no player carries a Jet Gun (event hint, audit section 4)
+    df_add_line( "D6_HINT_MAXIS", "maxis", "The rock is empty. Fire a Jet Gun into the fireplace of the hunter's cabin." );
+    // S6_NOJETGUN_*: R2 / M2 completion or the orb pickup, and no player carries a Jet Gun (event hint, audit section 4)
     df_add_line( "S6_NOJETGUN_RICH", "rich", "No engine? Build one, Samuel! Four parts in the fog. Jet with an afterburner!" );
-    df_add_line( "S6_NOJETGUN_MAXIS", "maxis", "You do not need his engine. Fire draws the ash. Stand in the burning ground." );
-    // S6_DRAW_LAVA_MAXIS: the carrier stands in lava beside a scorched grave spot and the draw is running (audit #4)
-    df_add_line( "S6_DRAW_LAVA_MAXIS", "maxis", "It drinks. Stay in the fire until the rock is full. It costs skin, not time." );
+    df_add_line( "S6_NOJETGUN_MAXIS", "maxis", "The rock needs a Jet Gun. Build one: its four parts lie in the fog." );
     df_add_line( "D6_DONE", "maxis", "The charge is home. The Spire will not keep it quietly. Someone must wake it." );
     df_add_line( "D6_DONE", "rich", "The charge is home! He thinks it is his. Wake the obelisk and prove him wrong." );
     df_add_line( "D6_DONE_RICH", "rich", "The charge is home! He thinks it is his. Wake the obelisk and prove him wrong." );

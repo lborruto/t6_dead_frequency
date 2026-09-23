@@ -92,13 +92,16 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   spools), and the Richtofen side rules (Avogadro every round, turrets without turbine,
   power-off penalty).
 - `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt
-  in Nacht, the stone), M2 Fire and Ash (ember, four graves along the lava, burning kills, scorched nodes), and
-  the Maxis side rules (denizen safety near the table and lit graves, doubled fog spawns, power-on penalty).
+  in Nacht, the stone), M2 Fire and Ash (ember, four graves along the lava, burning kills, the scorched glows; at completion it
+  exports the ONE Step 6 node, the hunter's cabin fireplace `DF_CABIN_HEARTH`, and warns when nobody has a Jet
+  Gun), and the Maxis side rules (denizen safety near the table and lit graves, near the cabin fireplace while Step 6
+  is open, doubled fog spawns, power-on penalty).
 - `df_act3_sweep.gsc` - Step 5 Frequency Sweep: tune (hold 5 s) then anchor (turbine on Maxis, Galvaknuckle jolt
   on Richtofen) each set lamp; the audible countdown from the first anchor; fail-forward expiry with a soul
   penalty on the unanchored lamps only.
-- `df_act3_vacuum.gsc` - Step 6 Vacuum: the orb's arrival at the drawn landing spot, the carry, the per-side draw
-  (Jet Gun at a barn box / standing in lava at a scorched grave), the aura, home-flight of a dropped orb, the
+- `df_act3_vacuum.gsc` - Step 6 Vacuum: the orb's arrival at the drawn landing spot, the carry, the draw (the same
+  on both sides: ONE node, the Jet Gun fired at it with the orb carried until the gun overheats; Richtofen the
+  transformer block `DF_CORE`, Maxis the cabin fireplace `DF_CABIN_HEARTH`, aim point `cabin_hearth_node`), the aura, home-flight of a dropped orb, the
   Step 7 restart contract (`df_s6_restart` / `df_s6_redelivered`).
 - `df_act3_hold.gsc` - Step 7 The Line Holds: the wandering orb under the tower, our own sprinter spawner and
   alive cap, the orb hp and guard bonus, the zone rule, charge strikes, per-side pressure (Avogadro boss /
@@ -202,7 +205,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | `!df side_fx` / `!df side_fx stop` | start / stop the tower visuals for the locked side |
 | `!df power on` / `!df power off` | flip TranZit power (fires the real switch if built, else the flags) |
 | `!df stat rich` / `!df stat maxis` / `!df stat none` | WRITES the completion stat (globe glow) for that side, or clears it |
-| `!df hints on` / `!df hints off` | show / hide the on-screen puzzle prompts only (Jet Gun / lava hints, the cold-room take line, "take the skull" in the bunker); default off. Mechanic prompts (take / place / build / hold) always stay |
+| `!df hints on` / `!df hints off` | show / hide the on-screen puzzle prompts only (Jet Gun hints, the cold-room take line, "take the skull" in the bunker); default off. Mechanic prompts (take / place / build / hold) always stay |
 | `!df texthints on` / `!df texthints off` | the spoken hint ladder (HINT_1 at 4 min, HINT_2 at 10 min then every 6 min, event hints); default on. START / FAIL / DONE lines always play |
 | `!df cue avail|tick|subgoal|fail|deny|trail|done` | plays one row of the cue grammar where you stand (step available, progress tick, sub-goal chime + flash + trail to the tower, fail thump, deny buzz, the trail alone, step done) |
 | `!df vox <alias>` | plays a vanilla patron voice line (`vox_maxi_*` 3D at your feet, anything else 2D to Samuel); silence = unknown alias |
@@ -316,6 +319,8 @@ The older way (the owner's `cheats_zm.gsc`: `!place <model>`, `!nudge`, `!spot <
 | DF_NACHT_SPAWN_1..4 | none, stand there | inside the Nacht bunker (13703 -822 -189 and three neighbours) |
 | DF_TOWER_RETURN | none, stand there | return point after the Cold Room (7552 -512 -72) |
 | DF_ORB_SPOT_1..3 | orb = `p6_zm_buildable_sq_meteor` (the same stone model, rests 3 above the ground) | the three Step 6 landing spots: diner (-5991 -7686 34), Town (1401 -445 -67), power station (11720 8491 -575) |
+| DF_CORE | none (the map's transformer block; aim / beam / hum point `core_node`) | Richtofen's Step 6 node, the sparking block on the power station bridge (11092 8361 -496) |
+| DF_CABIN_HEARTH | none (the map's fireplace; aim / beam / hum / glow point `cabin_hearth_node`, 18 up = the centre of the opening) | Maxis's Step 6 node, the fireplace of the hunter's cabin in the woods (5430 6874 -24, yaw 183) |
 | DF_ORB_SPAWN | orb | a COPY of the spot picked at the side lock; Step 6 reads it when it starts |
 | DF_ORB_TOWER / DF_ORB_DINER | orb | the old per-side spawns, kept only as fallbacks when no DF_ORB_SPOT exists |
 | DF_PORTAL | portal = `p6_zm_screecher_hole` | the M1 hole in front of the table (7623 -457 -207) |

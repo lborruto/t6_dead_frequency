@@ -7,12 +7,13 @@
 //   blue bolt on the fire side (art audit #9). The orb (df_model( "orb" ): the turbine rotor disc
 //   p6_zm_buildable_turbine_fan since 2026-09-09, 25 x 10 x 25 with a centre pivot, spun slowly by
 //   rotateyaw as the tombstone skull is, _zm_tombstone.gsc:332) rests there afterwards: the one thing
-//   allowed to appear after a step. A player takes it with one press of F, then carries it to each charged
-//   node left by Act 2 (level.df_nodes: the four barn FUSE BOXES R1 charged on the Richtofen side, kind
-//   "fuse" exported by df_r1_finish; the M2 braziers on the Maxis side; R2 lamps still work as a fallback).
-//   The DRAW verb differs per side (audit 2.3): Richtofen fires the Jet Gun at the node from close range for
-//   5 s cumulative WHILE CARRYING THE ORB (electricity); Maxis stands ON LAVA within 300 of the brazier for
-//   5 s cumulative while carrying it (fire draws the ash; the lava burns, no Jet Gun needed). With every node
+//   allowed to appear after a step. A player takes it with one press of F, then carries it to the charged
+//   node left by Act 2 (level.df_nodes: ONE node per side. Richtofen: the sparking transformer block DF_CORE,
+//   kind "core", exported by df_r1_export_nodes; Maxis (owner 2026-09-23): the fireplace of the hunter's cabin
+//   in the woods DF_CABIN_HEARTH, kind "hearth", exported by df_m2_export_nodes; the barn boxes / R2 lamps
+//   still work as older exports). The DRAW is the same on both sides: fire the Jet Gun at the node WHILE
+//   CARRYING THE ORB, within draw range and cone, until the gun OVERHEATS (df_s6_overheat_watch), as in the
+//   vanilla tower step. With every node
 //   drained the carrier places the charged orb in the relay on the table under the tower (one press of F,
 //   within 150 units of df_coord( "DF_SOCKET" ) = DF_TABLE): the step is complete, the disc stays visible on
 //   the table's slot 2 (df_s6_orb_table_show, aura on, spinning) and Step 7 defends that orb.
@@ -27,14 +28,11 @@
 //   the table front (steps audit v2 #8: a Richtofen drop at the barn no longer flies back to the diner),
 //   or the table front during a Step 7 restart cycle (df_s6_home_pos).
 //   Guidance: every charged node and the waiting orb get the tower beam + rising light column
-//   (df_beam_start); a Jet Gun holder (Richtofen) / the carrier (Maxis) near a node gets a puzzle hint; the
-//   5 s draw is heard (power-rise loop). Taking the orb with no Jet Gun in any inventory says
-//   S6_NOJETGUN_RICH once (Richtofen); the first Maxis pickup says S6_NOJETGUN_MAXIS once; D6_HINT once per
-//   game on a later pickup (dialogue audit v2 1.4 #8: it used to repeat on every drop-and-pick);
-//   S6_DRAW_LAVA_MAXIS once when the Maxis carrier first reaches a charged brazier. A refused draw (the
-//   carrier at a charged node without a Jet Gun in hand / not standing in the lava) buzzes once per
-//   approach (df_cue_deny, art audit S6.5). Richtofen's canon jet_low line plays once when the Jet Gun
-//   runs hot during a draw (vox_zmba_sidequest_jet_low_0, zm_transit_sq.gsc:642, df_vox_once).
+//   (df_beam_start); a Jet Gun holder near a node gets a puzzle hint; the draw is heard (power-rise loop).
+//   Taking the orb with no Jet Gun in any inventory says S6_NOJETGUN_<SIDE> once (R2 / M2 completion already
+//   said it when nobody had one); D6_HINT once per game on a later pickup (dialogue audit v2 1.4 #8: it used
+//   to repeat on every drop-and-pick). A refused draw (the carrier at a charged node without a Jet Gun in
+//   hand) buzzes once per approach (df_cue_deny, art audit S6.5).
 //   Cue grammar (art audit cue table): a node drained = SUB-GOAL chime + side flash at the node + the canon
 //   node -> tower runner (df_cue_subgoal does all three), the meteor ping and the trail into the carrier
 //   stay; the fourth charge = three rising PROGRESS clinks (df_cue_tick x3); placement = ONE sting only (the
@@ -46,7 +44,7 @@
 //   level notify( "df_s6_redelivered" ). See df_s6_restart_listener. "!df fire s6_restart" fires it.
 //   Lamps (2026-09-08, lamps agent): when an export still names lamps (kind "lamp", the older R2 export)
 //   their looks come only from df_lamp_state_set ("charged" = side light + beam + hum, "drained" = dark) and
-//   the aim / beam point is the real bulb (df_lamp_bulb_pos). With fuse or brazier nodes the anchored lamps of
+//   the aim / beam point is the real bulb (df_lamp_bulb_pos). With non-lamp nodes (box, block, hearth) the lamps of
 //   Step 5 go dark when Step 6 starts so only the nodes carry beams (the lamps are no longer nodes, audit 1.3).
 //
 // Node states: "charged" (drawable) -> "drained".
@@ -94,12 +92,6 @@ df_s6_draw_cos()
     return 0.57;
 }
 
-// 5 s of drawing at 0.05 s per tick
-df_s6_draw_ticks()
-{
-    return 100;
-}
-
 // Seconds a dropped ball waits on the ground before flying home (audit section 5: 30 was short for a team
 // down in the fog)
 df_s6_drop_seconds()
@@ -140,7 +132,8 @@ df_s6_orb_fx_offset()
 
 // The aim point sits where players naturally look: the real bulb for set lamps (df_lamp_bulb_pos; the
 // blue light), the box face for a barn fuse box (kind "fuse", audit #3: origin + 20, where R1 sparks it,
-// df_r1_spawn_fuses led_origin), just above the brazier otherwise.
+// df_r1_spawn_fuses led_origin), the registry point of the transformer block (kind "core", core_node) and of the
+// cabin fireplace opening (kind "hearth", cabin_hearth_node, owner 2026-09-23). An unknown kind aims like a core.
 df_s6_orb_pos( node )
 {
     if ( isdefined( node.kind ) && node.kind == "lamp" )
@@ -154,25 +147,16 @@ df_s6_orb_pos( node )
     if ( isdefined( node.kind ) && node.kind == "fuse" )
         return node.origin + df_fx_point( "fuse_aim" );
 
-    if ( isdefined( node.kind ) && node.kind == "core" )
-        return node.origin + df_fx_point( "core_node" ); // the reactor core nodes (owner 2026-09-11)
+    if ( isdefined( node.kind ) && node.kind == "hearth" )
+        return node.origin + df_fx_point( "cabin_hearth_node" ); // the hunter's cabin fireplace (Maxis)
 
-    return node.origin + df_fx_point( "node_aim" );
+    return node.origin + df_fx_point( "core_node" ); // the transformer block (Richtofen, owner 2026-09-11)
 }
 
-// Where the guiding beam points for a node without a lamp look of its own (fuse boxes, braziers, fallback nodes).
+// Where the guiding beam points: the aim point for every kind (fuse box face, block, fireplace opening, bulb).
 df_s6_beam_pos( node )
 {
-    if ( isdefined( node.kind ) && node.kind == "lamp" )
-        return df_s6_orb_pos( node );
-
-    if ( isdefined( node.kind ) && node.kind == "fuse" )
-        return node.origin + df_fx_point( "fuse_aim" );
-
-    if ( isdefined( node.kind ) && node.kind == "core" )
-        return node.origin + df_fx_point( "core_node" );
-
-    return node.origin + df_fx_point( "node_beam" );
+    return df_s6_orb_pos( node );
 }
 
 // The floor in front of the table (df_coords df_table_front: 40 units out along the table's front) plus
@@ -373,9 +357,7 @@ df_s6_run()
     level.df_s6_target = level.df_s6_nodes.size;
     level.df_orbs_delivered = 0;
     level.df_s6_said_nojet = 0;
-    level.df_s6_said_lava = 0;
     level.df_s6_said_hint = 0;
-    level.df_s6_said_jet_low = 0;
 
     // the shared STEP AVAILABLE cue (df_steps) glints the focus until the first touch: 20 over the orb spawn
     df_step_focus( "step6", df_s6_spawn_pos() + ( 0, 0, 20 ) );
@@ -658,10 +640,20 @@ df_s6_node_fx_on( node )
 
     df_s6_beam_on( node );
 
-    if ( isdefined( node.src ) && is_true( node.src.fallback ) && !isdefined( node.own_fx ) )
-        node.own_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", node.origin + df_fx_point( "node_glow" ) );
+    // a small glow at the draw point for our own fallback nodes and for the cabin fireplace (kind "hearth": the
+    // opening is dark map geometry, the glow shows where to aim; cabin_hearth_node)
+    glow = 0;
 
-    // a charged fuse box / brazier is HEARD (owner 2026-09-09: no visual instruction): the meteor hum at the
+    if ( isdefined( node.kind ) && node.kind == "hearth" )
+        glow = 1;
+
+    if ( isdefined( node.src ) && is_true( node.src.fallback ) )
+        glow = 1;
+
+    if ( glow && !isdefined( node.own_fx ) )
+        node.own_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", df_s6_orb_pos( node ) );
+
+    // a charged node is HEARD (owner 2026-09-09: no visual instruction): the meteor hum at the
     // draw point, the same hum a charged lamp carries (zm_transit.gsc:3349)
     if ( !isdefined( node.own_snd ) )
     {
@@ -695,12 +687,12 @@ df_s6_setup()
     level thread df_s6_restart_listener();
 }
 
-// Wraps level.df_nodes (exported by R1 as fuse boxes / M2 as braziers; R2 lamps as the older export) into
-// our own node structs. Without an export (e.g. a Maxis run before M2 exists) the nodes are the braziers
-// DF_BRAZIER_1..N with our own orange marker (fx_zmb_tranzit_light_safety_max, zm_transit_fx.gsc:114). Set
-// lamps (node.lamp, df_lamp_find by name) get the shared "charged" look; every other charged node gets the
-// guiding beam. When the nodes are not lamps (both sides now) the Step 5 lamps go dark so only the nodes
-// carry beams.
+// Wraps level.df_nodes (exported by R1 as the transformer block DF_CORE / M2 as the cabin hearth DF_CABIN_HEARTH,
+// ONE node each; the barn boxes and R2 lamps as older exports) into our own node structs. Without an export
+// (e.g. a run where Act 2 never ran) the node is the locked side's own anchor, built here the same way, with our
+// small glow marker. Set lamps (node.lamp, df_lamp_find by name) get the shared "charged" look; every other
+// charged node gets the guiding beam. When the nodes are not lamps (both sides now) the Step 5 lamps go dark
+// so only the nodes carry beams.
 df_s6_build_nodes()
 {
     if ( isdefined( level.df_s6_nodes ) )
@@ -713,24 +705,28 @@ df_s6_build_nodes()
     if ( !isdefined( level.df_nodes ) || level.df_nodes.size == 0 )
     {
         level.df_nodes = [];
-        n = df_scaled( "nodes" );
+        key = "DF_CORE";
+        kind = "core";
 
-        for ( i = 1; i <= n; i++ )
+        if ( df_s6_is_maxis() )
         {
-            c = df_coord( "DF_BRAZIER_" + i );
+            key = "DF_CABIN_HEARTH";
+            kind = "hearth";
+        }
 
-            if ( !isdefined( c ) )
-                continue;
+        c = df_coord( key );
 
+        if ( isdefined( c ) )
+        {
             node = spawnstruct();
             node.origin = c.origin;
-            node.name = "brazier_" + i;
-            node.kind = "brazier";
+            node.name = kind;
+            node.kind = kind;
             node.fallback = 1;
             level.df_nodes[level.df_nodes.size] = node;
         }
 
-        level.df_s6_nodes_source = "fallback: level.df_nodes undefined, using DF_BRAZIER_1.." + n;
+        level.df_s6_nodes_source = "fallback: level.df_nodes undefined, using " + key;
     }
 
     for ( i = 0; i < level.df_nodes.size; i++ )
@@ -969,10 +965,10 @@ df_s6_orb_take()
     if ( orb.charges >= level.df_s6_target )
         return;
 
-    // audit section 4: the pickup is the moment to say what draws the charge. Maxis: the fire, once; Richtofen
-    // with no Jet Gun anywhere: the vacuum cleaner line, once. Afterwards the generic D6_HINT, once per game
+    // audit section 4: the pickup is the moment to say what draws the charge. Either side with no Jet Gun anywhere:
+    // the side's "build a Jet Gun" line, once. Afterwards the generic D6_HINT, once per game
     // (dialogue audit v2 1.4 #8: drop-and-pick cycles used to queue a 6.5 s line every time).
-    if ( !is_true( level.df_s6_said_nojet ) && ( df_s6_is_maxis() || !df_s6_any_jetgun() ) )
+    if ( !is_true( level.df_s6_said_nojet ) && !df_s6_any_jetgun() )
     {
         level.df_s6_said_nojet = 1;
 
@@ -1172,10 +1168,10 @@ df_s6_prompt_hide()
     self df_prompt_puzzle( 0, undefined );
 }
 
-// Richtofen: a Jet Gun holder within draw range of a charged node is told what to do (no bar showing yet):
-// bring the orb first, or fire at the node while carrying it. Maxis: the orb CARRIER within range of a
-// charged brazier is told to stand in the lava (S6_DRAW_LAVA_MAXIS once, the first time it happens).
-// Puzzle hints: hidden when hints are off. The refused-draw buzz (df_s6_deny_check) rides the same poll.
+// A Jet Gun holder within draw range of a charged node is told what to do (no draw sound running yet): bring
+// the orb first, or fire at the node while carrying it until the gun overheats. The same on both sides
+// (owner 2026-09-23: the Maxis fireplace is drawn like Richtofen's block). Puzzle hints: hidden when hints are
+// off. The refused-draw buzz (df_s6_deny_check) rides the same poll.
 df_s6_hint_monitor()
 {
     level endon( "end_game" );
@@ -1183,7 +1179,6 @@ df_s6_hint_monitor()
     level endon( "df_s6_stop" );
 
     range2 = df_s6_draw_range() * df_s6_draw_range();
-    maxis = df_s6_is_maxis();
 
     while ( true )
     {
@@ -1191,29 +1186,17 @@ df_s6_hint_monitor()
 
         foreach ( player in getplayers() )
         {
-            player df_s6_deny_check( range2, maxis );
+            player df_s6_deny_check( range2 );
             show = is_player_valid( player ) && !isdefined( player.df_s6_bar ) && isdefined( df_s6_charged_node_near( player.origin, range2 ) );
 
-            if ( show && maxis )
-                show = isdefined( player.df_orb );
-            else if ( show )
+            if ( show )
                 show = df_s6_is_jetgun( player getcurrentweapon() );
 
             if ( show )
             {
                 text = "Fire the Jet Gun at it to draw the charge into the orb";
 
-                if ( maxis )
-                {
-                    text = "Stand in the lava by the brazier to draw the charge";
-
-                    if ( !is_true( level.df_s6_said_lava ) )
-                    {
-                        level.df_s6_said_lava = 1;
-                        df_say( "S6_DRAW_LAVA_MAXIS" );
-                    }
-                }
-                else if ( !isdefined( player.df_orb ) )
+                if ( !isdefined( player.df_orb ) )
                     text = "Bring the orb here to take this charge";
 
                 if ( !isdefined( player.df_s6_prompt_owner ) || player.df_s6_prompt_owner == "hint" )
@@ -1229,10 +1212,9 @@ df_s6_hint_monitor()
 
 // self = player, polled every 0.1 s. A refused draw buzzes ONCE PER APPROACH (df_cue_deny = zmb_perks_packa_deny
 // 2D to the carrier, art audit S6.5: it used to be console-only): the orb CARRIER within draw range of a
-// charged node who cannot draw there, i.e. Richtofen without a Jet Gun in hand, Maxis not standing in the
-// lava for 2 s straight. The denial is remembered per node until the carrier leaves that node's range (or
-// draws), so walking around a brazier does not buzz on every step.
-df_s6_deny_check( range2, maxis )
+// charged node without a Jet Gun in hand (both sides). The denial is remembered per node until the carrier
+// leaves that node's range (or draws), so walking around a node does not buzz on every step.
+df_s6_deny_check( range2 )
 {
     node = undefined;
 
@@ -1242,34 +1224,18 @@ df_s6_deny_check( range2, maxis )
     if ( !isdefined( node ) )
     {
         self.df_s6_deny_node = undefined;
-        self.df_s6_deny_ms = undefined;
         return;
     }
 
     if ( isdefined( self.df_s6_deny_node ) && self.df_s6_deny_node == node.index )
         return;
 
-    if ( maxis )
-    {
-        if ( self df_s6_on_lava() )
-        {
-            self.df_s6_deny_ms = undefined;
-            return;
-        }
-
-        if ( !isdefined( self.df_s6_deny_ms ) )
-            self.df_s6_deny_ms = gettime();
-
-        if ( gettime() - self.df_s6_deny_ms < 2000 )
-            return;
-    }
-    else if ( df_s6_is_jetgun( self getcurrentweapon() ) )
+    if ( df_s6_is_jetgun( self getcurrentweapon() ) )
         return;
 
     self.df_s6_deny_node = node.index;
-    self.df_s6_deny_ms = undefined;
     df_cue_deny( self );
-    df_debug_print( "DF: s6 draw refused at node " + node.index + " (" + node.name + "): carrier " + self.name + " has no means to draw here" );
+    df_debug_print( "DF: s6 draw refused at node " + node.index + " (" + node.name + "): carrier " + self.name + " has no Jet Gun in hand" );
 }
 
 // Nearest charged (undrawn) node within range2 of pos, aim not considered.
@@ -1296,12 +1262,11 @@ df_s6_charged_node_near( pos, range2 )
 }
 
 // ------------------------------------------------------------------- draw ----
-// Every 0.05 s, per side (audit 2.3):
-//   Richtofen: each ORB CARRIER firing the Jet Gun (is_jetgun_firing = engine spin > 0.2,
-//   _zm_weap_jetgun.gsc:285) within 300 of a charged node and looking at it accumulates draw ticks on that
-//   node. While firing, the heat is bled back down above 30 so the gun cannot break during a draw.
-//   Maxis: each ORB CARRIER standing ON LAVA within 300 of a charged brazier accumulates ticks on the
-//   nearest one (no aim, no weapon). 5 s of ticks pulls the charge into the orb.
+// Every 0.05 s, the same on both sides (owner 2026-09-23: Maxis draws the cabin fireplace exactly as Richtofen
+// draws the transformer block): each ORB CARRIER firing the Jet Gun (is_jetgun_firing = engine spin > 0.2,
+// _zm_weap_jetgun.gsc:285) within df_s6_draw_range() of a charged node and looking at it (df_s6_draw_cos cone
+// on the node's aim point) runs the draw sound and bursts on that node; the charge comes when the gun
+// OVERHEATS while still aimed there (df_s6_overheat_watch), as in the vanilla tower step.
 df_s6_draw_monitor()
 {
     level endon( "end_game" );
@@ -1309,7 +1274,6 @@ df_s6_draw_monitor()
     level endon( "df_s6_stop" );
 
     range2 = df_s6_draw_range() * df_s6_draw_range();
-    maxis = df_s6_is_maxis();
 
     while ( true )
     {
@@ -1319,12 +1283,7 @@ df_s6_draw_monitor()
         {
             node = undefined;
 
-            if ( maxis )
-            {
-                if ( is_player_valid( player ) && isdefined( player.df_orb ) && player df_s6_on_lava() )
-                    node = df_s6_charged_node_near( player.origin, range2 );
-            }
-            else if ( is_player_valid( player ) && df_s6_is_jetgun( player getcurrentweapon() ) && player maps\mp\zombies\_zm_weap_jetgun::is_jetgun_firing() )
+            if ( is_player_valid( player ) && df_s6_is_jetgun( player getcurrentweapon() ) && player maps\mp\zombies\_zm_weap_jetgun::is_jetgun_firing() )
             {
                 // rc3: no heat relief any more: the draw ENDS with the overheat (df_s6_overheat_watch), like the vanilla
                 // tower step; TranZit Enhanced overheats the gun after 7.7 s of fire
@@ -1345,11 +1304,7 @@ df_s6_draw_monitor()
 
             if ( !isdefined( node ) )
             {
-                if ( maxis )
-                    player df_s6_lava_debug( range2 );
-                else
-                    player df_s6_aim_debug( range2 );
-
+                player df_s6_aim_debug( range2 );
                 player df_s6_bar_sync( undefined );
                 continue;
             }
@@ -1367,14 +1322,12 @@ df_s6_draw_monitor()
             if ( node.draw_ticks % 10 == 0 )
                 df_fx_burst( df_s6_charge_fx(), df_s6_orb_pos( node ), 0.6 );
 
-            // Maxis (lava) completes by ticks; Richtofen completes on the overheat (df_s6_overheat_watch)
-            if ( maxis && node.draw_ticks >= df_s6_draw_ticks() )
-                df_s6_drain( node, player );
+            // the charge itself comes on the overheat (df_s6_overheat_watch)
         }
     }
 }
 
-// self = player, Richtofen. Started at the first firing tick aimed at `node`: waits for the gun to overheat
+// self = player (both sides). Started at the first firing tick aimed at `node`: waits for the gun to overheat
 // ("jetgun_overheated", vanilla _zm_weap_jetgun.gsc watch_overheat and TranZit Enhanced both notify it) and drains
 // the node if the player still carries the orb and still aims at it within range. Any other end (weapon away,
 // down, step over) just releases the watch so a new attempt can start.
@@ -1400,11 +1353,11 @@ df_s6_overheat_watch( node, range2 )
 
     if ( !isdefined( aimed ) || aimed != node )
     {
-        df_debug_print( "DF: s6 jet gun overheated away from the block: nothing drawn" );
+        df_debug_print( "DF: s6 jet gun overheated away from the node: nothing drawn" );
         return;
     }
 
-    df_debug_print( "DF: s6 jet gun overheated at the block: the charge is drawn" );
+    df_debug_print( "DF: s6 jet gun overheated at the node: the charge is drawn" );
     df_s6_drain( node, self );
 }
 
@@ -1462,37 +1415,6 @@ df_s6_aimed_node( range2 )
     }
 
     return best;
-}
-
-// self = player. On lava right now: the vanilla burn flag (player_lava_damage sets self.is_burning for
-// 0.5 s per damage pulse, zm_transit_lava.gsc:134-157) OR touching a lava_damage trigger volume
-// (object_touching_lava, zm_transit_lava.gsc:9, the test vanilla runs on players and dropped weapons,
-// zm_transit.gsc:1666). The OR bridges the gaps between damage pulses.
-df_s6_on_lava()
-{
-    if ( is_true( self.is_burning ) )
-        return true;
-
-    return self maps\mp\zm_transit_lava::object_touching_lava();
-}
-
-// self = player. Once per second while carrying the orb near a charged brazier but not on lava: says so,
-// so an owner test can tell "not in the lava" from "too far".
-df_s6_lava_debug( range2 )
-{
-    if ( !is_player_valid( self ) || !isdefined( self.df_orb ) )
-        return;
-
-    if ( isdefined( self.df_s6_aim_dbg ) && gettime() - self.df_s6_aim_dbg < 1000 )
-        return;
-
-    node = df_s6_charged_node_near( self.origin, range2 );
-
-    if ( !isdefined( node ) )
-        return;
-
-    self.df_s6_aim_dbg = gettime();
-    df_debug_print( "DF: s6 carrier near node " + node.index + " but not on lava (stand in it to draw)" );
 }
 
 // The node gives up its charge into the carried orb: node visuals off, the SUB-GOAL cue at the draw point
@@ -1706,7 +1628,6 @@ df_s6_cleanup()
         player df_s6_prompt_clear( undefined );
         player df_s6_bar_sync( undefined );
         player.df_s6_deny_node = undefined;
-        player.df_s6_deny_ms = undefined;
 
         if ( isdefined( player.df_orb ) )
             player df_s6_carry_release();

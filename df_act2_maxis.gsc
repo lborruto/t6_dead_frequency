@@ -11,7 +11,7 @@
 //                       glow). M2 lights brazier 1; a player takes ONE ember from any lit brazier and keeps it in
 //                       hand (burns 5 hp/s, no portals, lost on down) while lighting the other three in any order;
 //                       it is consumed when all four burn. Each lit brazier then swallows five burning zombies;
-//                       the flames grow in stages (spec 5, M2). The four braziers are Act 3's nodes.
+//                       the flames grow in stages (spec 5, M2). Act 3's node is the cabin hearth (one).
 //   Side rules (audit 2.4, Maxis = fog / fire / silence): after M1 denizens leave players alone within 400
 //                       of the table or a lit brazier, denizen spawns are doubled, and power ON at the end
 //                       of a round costs every brazier one stage while M2 runs.
@@ -56,6 +56,7 @@
 #include scripts\zm\zm_transit\df_steps;
 #include scripts\zm\zm_transit\df_coords;
 #include scripts\zm\zm_transit\df_scav;
+#include scripts\zm\zm_transit\df_act3_vacuum; // df_s6_any_jetgun (the Jet Gun warning at M2 completion)
 #include scripts\zm\zm_transit\df_act3_hold; // df_s7_tower_safety_volume (requested for df_systems, requests_D.md)
 
 // Steps registered, braziers spawned at boot (owner rule 2026-09-08: everything physical exists from game start).
@@ -213,14 +214,25 @@ df_m1_hooks_install()
 df_m1_protected( pos )
 {
     // owner 2026-09-23: near ANY of the four graves while M2 runs, lit or not (the walk to light one was a denizen trap),
-    // and near their scorched spots while Step 6 draws the charges there (standing in the lava with the rock)
+    // and near the cabin hearth while Step 6 is open (the Jet Gun draw there takes the whole gun)
     if ( is_true( level.df_m2_armed ) )
         return df_m2_grave_near( pos, 400 );
 
     if ( isdefined( level.df_step_avail_round ) && isdefined( level.df_step_avail_round["step6"] ) && !df_is_done( "step6" ) )
-        return df_m2_grave_near( pos, 400 );
+        return df_m2_hearth_near( pos, 400 );
 
     return false;
+}
+
+// True when this side's Step 6 node, the cabin hearth (DF_CABIN_HEARTH), is within radius of pos.
+df_m2_hearth_near( pos, radius )
+{
+    c = df_coord( "DF_CABIN_HEARTH" );
+
+    if ( !isdefined( c ) )
+        return false;
+
+    return distancesquared( pos, c.origin ) < radius * radius;
 }
 
 // True when one of the M2 graves stands within radius of pos, whatever its state.
@@ -1484,7 +1496,7 @@ df_m2_boot()
 }
 
 // Arms the braziers: brazier 1 is lit (the AVAILABLE focus sits on its rim), the ember and the burning kills
-// count from here. All four full: the nodes export, the tower answers in orange 12 s with the fire side's
+// count from here. All four full: the Step 6 node (the cabin hearth) exports, the tower answers in orange 12 s with the fire side's
 // spectacle (df_m2_column: a 20 s smoke column at the tower top, the Maxis counterpart of the Richtofen storm),
 // M2_DONE and the uniform step sting (df_complete, not quiet).
 df_m2_run()
@@ -1518,6 +1530,12 @@ df_m2_run()
     level thread df_tower_fx_stop_after( 12 );
     level thread df_m2_column( 20 );
     df_say( "M2_DONE" );
+
+    // owner 2026-09-23: Step 6 on this side is a Jet Gun draw at the cabin fireplace, as on Richtofen's side (R2 says
+    // its warning there): with no Jet Gun in any inventory the team hears now that one is needed, not at the pickup
+    if ( !df_s6_any_jetgun() )
+        df_say( "S6_NOJETGUN_MAXIS" );
+
     df_complete( "m2" );
 }
 
@@ -1550,8 +1568,8 @@ df_m2_quota()
     return q;
 }
 
-// "!df goto" past m2: all four braziers lit to the last stage (quietly: no sting, no line per brazier) and
-// exported as nodes.
+// "!df goto" past m2: all four braziers lit to the last stage (quietly: no sting, no line per brazier); the
+// Step 6 node (the cabin hearth) exported.
 df_m2_setup()
 {
     df_m2_place_braziers();
@@ -1686,7 +1704,7 @@ df_m2_restage()
 
 // Exactly FOUR braziers (owner 2026-09-09, whatever the player count) at DF_BRAZIER_1..4 (df_coords: the
 // owner's spots along the lava between the tower and the cornfield lamp), model df_model( "brazier" )
-// (df_coords registry), dark ember glow to start, unlit. Names brazier_1..4 (the Step 6 fallback names).
+// (df_coords registry), dark ember glow to start, unlit. Names brazier_1..4.
 df_m2_place_braziers()
 {
     if ( isdefined( level.df_m2_braziers ) )
@@ -2285,7 +2303,7 @@ df_m2_fill( b, quiet )
     b.count = level.df_m2_target;
     top = df_m2_rim_pos( b );
 
-    // the stone is spent: a small burst, the model goes, a scorched glow marks the spot (Step 6 node)
+    // the stone is spent: a small burst, the model goes, a scorched glow marks the spot (cosmetic: no Step 6 node)
     df_m2_set_stage( b, 0 );
 
     if ( !is_true( quiet ) )
@@ -2403,19 +2421,28 @@ df_m2_power_drop()
     df_debug_print( "DF: m2 power ON at end of round: " + dropped + " lit stone(s) forget their dead (Maxis wants the dark)" );
 }
 
-// The lit braziers are Act 3's nodes (same shape as df_r2_export_nodes, kind "brazier").
+// Step 6 node on Maxis's side (owner 2026-09-23): ONE node, the fireplace of the hunter's cabin in the woods
+// (DF_CABIN_HEARTH), drawn exactly like Richtofen's DF_CORE: fire the Jet Gun into it with the rock carried until the
+// gun overheats (df_act3_vacuum df_s6_overheat_watch). Kind "hearth": aim / beam / hum / glow at the registry point
+// cabin_hearth_node. The spent graves keep their scorched glow as M2's mark on the world; they are no Step 6 nodes.
+// Also run by df_m2_setup, so "!df goto step6" on this side gets the same node.
 df_m2_export_nodes()
 {
     level.df_nodes = [];
+    c = df_coord( "DF_CABIN_HEARTH" );
 
-    foreach ( b in level.df_m2_braziers )
+    if ( !isdefined( c ) )
     {
-        node = spawnstruct();
-        node.origin = b.origin;
-        node.name = b.name;
-        node.kind = "brazier";
-        level.df_nodes[level.df_nodes.size] = node;
+        df_debug_print( "DF: m2 done: no DF_CABIN_HEARTH anchor, Step 6 builds its own node" );
+        return;
     }
+
+    node = spawnstruct();
+    node.origin = c.origin;
+    node.name = "cabin hearth";
+    node.kind = "hearth";
+    level.df_nodes[level.df_nodes.size] = node;
+    df_debug_print( "DF: m2 done: Step 6 node = the cabin hearth at " + int( c.origin[0] ) + " " + int( c.origin[1] ) + " " + int( c.origin[2] ) + " (one draw: fire until the Jet Gun overheats)" );
 }
 
 // ---- the ember on the table (owner 2026-09-11 rework) --------------------------------------------

@@ -231,7 +231,7 @@ df_scav_display_name( kind )
         case "card":
             return "Key Card";
         case "orb":
-            return "Orb";
+            return "Rock"; // owner 2026-09-23: the Step 6 item is a rock on screen (the code keeps the kind "orb")
     }
 
     return "Dead Frequency";
@@ -273,7 +273,8 @@ df_scav_carry_set( kind, count, total, who, item )
 
     progress = undefined;
 
-    if ( total > 1 )
+    // the rock (kind "orb") always shows its charge, even with one node per side: "Rock 0/1" empty, "Rock 1/1" full
+    if ( total > 1 || kind == "orb" )
         progress = count + "/" + total;
 
     name = df_scav_display_name( kind );
@@ -692,7 +693,7 @@ df_scav_wait_all_free( max_seconds )
 
 // -------------------------------------------------------------- debug ----
 
-// `!df fire scav`      -> state dump + a demo notice on every screen ("Orb (2/3)" with the meteor icon)
+// `!df fire scav`      -> state dump + a demo notice on every screen ("Rock (0/1)" with the meteor icon)
 // `!df fire scav_slot` -> fake "Relay parts 2/3" in the TAB square for 20 s, then complete for 10 s,
 //                         then cleared (hold TAB to watch it move)
 df_scav_debug_listener()
@@ -712,7 +713,7 @@ df_scav_debug_listener()
         df_scav_debug_dump();
 
         foreach ( player in getplayers() )
-            player thread df_scav_notify( "Orb", df_scav_icon( "orb" ), "2/3" );
+            player thread df_scav_notify( "Rock", df_scav_icon( "orb" ), "0/1" );
     }
 }
 

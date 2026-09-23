@@ -182,7 +182,7 @@ sub category {
     return 'table'  if $k eq 'DF_SOCKET' || $k eq 'DF_TABLE';
     return 'signal' if $k =~ /^DF_SIGNAL/;
     return 'coil'   if $k =~ /^DF_COIL/;
-    return 'core'   if $k eq 'DF_CORE';
+    return 'core'   if $k eq 'DF_CORE' || $k eq 'DF_CABIN_HEARTH';
     return 'lamp'   if $k =~ /^DF_LAMP/;
     return 'other';
 }
@@ -337,7 +337,7 @@ footer.note{color:var(--muted);font-size:12px;margin-top:20px;border-top:1px sol
 <span class="item"><span class="swatch" style="background:var(--cat-table)"></span>DF_SOCKET / DF_TABLE</span>
 <span class="item"><span class="swatch" style="background:var(--cat-signal)"></span>DF_SIGNAL*</span>
 <span class="item"><span class="swatch" style="background:var(--cat-coil)"></span>DF_COIL*</span>
-<span class="item"><span class="swatch" style="background:var(--cat-core)"></span>DF_CORE</span>
+<span class="item"><span class="swatch" style="background:var(--cat-core)"></span>DF_CORE / DF_CABIN_HEARTH</span>
 <span class="item"><span class="swatch" style="background:var(--cat-lamp)"></span>DF_LAMP*</span>
 <span class="item"><span class="swatch" style="background:var(--cat-other)"></span>other</span>
 <span class="item"><span class="swatch sq" style="background:#c0392b"></span>window (zbarrier_*)</span>

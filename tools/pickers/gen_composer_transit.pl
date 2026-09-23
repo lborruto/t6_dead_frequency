@@ -511,6 +511,13 @@ add_preset(
 );
 
 add_preset(
+    'cabin_hearth', 'Cabin hearth (Step 6 Maxis)',
+    'Kind "cabin_hearth" (DF_CABIN_HEARTH, the floor under the fireplace opening of the hunter cabin in the woods) has no model of its own: the fireplace is map geometry (marker: ' . $anchor_model . '). cabin_hearth_node: registry offset only (the aim, beam, hum and glow point, the centre of the opening).',
+    anchor_part('cabin_hearth'),
+    fx_part( name => 'cabin_hearth_node', parent => 'cabin_hearth' ),
+);
+
+add_preset(
     'lamp', 'Lamp post',
     'Kind "lamp" has no model of its own (marker: ' . $anchor_model . '). lamp_bulb_glow: registry offset only (the fallback bulb height when the map exploder is not found).',
     anchor_part('lamp'),
@@ -521,16 +528,13 @@ add_preset(
     'tombstone', 'Tombstone',
     'Base = kind "brazier" (' . $model_def{brazier}{name} . ') at (0,0,0). Ember = kind "ember" (' . $model_def{ember}{name}
       . ') snapped to its own live top bound. brazier_rim_fire / brazier_ash: base = the RIM the game uses, df_m2_rim_height("' . $model_def{brazier}{name} . '") = ' . $brazier_rim_z
-      . '. brazier_ember, ember_glow, node_aim, node_beam, node_glow: registry offset only.',
+      . '. brazier_ember, ember_glow: registry offset only.',
     model_part( kind => 'brazier', model => $model_def{brazier}{name}, pitch => $model_def{brazier}{pitch}, roll => $model_def{brazier}{roll} ),
     model_part( kind => 'ember', model => $model_def{ember}{name}, pitch => $model_def{ember}{pitch}, roll => $model_def{ember}{roll}, snapTop => 1 ),
     fx_part( name => 'brazier_rim_fire', parent => 'brazier' ),
     fx_part( name => 'brazier_ash',      parent => 'brazier' ),
     fx_part( name => 'brazier_ember',    parent => 'brazier' ),
     fx_part( name => 'ember_glow',       parent => 'ember' ),
-    fx_part( name => 'node_aim',         parent => 'brazier' ),
-    fx_part( name => 'node_beam',        parent => 'brazier' ),
-    fx_part( name => 'node_glow',        parent => 'brazier' ),
 );
 
 add_preset(

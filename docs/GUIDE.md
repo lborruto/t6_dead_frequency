@@ -170,7 +170,8 @@ Denizens leave you alone within a few steps of any of the four graves while M2 r
 not count.
 
 All four gone: chime, the flame on you grows. Go back to the table and press F to return the ember. That
-completes M2 and the Act 2 reward drops at once.
+completes M2 and the Act 2 reward drops at once. If nobody in the team carries a Jet Gun, Maxis says you need one:
+Step 6 is drawn with it.
 
 Going down with the ember sends it back to the table (take it again; lit graves keep their count). Ending a
 round with the power ON makes every lit, unfinished grave forget its kills. The Galvaknuckles are refused near
@@ -186,8 +187,8 @@ twice as many elsewhere in the fog. After M2 the lamp portals open without a tur
 ## Act 2 reward (both sides)
 
 When R2 or M2 completes: a Max Ammo drops at the table, plus the side reward for the rest of the game.
-Richtofen: turrets need no turbine and the Jet Gun never overheats. Maxis: every lamp is powered, so portals
-and denizen burrows work without a turbine.
+Richtofen: turrets need no turbine (the Jet Gun that never overheats comes with the finale: Step 6 needs the
+overheat). Maxis: every lamp is powered, so portals and denizen burrows work without a turbine.
 
 ---
 
@@ -223,11 +224,14 @@ from the tower and a light column, and the Step 5 lamps go dark.
 
 Charge the orb (the draw is heard as a rising sound):
 
-- RICHTOFEN: one node, the sparking transformer block on the small bridge at the Power station exit. Carry the
-  orb onto the bridge and fire the JET GUN at the block until the gun OVERHEATS, as in the vanilla tower step: the
-  whole gun goes into it in one go. You need a Jet Gun in the team.
-- MAXIS: four nodes, the scorched grave spots, 5 seconds each. Carry the orb and stand IN THE LAVA next to the spot.
-  Stepping out pauses the draw; the lava burns you the whole time (Juggernog helps). No Jet Gun on this side.
+Both sides draw the same way: ONE node, a full JET GUN charge into it. Carry the orb there and fire the Jet Gun at
+the node until the gun OVERHEATS, as in the vanilla tower step: the whole gun goes into it in one go. Keep looking
+at the node when it overheats. You need a Jet Gun in the team (your patron says so when the Act 2 step ends and
+nobody carries one).
+
+- RICHTOFEN: the sparking transformer block on the small bridge at the Power station exit. Fire from the bridge.
+- MAXIS: the fireplace of the hunter's cabin in the woods. Stand in front of it (crouched or standing) and fire
+  into the opening. Denizens leave you alone near the cabin while this step is open.
 
 Fully charged (three clinks, an aura and a hum on the orb and on you): press F at the table to place it. If you
 drop the orb (down, or you leave it) its charges are kept, and after 60 s it flies back home by itself, to the
