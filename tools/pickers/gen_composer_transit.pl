@@ -337,6 +337,7 @@ sub table_common_fx {
         push @fx, fx_part( name => 'table_slot_glint', parent => 'table', bx => $lx, by => $ly, bz => $table_top_z + $slot_def{$n}[2] );
     }
     push @fx, fx_part( name => 'table_demo_step', parent => 'table' );
+    push @fx, map { fx_part( name => "relay_step_glow_$_", parent => 'relay' ) } 1 .. 9; # owner 2026-09-23: one glow per step up the mast
     push @fx, fx_part( name => 'orb_aura', parent => 'orb' ), fx_part( name => 'orb_glint', parent => 'orb' );
     return @fx;
 }
@@ -439,6 +440,15 @@ add_preset(
     ),
     fx_part( name => 'relay_array_node', parent => 'relay' ),
     fx_part( name => 'relay_array_step', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_1', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_2', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_3', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_4', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_5', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_6', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_7', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_8', parent => 'relay' ),
+    fx_part( name => 'relay_step_glow_9', parent => 'relay' ),
 );
 
 for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 'Table, Maxis loaded' ] ) {

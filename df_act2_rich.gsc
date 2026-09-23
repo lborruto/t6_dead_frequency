@@ -842,7 +842,7 @@ df_r1_card_table_place()
     level.df_card_table = spawn( "script_model", pos );
     level.df_card_table setmodel( df_model( "card" ) );
     level.df_card_table.angles = df_model_angles( "card", df_table_yaw() );
-    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point_at( "card_glint", df_table_yaw() ) ); // horizontal part: turned with the card, which faces the table front
+    // owner 2026-09-23: no glint on the table card (the table carries one glow per step only)
     df_debug_print( "DF: key card on the table, slot 1" );
 }
 
@@ -852,8 +852,9 @@ df_r1_card_table_glow()
     if ( !isdefined( level.df_card_table ) )
         return;
 
+    // owner 2026-09-23: no lasting glow on the card either
     df_fx_stop( level.df_card_table_fx );
-    level.df_card_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_card_table.origin + df_fx_point_at( "card_glow", df_table_yaw() ) ); // horizontal part: turned with the card
+    level.df_card_table_fx = undefined;
 }
 
 df_r1_card_table_remove()

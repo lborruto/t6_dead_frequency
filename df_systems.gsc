@@ -751,6 +751,13 @@ df_cue_side_flash( origin, side )
     df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", origin );
 }
 
+// ITEM ON THE TABLE (owner 2026-09-23): the one lightning snap when anything is put on the table (relay, stone, ember, orb),
+// the blue one-shot spark the relay plug always used. Nothing stays behind: the lasting look is the step glow.
+df_cue_table_place( pos )
+{
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + ( 0, 0, 10 ) );
+}
+
 // PROGRESS TICK: one soul counted, one charge, one part, one click. To every player within 700 of origin, at the
 // listener: the alias is 3D with a 150 unit range, so played at a lamp it never reached a player killing at 450
 // (sound audit 2026-09-09). burst 1 adds the side's 0.6 s spark / lava puff there (leave it off for ticks that

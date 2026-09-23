@@ -473,7 +473,6 @@ df_fin_keepsake( side )
         if ( !df_is_done( "r1" ) )
             return;
 
-        df_fin_slot_glow( 1 );
         df_say( "ITEM_KEEPSAKE_RICH" );
     }
     else
@@ -481,7 +480,6 @@ df_fin_keepsake( side )
         if ( !df_is_done( "m1" ) )
             return;
 
-        df_fin_slot_glow( 1 );
         df_say( "ITEM_KEEPSAKE_MAXIS" );
     }
 
@@ -1042,18 +1040,12 @@ df_fin_tracker_apply( key )
         return;
 
     level.df_fin_track[key] = 1;
+    df_fin_step_glow( key ); // owner 2026-09-23: one glow per finished step, up the relay
 
     if ( key == "step4" )
-    {
-        df_fin_slot_glow( 0 );
         level thread df_fin_runner_loop( "white", 5 );
-    }
-    else if ( key == "r1" || key == "m1" )
-        df_fin_slot_glow( 1 );
     else if ( key == "r2" || key == "m2" )
         level thread df_fin_runner_loop( "side", 5 );
-    else if ( key == "step6" )
-        df_fin_slot_glow( 2 );
     else if ( key == "step7" )
     {
         level thread df_fin_runner_loop( "white", 4 );
@@ -1065,7 +1057,89 @@ df_fin_tracker_apply( key )
     df_debug_print( "DF: tracker: " + key + " marked" );
 }
 
-// A small steady glow on table slot n in the side's family (df_fin_slot_glow_fx), 6 above the top. Once
+// owner 2026-09-23: ONE glow per finished step on the table, climbing the plugged relay mast from bottom to top
+// (df_coords relay_step_glow_1..9: step1, step2, step3, step4, r1/m1, r2/m2, step5, step6, step7), so the relay
+// ends fully lit instead of every item stacking its own light. Steps done before the relay stands on the table
+// (1-3) light the moment it is plugged (df_fin_step_glow_wait). 0 = not a glow step.
+df_fin_step_glow_index( key )
+{
+    switch ( key )
+    {
+        case "step1":
+            return 1;
+        case "step2":
+            return 2;
+        case "step3":
+            return 3;
+        case "step4":
+            return 4;
+        case "r1":
+        case "m1":
+            return 5;
+        case "r2":
+        case "m2":
+            return 6;
+        case "step5":
+            return 7;
+        case "step6":
+            return 8;
+        case "step7":
+            return 9;
+    }
+
+    return 0;
+}
+
+df_fin_step_glow( key )
+{
+    i = df_fin_step_glow_index( key );
+
+    if ( i == 0 )
+        return;
+
+    if ( !isdefined( level.df_fin_step_fx ) )
+        level.df_fin_step_fx = [];
+
+    if ( isdefined( level.df_fin_step_fx[i] ) )
+        return;
+
+    // the R2 relay array lights were R2's progress; once R2 is done its step glow says it
+    if ( i == 6 && isdefined( level.df_r2_array_fx ) )
+    {
+        foreach ( fx in level.df_r2_array_fx )
+            df_fx_stop( fx );
+
+        level.df_r2_array_fx = [];
+    }
+
+    relay = level.df_socket_relay;
+
+    if ( !isdefined( relay ) )
+    {
+        level thread df_fin_step_glow_wait( key );
+        return;
+    }
+
+    fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", relay.origin + df_fx_point_at( "relay_step_glow_" + i, relay.angles[1] ) );
+
+    if ( isdefined( fx ) )
+        level.df_fin_step_fx[i] = fx;
+}
+
+// A step finished before the relay stands on the table: its glow comes when the relay does.
+df_fin_step_glow_wait( key )
+{
+    level endon( "end_game" );
+    level notify( "df_fin_step_glow_wait_" + key );
+    level endon( "df_fin_step_glow_wait_" + key );
+
+    while ( !isdefined( level.df_socket_relay ) )
+        wait 1;
+
+    df_fin_step_glow( key );
+}
+
+// (unused since owner 2026-09-23) A small steady glow on table slot n in the side's family (df_fin_slot_glow_fx), 6 above the top. Once
 // per slot; the side is read when the slot fills (slot 0 fills the moment Step 4 locks the side).
 df_fin_slot_glow( n )
 {

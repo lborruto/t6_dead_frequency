@@ -1560,7 +1560,8 @@ df_step4_setup()
     }
 
     df_step4_socket_spawn();
-    df_step4_socket_light( level.df_side );
+    df_fx_stop( level.df_socket_fx ); // owner 2026-09-23: no lasting table light, the step glows climb the relay instead
+    level.df_socket_fx = undefined;
     df_step4_plugged_relay_spawn();
     level.df_relay_plugged = 1;
 }
@@ -1694,7 +1695,9 @@ df_a1_plugged_fx( on )
     df_fx_stop( level.df_socket_relay_fx );
     level.df_socket_relay_fx = undefined;
 
-    if ( !on || !isdefined( level.df_socket_relay ) )
+    // owner 2026-09-23: the plugged relay has no idle glow or bursts of its own any more (they stacked with everything else);
+    // its look is the step glows (df_finale df_fin_step_glow)
+    if ( 1 )
         return;
 
     level.df_socket_relay_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_socket_relay.origin + df_fx_point( "relay_glow" ) );
@@ -1977,8 +1980,9 @@ df_step4_plug( who )
     side = df_a1_side_of_power();
     df_set_side( side );
     level.df_relay_plugged = 1;
-    level.df_a1_preview = undefined; // the preview light becomes the final one
-    df_step4_socket_light( side );
+    level.df_a1_preview = undefined;
+    df_fx_stop( level.df_socket_fx ); // owner 2026-09-23: the preview light goes, the step glows climb the relay instead
+    level.df_socket_fx = undefined;
     df_step4_plugged_relay_spawn();
     df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", level.df_socket.origin + df_fx_point_at( "socket_spark", df_table_yaw() ) ); // horizontal part: turned with the table (DF_SOCKET sits on DF_TABLE)
     df_cue_tick( level.df_socket.origin + ( 0, 0, 30 ) );

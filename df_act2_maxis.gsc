@@ -1448,7 +1448,9 @@ df_m1_skull_place_table( quiet )
     pos = df_table_slot( 1 );
     level.df_m1_skull_table = spawn( "script_model", pos );
     level.df_m1_skull_table setmodel( df_m1_skull_model() );
-    level.df_m1_skull_table_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos + df_fx_point( "skull_table_glow" ) );
+    // owner 2026-09-23: no glow on the stone (one glow per step on the relay); the placing snap only
+    if ( !is_true( quiet ) )
+        df_cue_table_place( pos );
     level thread df_m1_skull_spin();
     df_debug_print( "DF: m1 skull on the table, slot 1 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
 
@@ -2513,8 +2515,7 @@ df_m2_ember_return( player )
     df_m2_ember_table_remove();
     level.df_m2_ember_returned = 1;
     socket = df_coord( "DF_SOCKET" ).origin;
-    df_fx_burst( "fx_zmb_tranzit_fire_lrg", socket + df_fx_point( "socket_glow" ), 1.0 );
-    df_fx_once( "fx_zmb_ash_rising_md", socket + df_fx_point( "socket_marker" ) );
+    df_cue_table_place( df_table_slot( 2 ) ); // owner 2026-09-23: the one placing snap, no fire burst or ash
     playsoundatposition( "zmb_buildable_complete", socket );
     df_debug_print( "DF: m2 the charged ember is back in the table" );
     level notify( "df_m2_check" );

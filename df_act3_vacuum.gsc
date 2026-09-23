@@ -846,8 +846,7 @@ df_s6_orb_table_show()
     orb.ent setmodel( df_model( "orb" ) );
     orb.ent.angles = df_model_angles( "orb", df_table_yaw() );
     orb.ent thread df_s6_orb_spin();
-    df_s6_orb_aura_sync();
-    orb.ent thread df_s6_orb_charge_fx();
+    // owner 2026-09-23: no aura or bursts on the table (one glow per step on the relay)
     df_debug_print( "DF: s6 orb resting on the table, slot 2 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
 }
 
@@ -1564,9 +1563,7 @@ df_s6_place( player )
     if ( isdefined( level.df_socket ) )
         socket_pos = level.df_socket.origin;
 
-    pulse = df_fx_loop( "fx_zmb_tranzit_spark_int_runner", socket_pos + df_fx_point( "socket_glow" ) );
-    level thread df_s6_fx_stop_after( pulse, 3 );
-    df_cue_side_flash( socket_pos + ( 0, 0, 30 ), undefined );
+    df_cue_table_place( df_s6_table_pos() ); // owner 2026-09-23: the one placing snap (was a 3 s pulse + a side flash)
     df_snd_near( "zmb_buildable_piece_add", socket_pos, 700 );
 
     df_debug_print( "DF: s6 orb placed in the relay, resting on the table" );
