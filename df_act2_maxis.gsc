@@ -1103,8 +1103,11 @@ df_m1_kill_cue( k, pos )
 // fx_zmb_tranzit_fire_lrg for 0.8 s on this side) with the vanilla soul sound (zmb_souls_end). Same shape and
 // timing as df_systems df_soul_fly, which is the blue one (richtofen_sparks + blue spark) and stays for the
 // Richtofen path.
-df_act2_maxis_trail( from, to )
+df_act2_maxis_trail( from, to, flash )
 {
+    if ( !isdefined( flash ) )
+        flash = 1;
+
     level endon( "end_game" );
 
     ent = df_fx_loop( "maxis_sparks", from + ( 0, 0, 40 ) );
@@ -1128,7 +1131,10 @@ df_act2_maxis_trail( from, to )
 
     ent moveto( to, time );
     wait( time );
-    df_cue_side_flash( to );
+    // owner 2026-09-23: a grave kill shows only the soul flying in (flash 0), no big fire burst at the grave
+    if ( flash )
+        df_cue_side_flash( to );
+
     df_snd_near( "evt_player_swiped", to, 600 ); // owner pick 2026-09-11: a soul reaches a brazier
     df_fx_stop( ent );
 }
@@ -1735,6 +1741,10 @@ df_m2_place_braziers()
         b.clip = spawn( "script_model", b.origin + ( 0, 0, 16 ) );
         b.clip setmodel( df_model( "clip" ) );
         b.clip.angles = c.angles;
+        // a second block on top (owner 2026-09-23: players stood on the graves): 64 high in all
+        b.clip_top = spawn( "script_model", b.origin + ( 0, 0, 48 ) );
+        b.clip_top setmodel( df_model( "clip" ) );
+        b.clip_top.angles = c.angles;
         df_m2_set_stage( b, 0 );
         level.df_m2_braziers[i] = b;
         df_debug_print( "DF: m2 " + b.name + " at " + int( c.origin[0] ) + " " + int( c.origin[1] ) + " " + int( c.origin[2] ) + " (" + model + ")" );
@@ -1773,6 +1783,9 @@ df_m2_retire_braziers()
 
         if ( isdefined( b.clip ) )
             b.clip delete();
+
+        if ( isdefined( b.clip_top ) )
+            b.clip_top delete();
     }
 
     level.df_m2_braziers = [];
@@ -1849,15 +1862,19 @@ df_m2_set_stage( b, stage )
     b.fx = [];
     top = df_m2_rim_pos( b );
 
-    // owner 2026-09-11: an unlit tombstone shows nothing; a lit one carries one small flame; a spent one is gone
-    // (df_m2_fill deletes the model and leaves the scorched glow itself)
-    if ( stage <= 0 )
+    // owner 2026-09-23: EVERY standing tombstone carries the one small flame, lit or not (it showed on the lit one
+    // only); a lit one also crackles; a spent one is gone (df_m2_fill deletes the model and leaves the scorched glow)
+    if ( is_true( b.done ) )
     {
         df_m2_crackle_stop( b );
         return;
     }
 
-    df_m2_crackle_start( b );
+    if ( stage <= 0 )
+        df_m2_crackle_stop( b );
+    else
+        df_m2_crackle_start( b );
+
     // owner 2026-09-23: one small flame only, no smoke or ash; `set df_m2_fire_fx <fx key>` swaps it at the next lighting
     fire_fx = getdvar( "df_m2_fire_fx" );
 
@@ -2227,7 +2244,7 @@ df_m2_on_zombie_death( zombie )
     best.count++;
     // the soul leaves the body as it bursts (owner 2026-09-11): a fire burst at the zombie, then the trail
     df_snd_near( "evt_player_swiped", zombie.origin, 600 );
-    level thread df_act2_maxis_trail( zombie.origin, df_m2_ash_pos( best ) );
+    level thread df_act2_maxis_trail( zombie.origin, df_m2_ash_pos( best ), 0 );
     level thread df_m2_kill_cue( best );
     df_m2_update( best );
     level notify( "df_m2_check" );
@@ -2240,9 +2257,9 @@ df_m2_kill_cue( b )
 {
     level endon( "end_game" );
 
+    // owner 2026-09-23: the tick sound only; the fire burst and the fire-loop puff at the grave are gone
     wait 0.5;
-    df_cue_tick( df_m2_rim_pos( b ), 1 );
-    df_m2_puff( b );
+    df_cue_tick( df_m2_rim_pos( b ), 0 );
 }
 
 df_m2_puff( b )
@@ -2279,7 +2296,9 @@ df_m2_fill( b, quiet )
     b.count = level.df_m2_target;
     top = df_m2_rim_pos( b );
 
-    // the stone is spent: a small burst, the model goes, a scorched glow marks the spot (cosmetic: no Step 6 node)
+    // the stone is spent: a small burst, the model goes, a scorched glow marks the spot (cosmetic: no Step 6 node).
+    // stage -1 first so an unlit (stage 0) stone filled by a skip still loses its flame
+    b.stage = -1;
     df_m2_set_stage( b, 0 );
 
     if ( !is_true( quiet ) )
@@ -2292,6 +2311,9 @@ df_m2_fill( b, quiet )
 
     if ( isdefined( b.clip ) )
         b.clip delete();
+
+    if ( isdefined( b.clip_top ) )
+        b.clip_top delete();
 
     g = df_fx_loop( "fx_zmb_lava_crevice_glow_50", b.origin + df_fx_point( "brazier_ember" ) );
 
@@ -2430,15 +2452,14 @@ df_m2_ember_spawn_table()
     level.df_m2_ember_pos = df_table_slot( 2 );
     level.df_m2_ember_on_table = 1;
     level.df_m2_ember_table_fx = [];
-    f = df_fx_loop( "fx_zmb_tranzit_fire_med", level.df_m2_ember_pos );
+    // owner 2026-09-23: the fire stayed on the table after the ember was taken. World fx now (spawnfx + triggerfx,
+    // the vanilla createfx pattern): deleting that entity always ends the effect
+    f = df_fx_world( "fx_zmb_tranzit_fire_med", level.df_m2_ember_pos );
 
     if ( isdefined( f ) )
-    {
         level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = f;
-        level thread df_fx_keepalive( f );
-    }
 
-    g = df_fx_loop( "fx_zmb_tranzit_light_glow", level.df_m2_ember_pos + df_fx_point( "ember_glow" ) );
+    g = df_fx_world( "fx_zmb_tranzit_light_glow", level.df_m2_ember_pos + df_fx_point( "ember_glow" ) );
 
     if ( isdefined( g ) )
         level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = g;

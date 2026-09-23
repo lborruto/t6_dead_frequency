@@ -496,6 +496,21 @@ df_fx_loop( fxname, origin, angles )
     return ent;
 }
 
+// Looping FX as a world effect (spawnfx + triggerfx, the vanilla createfx pattern): for a looped fx that must
+// end cleanly when df_fx_stop deletes it. It cannot move or follow anything.
+df_fx_world( fxname, origin )
+{
+    if ( !isdefined( level._effect[fxname] ) )
+    {
+        df_debug_print( "DF: missing fx " + fxname );
+        return undefined;
+    }
+
+    ent = spawnfx( level._effect[fxname], origin );
+    triggerfx( ent );
+    return ent;
+}
+
 df_fx_stop( ent )
 {
     if ( isdefined( ent ) )
