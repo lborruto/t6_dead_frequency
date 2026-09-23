@@ -535,6 +535,15 @@ add_preset(
 );
 
 add_preset(
+    'card_barn', 'Key card (barn)',
+    'Kind "card_barn": the key card where it first appears in the barn, standing and floating (its z is the float height above the floor under DF_CARD_SPAWN; the game adds a random turn). '
+      . 'Pitch / roll / yaw here become its pose. card_barn_glint: the glint on it. The table pose is the separate kind "card" (Table presets).',
+    model_part( kind => 'card_barn', model => $model_def{card_barn}{name}, x => $model_def{card_barn}{ox} // 0, y => $model_def{card_barn}{oy} // 0, z => $model_def{card_barn}{oz} // 36,
+                pitch => $model_def{card_barn}{pitch}, roll => $model_def{card_barn}{roll}, yaw => $model_def{card_barn}{yawoff} // 0 ),
+    fx_part( name => 'card_barn_glint', parent => 'card_barn' ),
+);
+
+add_preset(
     'orb', 'Orb',
     'Kind "orb" (' . $model_def{orb}{name} . ') at (0,0,0); df_model_rest_z("orb") = ' . $orb_rest . ' of hover is handled by the step code, not shown here. orb_aura / orb_glint: registry offset only.',
     model_part( kind => 'orb', model => $model_def{orb}{name}, pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll} ),

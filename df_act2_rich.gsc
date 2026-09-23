@@ -770,7 +770,7 @@ df_r1_card_pos()
     c = df_coord( "DF_CARD_SPAWN" );
 
     if ( isdefined( c ) )
-        return df_ground( c.origin ) + ( 0, 0, 36 );
+        return df_ground( c.origin ) + df_model_offset( "card_barn" ); // float height from the registry (card_barn)
 
     return df_ground( df_r1_boxes_center() + ( 0, 0, 60 ) ) + ( 0, 0, 40 );
 }
@@ -811,9 +811,9 @@ df_r1_card_spawn()
 df_r1_card_place( pos )
 {
     level.df_card = spawn( "script_model", pos );
-    level.df_card setmodel( df_model( "card" ) );
-    level.df_card.angles = ( 0, randomint( 360 ), 0 );
-    level.df_card_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point_at( "card_glint", level.df_card.angles[1] ) ); // the point has a horizontal part: turned with the card the glint hangs on
+    level.df_card setmodel( df_model( "card_barn" ) );
+    level.df_card.angles = df_model_angles( "card_barn", randomint( 360 ) ); // pitch / roll / extra yaw from the registry
+    level.df_card_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point_at( "card_barn_glint", level.df_card.angles[1] ) ); // the point has a horizontal part: turned with the card the glint hangs on
     level.df_card_carrier = undefined;
 
     if ( !isdefined( level.df_card_float ) || level.df_card_float != 0 )

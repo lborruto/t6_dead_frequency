@@ -1362,6 +1362,9 @@ df_models_init()
     // with the face turned 44 off the front, the look the owner settled on for the card on the table and on
     // the barn wall (DF_CARD_SPAWN shows it like a badge).
     df_model_def( "card", "p6_zm_keycard", 90, 0, -44 ); // lies flat (pitch 90, known good in game); turn -44 = the owner's 44 mirrored. The viewer applied pitch as a roll before 2026-09-23, so its 180 is not used
+    // card_barn: the same card where it FIRST appears in the barn (standing, floating, random turn + this yaw). Offset z =
+    // its float height above the floor under DF_CARD_SPAWN (df_r1_card_pos). Posed in the Prop Composer preset "Key card (barn)".
+    df_model_def( "card_barn", "p6_zm_keycard", 0, 0, 0, ( 0, 0, 36 ) );
 
     // table: the bench under the tower everything is deposited on (owner 2026-09-08). Vanilla Pack-a-Punch
     // "legs" buildable piece (so_zclassic_zm_transit; zm_transit_buildables.gsc:53 generate_zombie_buildable_piece
@@ -1547,6 +1550,7 @@ df_fx_points_init()
     // ---- the things that sit on the table
     df_fx_point_def( "card_glint", "card", ( 0, 0.5, 0.5 ) ); // mirrored 2026-09-23      // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
     df_fx_point_def( "card_glow", "card", ( 0, 0.5, 0.5 ) ); // mirrored 2026-09-23       // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
+    df_fx_point_def( "card_barn_glint", "card_barn", ( 0, 0.5, 0.5 ) ); // the glint on the floating barn card (was card_glint)
     df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
     df_fx_point_def( "skull_table_glow", "skull", ( 0, 0, 8 ) );
     df_fx_point_def( "ember_glow", "ember", ( 0, 0, 0.5 ) );        // owner composer 2026-09-22
