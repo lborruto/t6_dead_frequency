@@ -452,7 +452,7 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
         : 'kind "skull" (' . $model_def{skull}{name} . ').' )
       . ' Slot 2: kind "orb" (' . $model_def{orb}{name} . ')'
       . '. fx: socket_spark/glow/marker (parent "table"), '
-      . ( $is_rich ? 'no card points' : 'skull_glow (parent "skull", the floor stone glow)' )
+      . ( $is_rich ? 'no card points' : 'the fire hand (kind "ember", a child of the table, until Step 6) and hand_fire' )
       . ', orb_aura/orb_glint (parent "orb"). The GSC export gives every child part\'s offset in ITS PARENT\'s own frame (undoing that '
       . 'part\'s own yaw, e.g. relay_coil / relay_mast come back out at their exact df_model_offset despite the relay\'s -45 turn), '
       . 'plus a ready-to-paste "table layout" block of df_table_slot_def lines for the three slots.';
@@ -463,7 +463,7 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
 
     my @occupant_fx = $is_rich
       ? ()
-      : ( fx_part( name => 'skull_glow', parent => 'skull' ) );
+      : ();
 
     # owner 2026-09-23: the FIRE HAND (kind "ember") on the Maxis table, a child of the table: its export is the
     # df_model_def "ember" offset in the table frame (df_table_point), shown here where M2 leaves it before Step 6
@@ -555,6 +555,13 @@ add_preset(
                 pitch => $model_def{orb_ground}{pitch}, roll => $model_def{orb_ground}{roll}, yaw => $model_def{orb_ground}{yawoff} // 0, fxAlias => 'orb' ),
     fx_part( name => 'orb_aura',  parent => 'orb_ground' ),
     fx_part( name => 'orb_glint', parent => 'orb_ground' ),
+);
+
+add_preset(
+    'skull_floor', 'Stone (on the bunker floor)',
+    'The M1 stone where it falls in the Nacht bunker: the model 8 above the floor (df_m1_skull_drop), skull_glow = its "take me" glint, measured from the FLOOR under it. The table pose is slot 1 of "Table, Maxis loaded".',
+    model_part( kind => 'skull', model => $model_def{skull}{name}, z => 8, pitch => $model_def{skull}{pitch}, roll => $model_def{skull}{roll} ),
+    fx_part( name => 'skull_glow', parent => 'skull', bz => -8 ),
 );
 
 add_preset(

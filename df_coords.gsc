@@ -1445,7 +1445,7 @@ df_models_init_items()
     // owner 2026-09-23: the ember is now the FIRE HAND, the power switch hand piece (zm_transit, 9 x 8 x 9) with a tiny flame.
     // Offset = its place in the TABLE's frame from the table origin (z from the floor; default = slot 2 on the top),
     // df_table_point; the owner poses it in the Prop Composer ("Table, Maxis loaded").
-    df_model_def( "ember", "p6_zm_buildable_pswitch_hand", 0, 0, 0, ( -7.5, -1, 46 ) );
+    df_model_def( "ember", "p6_zm_buildable_pswitch_hand", -16, 0, -8.5, ( -6, -12, 48 ) ); // owner composer 2026-09-23
 }
 
 // =========================================================================================
@@ -1575,7 +1575,7 @@ df_fx_points_init()
     // ---- the things that sit on the table
     df_fx_point_def( "card_barn_glint", "card_barn", ( 0, 0.5, 0.5 ) ); // the glint on the floating barn card
     df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
-    df_fx_point_def( "hand_fire", "ember", ( 0, 0, 4 ) );          // owner 2026-09-23: the tiny flame on the fire hand        // owner composer 2026-09-22
+    df_fx_point_def( "hand_fire", "ember", ( -0.5, -0.5, 0.5 ) );          // owner 2026-09-23: the tiny flame on the fire hand        // owner composer 2026-09-22
 
     // ---- the barn fuse boxes and the Step 6 nodes
     df_fx_point_def( "fuse_led", "fuse", ( 0, 0, 5 ) );             // owner composer 2026-09-22; the LED face: glow, spark and Simon flash
