@@ -7,10 +7,11 @@
 //                       notice, no fire, no lamp portals, dropped at the feet on down), everyone is sent back,
 //                       and one press within 150 of the table PLACES it on slot 1: that completes M1. Nobody
 //                       took it before the return: it lies at the tower return point instead, still pickable.
-//   M2 "Fire and Ash":  FOUR braziers in a row along the lava (tower -> cornfield) exist from game start (ember
+//   M2 "Fire and Ash":  FOUR braziers (graves) in Town exist from game start (owner spots 2026-09-23; ember
 //                       glow). M2 lights brazier 1; a player takes ONE ember from any lit brazier and keeps it in
 //                       hand (burns 5 hp/s, no portals, lost on down) while lighting the other three in any order;
-//                       it is consumed when all four burn. Each lit brazier then swallows five burning zombies;
+//                       it is consumed when all four burn. Each lit brazier then swallows five zombies killed
+//                       beside it, burning or not (owner 2026-09-23);
 //                       the flames grow in stages (spec 5, M2). Act 3's node is the cabin hearth (one).
 //   Side rules (audit 2.4, Maxis = fog / fire / silence): after M1 denizens leave players alone within 400
 //                       of the table or a lit brazier, denizen spawns are doubled, and power ON at the end
@@ -36,7 +37,7 @@
 //   side rules, power penalty. Cross-file needs in tools/requests_D.md.
 // Owner run 2026-09-09 (tools/audit_M2fix.md): the skull is carried and placed by hand (M1 completes on the
 //   placement); the hole opens at anchor DF_PORTAL; four fixed braziers at the owner's spots, one ember lights
-//   them all, five burning kills each. Cross-file needs in tools/requests_M2fix.md.
+//   them all, five kills each (burning or not since 2026-09-23). Cross-file needs in tools/requests_M2fix.md.
 // Polish V2 2026-09-09 (tools/audit_V2maxis.md, from audit_art / audit_steps_v2 / audit_dialogue_v2): one cue
 //   grammar through the df_systems helpers (df_cue_tick = progress, df_cue_subgoal = a node done, df_cue_fail =
 //   progress lost, df_cue_deny = wrong input, df_step_focus = the AVAILABLE glint, df_node_done_trail = the
@@ -210,7 +211,8 @@ df_m1_hooks_install()
 
 // True after M1 for a player within 400 of the table or a lit brazier: the fog creatures are ours there.
 // rc3 (owner): the denizens leave a player alone ONLY beside a lit grave while M2 runs (the ember run). The tower is a
-// denizen zone in vanilla (the cornfield fog has no safety volume) and stays one: no permanent camp.
+// denizen zone in vanilla (the cornfield fog has no safety volume) and stays one: no permanent camp. The graves
+// stand in Town since 2026-09-23, outside the fog: denizens rarely reach them, the rule is harmless there.
 df_m1_protected( pos )
 {
     // owner 2026-09-23: near ANY of the four graves while M2 runs, lit or not (the walk to light one was a denizen trap),
@@ -1484,7 +1486,7 @@ df_m1_debug_skull( player )
 // M2 - Fire and Ash
 // =========================================================================================
 
-// Boot: the four braziers stand along the lava from game start with their ember glow (owner rule 2026-09-08);
+// Boot: the four braziers stand in Town from game start with their ember glow (owner rule 2026-09-08);
 // df_boot has already run df_coords_init when the acts register.
 df_m2_boot()
 {
@@ -1495,7 +1497,7 @@ df_m2_boot()
     level thread df_m2_debug_restage_hook();
 }
 
-// Arms the braziers: brazier 1 is lit (the AVAILABLE focus sits on its rim), the ember and the burning kills
+// Arms the braziers: brazier 1 is lit (the AVAILABLE focus sits on its rim), the ember and the kills
 // count from here. All four full: the Step 6 node (the cabin hearth) exports, the tower answers in orange 12 s with the fire side's
 // spectacle (df_m2_column: a 20 s smoke column at the tower top, the Maxis counterpart of the Richtofen storm),
 // M2_DONE and the uniform step sting (df_complete, not quiet).
@@ -1510,7 +1512,6 @@ df_m2_run()
     level thread df_m2_skip_cleanup();
     level thread df_m2_debug_hook();
     level thread df_m2_ember_poll();
-    level thread df_m2_burn_watch();
     level thread df_m2_power_penalty();
     level thread df_m2_fists_loop(); // owner 2026-09-11 (fists 7): the knuckles are the wrong tool here
     level thread df_m2_grave_spawner(); // owner 2026-09-11: gentle waves near a lit grave
@@ -1518,7 +1519,7 @@ df_m2_run()
     level.df_m2_ember_charged = 0;
     df_m2_ember_spawn_table();
     df_step_focus( "m2", level.df_m2_ember_pos + ( 0, 0, 10 ) );
-    df_debug_print( "DF: m2 the ember burns on the table: take it (one press), touch any tombstone with it, " + level.df_m2_target + " burning zombies at a lit one make it vanish; all four gone = bring the charged ember back to the table" );
+    df_debug_print( "DF: m2 the ember burns on the table: take it (one press), touch any tombstone with it, " + level.df_m2_target + " zombies killed at a lit one make it vanish; all four gone = bring the charged ember back to the table" );
 
     while ( !df_m2_all_done() || !is_true( level.df_m2_ember_returned ) )
         level waittill( "df_m2_check" );
@@ -1557,7 +1558,7 @@ df_m2_column( seconds )
     df_fx_stop( fx );
 }
 
-// Burning kills per lit brazier (owner 2026-09-09): five, fixed for solo; a bigger brazier_burns row wins.
+// Kills per lit brazier (owner 2026-09-09; burning or not since 2026-09-23): five, fixed for solo; a bigger brazier_burns row wins.
 df_m2_quota()
 {
     q = df_scaled( "brazier_burns" );
@@ -1703,7 +1704,7 @@ df_m2_restage()
 }
 
 // Exactly FOUR braziers (owner 2026-09-09, whatever the player count) at DF_BRAZIER_1..4 (df_coords: the
-// owner's spots along the lava between the tower and the cornfield lamp), model df_model( "brazier" )
+// owner's spots in Town, 2026-09-23), model df_model( "brazier" )
 // (df_coords registry), dark ember glow to start, unlit. Names brazier_1..4.
 df_m2_place_braziers()
 {
@@ -2189,19 +2190,28 @@ df_m2_light( b, player )
     level notify( "df_m2_check" );
 }
 
-// ---- burning kills ---------------------------------------------------------------------------
+// ---- kills at a lit grave ------------------------------------------------------------------------
 
-// A zombie that dies burning (zombie.is_on_fire, zm_transit_lava.gsc:179/241) within 250 of a LIT, unfinished brazier.
+// Owner 2026-09-23 (the graves moved to Town): ANY zombie that dies within 250 of a LIT, unfinished grave counts,
+// burning or not. The old rule wanted zombie.is_on_fire (zm_transit_lava.gsc:179/241), which only the lava beside
+// the old row of graves ever set: in Town no kill would have counted. A kill beside an UNLIT grave (and no lit one
+// in reach) is refused to the killer (deny buzz, 5 s throttle): light it first. A Galvaknuckle kill
+// (zombie.damageweapon, set by the vanilla actor damage callback) never counts, as df_m2_fists_loop tells the
+// player: before 2026-09-23 the burning rule kept those out by itself.
 df_m2_on_zombie_death( zombie )
 {
     if ( !isdefined( level.df_m2_braziers ) )
         return;
 
-    // audit v3 #4: a kill that does not burn, beside a lit grave, is refused to the killer (deny buzz, 5 s throttle):
-    // the silent rule "they must burn" is shown instead of guessed
-    if ( !is_true( zombie.is_on_fire ) )
+    best = df_m2_nearest( zombie.origin, 250, 1 );
+    knuckles = isdefined( zombie.damageweapon ) && zombie.damageweapon == "tazer_knuckles_zm";
+
+    if ( !isdefined( best ) || knuckles )
     {
-        if ( isdefined( zombie.attacker ) && isplayer( zombie.attacker ) && isdefined( df_m2_nearest( zombie.origin, 250, 1 ) ) )
+        // the buzz only where a grave could have taken it: an unlit one, or a lit hungry one refusing the knuckles
+        near = isdefined( best ) || isdefined( df_m2_nearest( zombie.origin, 250, 0 ) );
+
+        if ( near && isdefined( zombie.attacker ) && isplayer( zombie.attacker ) )
         {
             if ( !isdefined( zombie.attacker.df_m2_deny_ms ) || gettime() - zombie.attacker.df_m2_deny_ms > 5000 )
             {
@@ -2213,14 +2223,9 @@ df_m2_on_zombie_death( zombie )
         return;
     }
 
-    best = df_m2_nearest( zombie.origin, 250, 1 );
-
-    if ( !isdefined( best ) )
-        return;
-
     df_touch( "m2" );
     best.count++;
-    // the soul leaves the burning body as it bursts (owner 2026-09-11): a fire burst at the zombie, then the trail
+    // the soul leaves the body as it bursts (owner 2026-09-11): a fire burst at the zombie, then the trail
     df_snd_near( "evt_player_swiped", zombie.origin, 600 );
     level thread df_act2_maxis_trail( zombie.origin, df_m2_ash_pos( best ) );
     level thread df_m2_kill_cue( best );
@@ -2244,35 +2249,6 @@ df_m2_puff( b )
 {
     top = df_m2_rim_pos( b );
     df_snd_loop_burst( "zmb_fire_loop", top, 1.2 ); // owner pick 2026-09-11: puff = fire loop burst
-}
-
-// Audit 4 cue: a burning zombie (zombie.is_on_fire) entering 250 of a lit unfinished brazier makes it puff
-// once (the bowl "notices" the fire): the silent rule "it must burn" is shown before the first kill.
-// 1 s poll over get_round_enemy_array (_zm_utility.gsc:123).
-df_m2_burn_watch()
-{
-    level endon( "end_game" );
-    level endon( "df_m2_done" );
-    level endon( "df_skip_m2" );
-
-    while ( true )
-    {
-        wait 1.0;
-
-        foreach ( zombie in get_round_enemy_array() )
-        {
-            if ( !isdefined( zombie ) || !is_true( zombie.is_on_fire ) || is_true( zombie.df_m2_puffed ) )
-                continue;
-
-            b = df_m2_nearest( zombie.origin, 250, 1 );
-
-            if ( !isdefined( b ) )
-                continue;
-
-            zombie.df_m2_puffed = 1;
-            df_m2_puff( b );
-        }
-    }
 }
 
 // Lit brazier: stage = 1 + floor( 2 * count / target ) (1 or 2); the quota fills it (stage 3). Each stage-up
@@ -2525,7 +2501,8 @@ df_m2_ember_return( player )
 
 // ---- fists (owner 2026-09-11, idea 7) ---------------------------------------------------------
 // Maxis wants fire, not the creature's current: a Galvaknuckle melee within 100 of a tombstone, or with the ember
-// in hand, is refused (deny buzz + M2_KNUCKLES_MAXIS once per 20 s). Nothing else happens.
+// in hand, is refused (deny buzz + M2_KNUCKLES_MAXIS once per 20 s); a knuckle kill never counts at a grave
+// (df_m2_on_zombie_death).
 df_m2_fists_loop()
 {
     level endon( "end_game" );

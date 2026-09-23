@@ -160,8 +160,9 @@ df_dialogue_act2_rich()
 // Act 2M (Maxis only; Richtofen heckles once per step). Mechanics (df_act2_maxis.gsc): M1 a denizen
 // riding a player is carried within 300 of the socket and opens a hole into the Nacht bunker; six denizen
 // kills (df_scaled cold_room_kills / cold_room_time) and the stone strikes down, the hole waits until
-// someone walks in; M2 the ember waits on the table, any of the four graves by the lava lights it, burning
-// zombies killed within 250 of a lit grave (5) make it vanish, all four charge the ember (brazier_burns).
+// someone walks in; M2 the ember waits on the table, any of the four graves in Town (owner 2026-09-23) lights
+// it, zombies killed within 250 of a lit grave (5, burning or not) make it vanish, all four charge the ember
+// (brazier_burns).
 df_dialogue_act2_maxis()
 {
     // M1 - The Cold Room
@@ -179,13 +180,14 @@ df_dialogue_act2_maxis()
     df_add_line( "ITEM_SKULL_MAXIS", "maxis", "Lightning left you a stone. Take it. Set it on the table under the Spire." );
 
     // M2 - Fire and Ash
-    df_add_line( "M2_START", "maxis", "Four graves by the lava: the men who laid the line. The flame is on the table." );
-    df_add_line( "M2_HINT_1", "maxis", "Four graves stand by the lava past the Spire. Touch each with the flame." );
-    df_add_line( "M2_HINT_2", "maxis", "Light a grave, stay near it, kill five burning dead beside it. Then the next." );
+    df_add_line( "M2_START", "maxis", "Four graves in Town: the men who laid the line. The flame is on the table." );
+    df_add_line( "M2_HINT_1", "maxis", "Four graves stand in Town. Touch each with the flame from the table." );
+    df_add_line( "M2_HINT_2", "maxis", "Light a grave in Town. Kill five of the dead beside it. Then the next one." );
     df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. The fire remembers it." );
-    // ITEM_EMBER_MAXIS: the ember taken from the table; a grave lights it, then the lit graves want burning
-    // kills (dialogue audit v2, M2: the take touches the ladder, so this line carries the second half)
-    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "It burns you. Carry it to the graves by the lava and touch each one." );
+    // ITEM_EMBER_MAXIS: the ember taken from the table; a grave lights it, then the lit graves want
+    // kills beside them, burning or not (dialogue audit v2, M2: the take touches the ladder, so this line
+    // carries the second half)
+    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "It burns you. Carry it to the graves in Town and touch each one." );
     df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. The flame is heavy now. Bring it back to the table." );
     df_add_line( "M2_EMBER_LOST", "maxis", "The flame went out with you. It waits on the table again." );
     df_add_line( "M2_KNUCKLES_MAXIS", "maxis", "Nein! His current will not touch my graves. Fire. Only fire." );

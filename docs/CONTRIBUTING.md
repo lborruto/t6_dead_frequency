@@ -92,7 +92,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   spools), and the Richtofen side rules (Avogadro every round, turrets without turbine,
   power-off penalty).
 - `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt
-  in Nacht, the stone), M2 Fire and Ash (ember, four graves along the lava, burning kills, the scorched glows; at completion it
+  in Nacht, the stone), M2 Fire and Ash (ember, four graves in Town, kills at a lit grave burning or not, the scorched glows; at completion it
   exports the ONE Step 6 node, the hunter's cabin fireplace `DF_CABIN_HEARTH`, and warns when nobody has a Jet
   Gun), and the Maxis side rules (denizen safety near the table and lit graves, near the cabin fireplace while Step 6
   is open, doubled fog spawns, power-on penalty).
@@ -314,9 +314,9 @@ The older way (the owner's `cheats_zm.gsc`: `!place <model>`, `!nudge`, `!spot <
 | DF_FUSE_1..4 | fuse = `p6_zm_buildable_sq_electric_box` (13 x 20 power box, centre at 50, 6 off the wall) | barn walls (Farm) |
 | DF_CARD_SPAWN | card = `p6_zm_keycard` (the strike lands it 36 above the floor under the anchor) | barn wall (8614 -5864 91) |
 | (battery / spool, no anchor) | battery = `p6_zm_buildable_battery`, spool = `p6_zm_buildable_jetgun_wires` | bus dashboard / the foot of a punched lamp |
-| DF_BRAZIER_1..4 | brazier = `ch_tombstone1` (the graves, 31 tall, one player clip each) | four owner spots along the lava, tower -> cornfield (8831 -1185, 9296 -1073, 9913 -1193, 10363 -1240) |
+| DF_BRAZIER_1..4 | brazier = `ch_tombstone1` (the graves, 31 tall, one player clip each) | four owner spots in Town, 2026-09-23 (1738 273, 1179 255, 1693 -978, 473 -275) |
 | (ember, stone, no anchor) | ember = a flame fx (the registry kind `ember` is unused in hand), skull = `p6_zm_buildable_sq_meteor` (the STONE, rests 3 above its base) | table slot 2 / carried, then table slot 1 |
-| DF_NACHT_SPAWN_1..4 | none, stand there | inside the Nacht bunker (13703 -822 -189 and three neighbours) |
+| DF_NACHT_SPAWN_1..4 | none, stand there | inside the Nacht bunker, owner spots 2026-09-23 (13137 -719, 13154 -906, 13371 -876, 13291 -597; z -189) |
 | DF_TOWER_RETURN | none, stand there | return point after the Cold Room (7552 -512 -72) |
 | DF_ORB_SPOT_1..3 | orb = `p6_zm_buildable_sq_meteor` (the same stone model, rests 3 above the ground) | the three Step 6 landing spots: diner (-5991 -7686 34), Town (1401 -445 -67), power station (11720 8491 -575) |
 | DF_CORE | none (the map's transformer block; aim / beam / hum point `core_node`) | Richtofen's Step 6 node, the sparking block on the power station bridge (11092 8361 -496) |

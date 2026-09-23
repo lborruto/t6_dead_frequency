@@ -46,7 +46,7 @@ df_init_scaling()
     df_scale_row( "capture_time", 240, 300, 300, 300 ); // audit (was a fixed 180 s): R1 Avogadro capture window in seconds
     df_scale_row( "cold_room_time", 60, 75, 90, 100 ); // M1 seconds
     df_scale_row( "cold_room_kills", 6, 9, 12, 15 ); // M1 denizens
-    df_scale_row( "brazier_burns", 4, 5, 6, 7 ); // audit (was 3/4/5/6): M2 burning zombies per brazier
+    df_scale_row( "brazier_burns", 4, 5, 6, 7 ); // audit (was 3/4/5/6): M2 kills per lit grave (burning or not since 2026-09-23)
     df_scale_row( "nodes", 3, 3, 3, 4 ); // owner: spec says 1/2/3/4; always three R2 lamps, four with a full lobby (Step 6 is ONE node per side since 2026-09-23)
     df_scale_row( "sweep_rounds", 2, 1, 1, 1 ); // spec row, unused (see sweep_time)
     df_scale_row( "sweep_time", 360, 300, 270, 240 ); // audit (owner 300/240/210/180): Step 5 countdown in seconds from the first anchor (Maxis side)

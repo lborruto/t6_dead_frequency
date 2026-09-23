@@ -59,7 +59,7 @@ Everything below must already be there. Missing = the biggest bug of this build.
   (`table follows DF_TABLE to ...`); move it back or restart.
 - Barn: `!df tp DF_FUSE_1..4`: four small power boxes (13 x 20, centre at mid height) on the walls, faint glow, back
   against the wall, lever side towards the room. Press F on one: nothing.
-- Lava: `!df tp DF_BRAZIER_1..4`: four TOMBSTONES in a row along the lava (tower -> cornfield), standing on the ground,
+- Town: `!df tp DF_BRAZIER_1..4`: four TOMBSTONES spread over Town (owner spots 2026-09-23), standing on the ground,
   nothing on them, no fire, no glow. Walk into one: you must not pass through.
 - Lamps: walk to one lamp of the printed set: one small electric spark at the bulb every 6 s, no colour, not green.
   `!df fire lamps` lists 3 lamps `set 1 state off`. None of them is diner or townbridge; one is the lamp nearest the tower.
@@ -134,7 +134,7 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   with the coil box and the TALL post on it (`plugged relay at ..., top piece relay_mast`), the colour stays, tower
   visuals 15 s, one vanilla voice line, D4 line, `relay plugged by <you>, power 1, side rich`. A white runner starts
   climbing a tower leg every ~5 s and stays for the game; a tiny glow on the left slot.
-- Side lock: power ON = `side rich` and `Richtofen side locked, the four tombstones are gone` (check the lava: no
+- Side lock: power ON = `side rich` and `Richtofen side locked, the four tombstones are gone` (check Town: no
   graves); power OFF = `side maxis` and `Maxis side locked, the four Simon boxes are gone` (check the barn: no boxes).
   Both print `orb landing spot ...` (the Step 6 spot). `!df status` shows the side.
 
@@ -205,7 +205,7 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   (timeout), back to the latch`.
 
 **M2 Fire and Ash**. Skips: `!df fire m2_ember` (you hold it), `m2_light` (next grave lit), `m2_fill` (all four spent, ember returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
-- M2 opens: `m2 the ember burns on the table: take it (one press), touch any tombstone with it, 5 burning zombies at a
+- M2 opens: `m2 the ember burns on the table: take it (one press), touch any tombstone with it, 5 zombies killed at a
   lit one make it vanish; all four gone = bring the charged ember back to the table`. A FLAME burns on the table's
   RIGHT slot with the glint; the four graves stand dark.
 - "Press F to take the ember" within 100 of the table: pickup sound, ignite crack, lava fire on your body, health drops
@@ -214,10 +214,11 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - Within 100 of a DARK grave: "Press F to light the grave". One press: whoosh + ignite + ash puff, a SMALL flame at the
   base of the tombstone, a clink, the ember STAYS in your hand: `m2 brazier_n lit by <you> (1/4 lit, 3 to go, the ember
   stays in hand)`. Any order, any number lit at once. Console `m2 brazier_n: N spawn structs for its waves`.
-- Stand within 300 of a lit grave: every 4 s one zombie rises nearby (`m2 one zombie pulled to brazier_n (<you> beside
-  it)`, up to about ten around you), crosses the lava and burns. Kill it burning within 250 of that grave: a fire burst
-  at the body, a fire trail into the grave, clink + lava puff, `m2 brazier_n 1/5`. A burning kill at a DARK grave does
-  not count (console silent). At 5: `m2 brazier_n spent and gone (k/4)`: the tombstone bursts (large fire + rising ash)
+- A lit grave starts its wave (`m2 wave ON at brazier_n`): two sprinting zombies every 2 s from the Town spawn structs
+  within 1200 (N above must not be 0), up to 8 (+3 per extra player). Kill one within 250 of that grave, burning or
+  not, any gun: a fire burst at the body, a fire trail into the grave, clink + fire puff, `m2 brazier_n 1/5`. A kill at
+  a DARK grave does not count (deny buzz to the killer, console silent); a Galvaknuckle kill at a lit grave does not
+  count either (deny buzz). At 5: `m2 brazier_n spent and gone (k/4)`: the tombstone bursts (large fire + rising ash)
   and VANISHES, a scorched lava glow stays on the ground.
 - All four gone: NavCard chime + fire flash + a runner from YOU to the tower, the flame on your body grows, `m2 all four
   stones spent, the ember is charged: return it to the table (one press within 150)`. At the table "Press F to return
@@ -228,7 +229,7 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   lamp opens a portal, no turbine.
 - Galvaknuckles (`!gun tazer_knuckles_zm`) melee within 100 of a grave, or anywhere with the ember in hand: deny buzz +
   "His current will not touch my graves", console `m2 <you> used the knuckles at the stones: refused`.
-- Wrong: paste the `m2 brazier_n ...` lines and whether the zombie was burning.
+- Wrong: paste the `m2 brazier_n ...` lines, the `spawn structs` count, and what killed the zombie.
 
 ## 5. Act 3 (shared; what differs per side is marked)
 **Step 5 Frequency Sweep**. Skips: `!df fire s5_anchor` (one lamp), `s5_all`, `s5_time` (expire, needs an anchor), `s5_penalty` (pay it), `!df goto step6`.

@@ -146,15 +146,15 @@ df_coords_init()
     //      the wall from DF_FUSE_4 (x 8530 vs 8614): clear of the 36-wide panel (half width 18).
     df_coords_row_on_wall( "DF_CARD_SPAWN", 1, ( 8613, -5840, 50 ), -90, 0, 50, 4, "card" );
 
-    // ---- Braziers (owner redesign 2026-09-09, Blood-of-the-Dead style): FOUR of them, always, in a row
-    //      along the lava field between the tower and the cornfield lamp (x 8831..10363, y -1073..-1240), close
-    //      enough to carry one ember around all of them. Derived fallback = the owner's feet spots on the
-    //      ground; df_apply_overrides pins the final ones (front towards where the owner stood). The old
-    //      lava-edge spots (Farm 8118 -6285, Town 1731 -115, Power 9992 7555) are gone.
-    df_coord_set( "DF_BRAZIER_1", df_ground( ( 8831, -1185, -208 ) ), ( 0, 59, 0 ), df_model( "brazier" ) );
-    df_coord_set( "DF_BRAZIER_2", df_ground( ( 9296, -1073, -203 ) ), ( 0, 300, 0 ), df_model( "brazier" ) );
-    df_coord_set( "DF_BRAZIER_3", df_ground( ( 9913, -1193, -217 ) ), ( 0, 59, 0 ), df_model( "brazier" ) );
-    df_coord_set( "DF_BRAZIER_4", df_ground( ( 10363, -1240, -215 ) ), ( 0, 213, 0 ), df_model( "brazier" ) );
+    // ---- Braziers (owner redesign 2026-09-09, Blood-of-the-Dead style; moved to Town by the owner
+    //      2026-09-23): FOUR of them, always, spread over Town (x 473..1738, y -978..273), close enough
+    //      to carry one ember around all of them. Derived fallback = the owner's feet spots on the ground;
+    //      df_apply_overrides pins the final ones (front towards where the owner stood). The row along the
+    //      lava between the tower and the cornfield lamp (x 8831..10363) is gone.
+    df_coord_set( "DF_BRAZIER_1", df_ground( ( 1738, 273, -55 ) ), ( 0, 56, 0 ), df_model( "brazier" ) );
+    df_coord_set( "DF_BRAZIER_2", df_ground( ( 1179, 255, -55 ) ), ( 0, 132, 0 ), df_model( "brazier" ) );
+    df_coord_set( "DF_BRAZIER_3", df_ground( ( 1693, -978, -55 ) ), ( 0, 334, 0 ), df_model( "brazier" ) );
+    df_coord_set( "DF_BRAZIER_4", df_ground( ( 473, -275, -61 ) ), ( 0, 140, 0 ), df_model( "brazier" ) );
 
     // ---- Nacht bunker: walkable nodes around the room centre (13520, -776), players face east (+x).
     // owner spot 2026-09-11 ([CHEAT] pos 13703 -822 -189 | ang 0 1 0), the four players 40 apart around it
@@ -305,20 +305,22 @@ df_apply_overrides()
     // [CHEAT] pos 7623 -457 -207 | ang 0 -1 0); the hole is round, the yaw only matters for `!df tp`.
     df_coord_override_ground( "DF_PORTAL", ( 7623, -457, -207 ), -1, "portal" );
 
-    // The four M2 braziers (owner 2026-09-09, feet + look yaw, on the ground): a row along the lava between
-    // the tower and the cornfield lamp. Always four, whatever the player count (df_m2_place_braziers).
-    df_coord_override_ground( "DF_BRAZIER_1", ( 8831, -1185, -208 ), -121, "brazier" );
-    df_coord_override_ground( "DF_BRAZIER_2", ( 9296, -1073, -203 ), 120, "brazier" );
-    df_coord_override_ground( "DF_BRAZIER_3", ( 9913, -1193, -217 ), -121, "brazier" );
-    df_coord_override_ground( "DF_BRAZIER_4", ( 10363, -1240, -215 ), 33, "brazier" );
+    // The four M2 braziers (owner 2026-09-23, feet + look yaw, on the ground): four graves in Town, the
+    // owner's [CHEAT] spots (pos x y z | ang 0 yaw 0). Always four, whatever the player count
+    // (df_m2_place_braziers).
+    df_coord_override_ground( "DF_BRAZIER_1", ( 1738, 273, -55 ), 236, "brazier" );
+    df_coord_override_ground( "DF_BRAZIER_2", ( 1179, 255, -55 ), 312, "brazier" );
+    df_coord_override_ground( "DF_BRAZIER_3", ( 1693, -978, -55 ), 154, "brazier" );
+    df_coord_override_ground( "DF_BRAZIER_4", ( 473, -275, -61 ), 320, "brazier" );
 
     // The four M1 cold-room spawn points inside the Nacht bunker: player spots, no model (df_coord_set above
     // passes undefined and df_coord_override leaves the model alone), read as .origin by df_act2_maxis.
-    // owner anchor map 2026-09-22: they were four points 40 apart around one spot, now spread over the room.
-    df_coord_override( "DF_NACHT_SPAWN_1", ( 13752, -441, -189 ), ( 0, 1, 0 ) );
-    df_coord_override( "DF_NACHT_SPAWN_2", ( 13807, -978, -189 ), ( 0, 1, 0 ) );
-    df_coord_override( "DF_NACHT_SPAWN_3", ( 13601, -645, -189 ), ( 0, 1, 0 ) );
-    df_coord_override( "DF_NACHT_SPAWN_4", ( 13548, -920, -189 ), ( 0, 1, 0 ) );
+    // owner anchor map 2026-09-22: they were four points 40 apart around one spot, now spread over the room;
+    // owner 2026-09-23: moved again to these four spots.
+    df_coord_override( "DF_NACHT_SPAWN_1", ( 13137, -719, -189 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_2", ( 13154, -906, -189 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_3", ( 13371, -876, -189 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_4", ( 13291, -597, -189 ), ( 0, 1, 0 ) );
 }
 
 // Owner paste format: a raw [SPOT] / [PLACE] line whose position is a FLOOR spot, for a kind whose model
@@ -1358,8 +1360,8 @@ df_models_init()
     // brazier: a low lava-rock cairn (zm_transit ALWAYS, a map static precached by df_coords_precache). Art
     // audit #8: the white biohazard drum afr_barrel_biohazard_white_rust (29 x 44 x 29) read "toxic waste"
     // and its 44-tall closed body hid the stage-0 ember; the cairn is the Blood-of-the-Dead stone-bowl
-    // silhouette and belongs to the lava field the four braziers stand in. glTF: 88 x 77 footprint (off
-    // centre: 58 one way, 30 the other), 16.5 tall with the pivot 2.6 above its lowest rock, so on the ground
+    // silhouette (picked for the old lava-field row; the graves stand in Town since 2026-09-23). glTF: 88 x 77
+    // footprint (off centre: 58 one way, 30 the other), 16.5 tall with the pivot 2.6 above its lowest rock, so on the ground
     // the rim / top is anchor + 14 (df_model_top_z( "brazier" )): the fire sits on the rocks, visible all round.
     // owner pick 2026-09-11 (Prop Picker): a tombstone (ch_tombstone1, zm_transit, 3 x 20 footprint, 31 tall, base
     // pivot); the fire sits on its top edge (df_model_top_z = 31).

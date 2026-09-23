@@ -77,7 +77,7 @@ Press F on the locked relay to take it (sparks on your back; you cannot use the 
 it drops at your feet if you go down). Carry it to the work TABLE that stands under the tower, next to the
 cornfield. As you get close, a small glow on the table shows the side you are about to choose:
 
-- power ON -> blue -> RICHTOFEN. The four tombstones along the lava vanish.
+- power ON -> blue -> RICHTOFEN. The four tombstones in Town vanish.
 - power OFF -> orange -> MAXIS. The four power boxes in the Farm barn vanish.
 
 Press F at the table to plug the relay in. The choice is permanent for this game; the Step 6 landing spot is
@@ -158,17 +158,17 @@ completes M1. While M1 waits for a denizen, denizens can rise at the tower itsel
 
 </details>
 
-<details><summary><b>M2 - Fire and Ash (the lava between the tower and the cornfield)</b> (click to reveal)</summary>
+<details><summary><b>M2 - Fire and Ash (Town)</b> (click to reveal)</summary>
 
 
 An EMBER flame now burns on the table. Press F to take it: fire on your body, 5 health a second while you carry
 it (it never brings you below 15 by itself), and it stays in hand for the whole step.
 
-Four tombstones stand in a row along the lava on the way from the tower to the cornfield. Press F on any of
-them with the ember to light it (any order, as many as you like). Lighting a grave starts a wave of sprinting
-zombies at it that ends when the grave is full; they cross the lava and arrive burning. Kill 5 burning zombies
-near a lit grave (5 / 5 / 6 / 7): the tombstone vanishes and a scorched glow stays on the ground. A burning kill
-at an UNLIT grave does not count. Denizens leave you alone within a few steps of any of the four graves while
+Four tombstones stand in Town. Carry the ember there (the bus is fine; the lamp portals refuse you) and press F
+on any of them to light it (any order, as many as you like). Lighting a grave starts a wave of sprinting
+zombies at it that ends when the grave is full. Kill 5 zombies near a lit grave (5 / 5 / 6 / 7), burning or
+not (a Galvaknuckle kill does not count): the tombstone vanishes and a scorched glow stays on the ground. A
+kill at an UNLIT grave does not count (a buzz tells you). Denizens leave you alone within a few steps of any of the four graves while
 M2 runs.
 
 All four gone: chime, the flame on you grows. Go back to the table and press F to return the ember. That
