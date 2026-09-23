@@ -368,9 +368,9 @@ df_table_slots_init()
 {
     level.df_table_slots = [];
 
-    df_table_slot_def( 0, ( 0, -18, 0 ) ); // mirrored 2026-09-23 with the owner layout     // relay: on the top, its own pivot is at its base
-    df_table_slot_def( 1, ( 3, -8, 3.5 ) ); // mirrored 2026-09-23    // key card (skull on the Maxis side): half the card below its origin
-    df_table_slot_def( 2, ( 9.5, -1, 2 ) ); // mirrored 2026-09-23    // orb: hovers just over the top
+    df_table_slot_def( 0, ( 0, 18, 0 ) ); // owner in game 2026-09-23: the relay on the LEFT of the table     // relay: on the top, its own pivot is at its base
+    df_table_slot_def( 1, ( 3, 8, 3.5 ) ); // owner composer 2026-09-22 (unmirrored 2026-09-23 with slot 0)    // key card (skull on the Maxis side): half the card below its origin
+    df_table_slot_def( 2, ( 9.5, 1, 2 ) ); // owner composer 2026-09-22 (unmirrored 2026-09-23 with slot 0)    // orb: hovers just over the top
 }
 
 df_table_slot_def( n, offset )
@@ -1538,7 +1538,7 @@ df_fx_points_init()
     df_fx_point_def( "relay_array_step", "relay", ( 0, 0, 16 ) );   // multiplied by the array level, on top of relay_array_node
 
     // ---- the table under the tower (DF_SOCKET sits on DF_TABLE)
-    df_fx_point_def( "socket_spark", "table", ( 1, -17.5, 52 ) ); // mirrored 2026-09-23 // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
+    df_fx_point_def( "socket_spark", "table", ( 1, 17.5, 52 ) ); // unmirrored 2026-09-23 with slot 0 // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
     df_fx_point_def( "socket_glow", "table", ( 0, 0, 42.5 ) );      // owner composer 2026-09-22; the table light, the pulses, the finale stings
     df_fx_point_def( "socket_marker", "table", ( 0, 0, 42.5 ) );    // owner composer 2026-09-22; the AVAILABLE marker over the table
     df_fx_point_def( "table_slot_glint", "table", ( 0, 0, 6 ) );    // base: TOP of the table, df_table_slot( n ) already carries it
@@ -1674,7 +1674,8 @@ df_relay_roof_turn()
 
 df_relay_table_turn()
 {
-    return 135;
+    // owner in game 2026-09-23: at 135 the table relay showed its back; it faces the player at -45
+    return -45;
 }
 
 df_offset_rotate( offset, yaw )
