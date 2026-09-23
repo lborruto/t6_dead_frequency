@@ -167,7 +167,7 @@ it (it never brings you below 15 by itself), and it stays in hand for the whole 
 Four tombstones stand in a row along the lava on the way from the tower to the cornfield. Press F on any of
 them with the ember to light it (any order, as many as you like). A player standing near a lit grave pulls
 zombies across the lava; they arrive burning. Kill 5 burning zombies near a lit grave (5 / 5 / 6 / 7): the
-tombstone bursts and vanishes, and a scorched glow stays on the ground. A burning kill at an UNLIT grave does
+Denizens leave you alone within a few steps of any of the four graves while M2 runs. tombstone bursts and vanishes, and a scorched glow stays on the ground. A burning kill at an UNLIT grave does
 not count.
 
 All four gone: chime, the flame on you grows. Go back to the table and press F to return the ember. That

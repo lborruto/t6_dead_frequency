@@ -215,7 +215,23 @@ df_m1_protected( pos )
     if ( !is_true( level.df_m2_armed ) )
         return false;
 
-    return df_m2_lit_near( pos, 400 );
+    // owner 2026-09-23: near ANY of the four graves while M2 runs, lit or not (the walk to light one was a denizen trap)
+    return df_m2_grave_near( pos, 400 );
+}
+
+// True when one of the M2 graves stands within radius of pos, whatever its state.
+df_m2_grave_near( pos, radius )
+{
+    if ( !isdefined( level.df_m2_braziers ) )
+        return false;
+
+    foreach ( b in level.df_m2_braziers )
+    {
+        if ( isdefined( b ) && isdefined( b.origin ) && distancesquared( pos, b.origin ) < radius * radius )
+            return true;
+    }
+
+    return false;
 }
 
 // self = denizen. Latch phase: a denizen riding a player keeps riding up to the table (the tower is a
