@@ -928,12 +928,16 @@ df_m1_spawn_loop()
     }
 }
 
-// The Nacht anchor farthest from the players, as a fresh struct (screecher_prespawn reads .origin/.angles).
+// A Nacht anchor for the next denizen, as a fresh struct (screecher_prespawn reads .origin/.angles). Owner
+// 2026-09-23: they all rose from the one anchor farthest from the players. Now a random anchor among those
+// at least 150 from every player, never the one used last; the farthest one only when nothing else qualifies.
 df_m1_pick_spawn()
 {
     players = df_m1_room_players();
     best = undefined;
+    best_i = 0;
     best_d2 = -1;
+    ok = [];
 
     for ( i = 1; i <= 4; i++ )
     {
@@ -952,9 +956,20 @@ df_m1_pick_spawn()
         {
             best_d2 = d2;
             best = c;
+            best_i = i;
         }
+
+        if ( d2 >= 150 * 150 && ( !isdefined( level.df_m1_last_spawn ) || level.df_m1_last_spawn != i ) )
+            ok[ok.size] = i;
     }
 
+    if ( ok.size > 0 )
+    {
+        best_i = random( ok );
+        best = df_coord( "DF_NACHT_SPAWN_" + best_i );
+    }
+
+    level.df_m1_last_spawn = best_i;
     spot = spawnstruct();
     spot.origin = best.origin;
     spot.angles = best.angles;
