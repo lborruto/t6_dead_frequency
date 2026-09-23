@@ -1796,7 +1796,21 @@ df_s6_aim_debug( range2 )
 
     if ( !isdefined( self.df_orb ) )
     {
-        df_debug_print( "DF: s6 firing near node " + node.index + " but not carrying the orb (it waits at DF_ORB_SPAWN)" );
+        // owner 2026-09-23: say where the orb really is (state + distance), the old text always blamed DF_ORB_SPAWN
+        where = "none";
+        orb = level.df_s6_orb;
+
+        if ( isdefined( orb ) )
+        {
+            where = orb.state;
+
+            if ( isdefined( orb.ent ) )
+                where = where + ", " + int( distance( self.origin, orb.ent.origin ) ) + " units away at " + int( orb.ent.origin[0] ) + " " + int( orb.ent.origin[1] ) + " " + int( orb.ent.origin[2] );
+            else if ( isdefined( orb.carrier ) && isplayer( orb.carrier ) )
+                where = where + " by " + orb.carrier.name;
+        }
+
+        df_debug_print( "DF: s6 firing near node " + node.index + " without the orb in hand (orb: " + where + "). Take it first (F next to it), then fire" );
         return;
     }
 
