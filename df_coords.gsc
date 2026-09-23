@@ -114,7 +114,7 @@ df_coords_init()
     // ---- Step 6 orb landing: one of three spots at random, on both sides (owner 2026-09-11): the diner (as before),
     //      Town (1401 -445 -67) and the power station (11720 8491 -575). Picked when the side locks (df_orb_spawn_sync).
     df_coord_set( "DF_ORB_SPOT_1", df_ground( ( -5991, -7686, 34 ) ) + ( 0, 0, 1 ), ( 0, 0, 0 ), df_model( "orb" ) );
-    df_coord_set( "DF_ORB_SPOT_2", df_ground( ( 1401, -445, -67 ) ) + ( 0, 0, 1 ), ( 0, -8, 0 ), df_model( "orb" ) );
+    df_coord_set( "DF_ORB_SPOT_2", df_ground( ( 900, 130, -39 ) ) + ( 0, 0, 1 ), ( 0, 165, 0 ), df_model( "orb" ) ); // owner 2026-09-23: Town, new spot
     df_coord_set( "DF_ORB_SPOT_3", df_ground( ( 11720, 8491, -575 ) ) + ( 0, 0, 1 ), ( 0, -88, 0 ), df_model( "orb" ) );
 
     // ---- Step 6, Richtofen: the sparking transformer block on the small bridge at the power station exit (owner spot
