@@ -2260,12 +2260,6 @@ df_m2_kill_cue( b )
     df_cue_tick( df_m2_rim_pos( b ), 0 );
 }
 
-df_m2_puff( b )
-{
-    top = df_m2_rim_pos( b );
-    df_snd_loop_burst( "zmb_fire_loop", top, 1.2 ); // owner pick 2026-09-11: puff = fire loop burst
-}
-
 // Lit brazier: stage = 1 + floor( 2 * count / target ) (1 or 2); the quota fills it (stage 3). Each stage-up
 // is the fire trap whoosh alone (zmb_firetrap_start, _zm_traps.gsc:414): the Avogadro thunder that played
 // with it was electricity at a fire (art audit change 9, side leak) and is gone.

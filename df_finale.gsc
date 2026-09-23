@@ -18,8 +18,8 @@
 //   Mid-quest reward (#7): when Act 2 completes (df_step_done r2 / m2) the side reward is given at once and a
 //   Max Ammo drops at the table (df_fin_act2_listener); the finale then does not repeat it.
 //   Tracker (8d.1): one permanent runner light on the tower per completed act (Act 1 white current, Act 2
-//   side sparks, Act 3 both) and a small glow on each table slot as it is filled (df_fin_tracker_listener);
-//   the slot glow is in the side's family (electric xsm glow / lava ember glow).
+//   side sparks, Act 3 both) and one glow per finished step climbing the relay mast on
+//   the table (df_fin_tracker_listener, df_fin_step_glow).
 //   Shared helpers this file uses from df_systems (core agent, 2026-09-09): df_cue_deny( player ),
 //   df_cue_side_flash( origin, side ), df_fx_burst( fx, origin, seconds ), df_vox_once( alias, origin ).
 //   Rewards: every perk (the six TranZit machines, df_fin_perk_list; down players get them on revive;
@@ -43,7 +43,6 @@ df_finale_init()
     df_register_step( "finale", ::df_fin_run, undefined );
     level.df_fin_fx = [];
     level.df_fin_track = [];
-    level.df_fin_slot_fx = [];
     level thread df_fin_debug_listener();
     level thread df_fin_round_power_watch();
     level thread df_fin_act2_listener();
@@ -459,8 +458,7 @@ df_fin_world( side )
 // The finale residue on the table (dialogue audit v2 row 11 / section 5: ITEM_KEEPSAKE_RICH / _MAXIS need a
 // caller): the Act 2 trophy stays on slot 1 for good, the key card glowing for Richtofen, the skull for
 // Maxis, and the patron says so once. Only when that act actually left something there (df_is_done r1 / m1;
-// a debug finale from round 1 has an empty slot and says nothing). The slot glow is the tracker's
-// (df_fin_slot_glow, idempotent) so a goto-fabricated game shows it too.
+// a debug finale from round 1 has an empty slot and says nothing).
 df_fin_keepsake( side )
 {
     if ( is_true( level.df_fin_keepsake_done ) )
@@ -1008,11 +1006,10 @@ df_fin_reward_maxis()
 // ---------------------------------------------------------------- tracker ----
 // Audit 8d.1: a visible progression tracker. Listens to df_steps' "df_step_done", key (df_complete, also
 // during a "!df goto" fabrication, so a goto lands with the right tracker):
-//   step4 (Act 1 done)  -> permanent white runner on the tower + glow on table slot 0 (the relay)
-//   r1 / m1             -> glow on table slot 1 (the key card / the skull)
+//   step4 (Act 1 done)  -> permanent white runner on the tower
 //   r2 / m2 (Act 2)     -> permanent side-coloured runner
-//   step6               -> glow on table slot 2 (the orb)
 //   step7 (Act 3)       -> a second pair of runners (white + side)
+//   every step          -> its glow up the relay mast (df_fin_step_glow)
 // Runners are our own copy of df_systems' df_tower_fx_runner: the shared one dies with every
 // df_tower_fx_stop (each act's 12 s cue calls it), these survive until end_game. The side of a runner is
 // re-read at every launch so the colour follows the locked side.
@@ -1137,30 +1134,6 @@ df_fin_step_glow_wait( key )
         wait 1;
 
     df_fin_step_glow( key );
-}
-
-// (unused since owner 2026-09-23) A small steady glow on table slot n in the side's family (df_fin_slot_glow_fx), 6 above the top. Once
-// per slot; the side is read when the slot fills (slot 0 fills the moment Step 4 locks the side).
-df_fin_slot_glow( n )
-{
-    if ( isdefined( level.df_fin_slot_fx[n] ) )
-        return;
-
-    fx = df_fx_loop( df_fin_slot_glow_fx(), df_table_slot( n ) + df_fx_point_at( "table_slot_glint", df_table_yaw() ) );
-
-    if ( isdefined( fx ) )
-        level.df_fin_slot_fx[n] = fx;
-}
-
-// The slot glow alias: Maxis = the small lava ember glow (fx_zmb_lava_crevice_glow_50, zm_transit_fx.gsc:90,
-// the unlit-brazier ember of M2; art audit cue table, LIVE object idle, Maxis column); Richtofen and
-// pre-fork = the tiny electric glow of the idle relay (fx_zmb_tranzit_light_glow_xsm, :55).
-df_fin_slot_glow_fx()
-{
-    if ( df_fin_side() == "maxis" )
-        return "fx_zmb_lava_crevice_glow_50";
-
-    return "fx_zmb_tranzit_light_glow_xsm";
 }
 
 // The runner fx of a colour: "white" = the power-station rising current (fx_zmb_tranzit_power_rising,

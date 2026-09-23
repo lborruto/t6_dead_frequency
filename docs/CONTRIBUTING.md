@@ -107,7 +107,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   alive cap, the orb hp and guard bonus, the zone rule, charge strikes, per-side pressure (Avogadro boss /
   denizens loose), the song, and the after-hold waves.
 - `df_finale.gsc` - the finale (power gate, perks, build-up, orb rise, burst, permanent world change, rewards,
-  globe stat), the Act 2 reward listener, and the tower tracker (runner lights per act, slot glows).
+  globe stat), the Act 2 reward listener, and the tower tracker (runner lights per act, one glow per step up the table relay).
 
 ## The build
 

@@ -216,8 +216,6 @@ sub r2 { my $n = shift; return int( $n * 100 + ( $n >= 0 ? 0.5 : -0.5 ) ) / 100;
 #      which is drawn but never exported). ------------------------------------------------------------------
 my %fx_base;   # name -> [bx,by,bz], default [0,0,0] (registry offset only, no base to undo on export)
 $fx_base{pipe_glow}        = [ 0, 0, $tv_top_z ];                       # TOP of the prop (tv)
-$fx_base{table_slot_glint} = [ 0, 0, $table_top_z ];                    # TOP of the prop (table); slot x overridden per instance
-$fx_base{table_demo_step}  = [ 0, 0, $table_top_z ];                    # "multiplied by the slot index": drawn once at slot 1 (x=0)
 $fx_base{brazier_rim_fire} = [ 0, 0, $brazier_rim_z ];                  # RIM of the prop (brazier), df_m2_rim_height
 $fx_base{brazier_ash}      = [ 0, 0, $brazier_rim_z ];                  # RIM of the prop (brazier), df_m2_rim_height
 $fx_base{fuse_focus}       = [ 0, 0, $fx_def{fuse_led}{z} ];            # base is fuse_led, not the box origin
@@ -285,13 +283,6 @@ sub table_slot_xyz {
     my ( $sx, $sy ) = df_rotate_offset( $d->[0], $d->[1], 0, $table_front_yaw );
     return ( r2($sx), r2($sy), r2( $table_top_z + $d->[2] ) );
 }
-# The same slot as a LOCAL (unrotated, table-frame) offset. table_slot_glint attaches to the table part itself
-# and is rendered/exported through the normal parent-yaw rotation, so its own local offset must NOT already
-# carry table_front_yaw.
-sub table_slot_local_xy {
-    my ($n) = @_;
-    return ( $slot_def{$n}[0], $slot_def{$n}[1] );
-}
 my @slot0 = table_slot_xyz(0);
 my @slot1 = table_slot_xyz(1);
 my @slot2 = table_slot_xyz(2);
@@ -323,20 +314,14 @@ my @skull_pos = @slot1;
 my $orb_yaw  = $table_front_yaw + $model_def{orb}{yawoff};
 my @orb_pos  = @slot2;
 
-# fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), a
-# table_slot_glint cross per slot (parent "table", base = that slot's own LOCAL offset), table_demo_step (parent
-# "table", drawn once at slot 1 / x=0, "+step"), and orb_aura/orb_glint (parent "orb").
+# fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), the nine
+# relay_step_glow_N (parent "relay") and orb_aura/orb_glint (parent "orb").
 sub table_common_fx {
     my @fx = (
         fx_part( name => 'socket_spark',  parent => 'table' ),
         fx_part( name => 'socket_glow',   parent => 'table' ),
         fx_part( name => 'socket_marker', parent => 'table' ),
     );
-    for my $n ( 0, 1, 2 ) {
-        my ( $lx, $ly ) = table_slot_local_xy($n);
-        push @fx, fx_part( name => 'table_slot_glint', parent => 'table', bx => $lx, by => $ly, bz => $table_top_z + $slot_def{$n}[2] );
-    }
-    push @fx, fx_part( name => 'table_demo_step', parent => 'table' );
     push @fx, map { fx_part( name => "relay_step_glow_$_", parent => 'relay' ) } 1 .. 9; # owner 2026-09-23: one glow per step up the mast
     push @fx, fx_part( name => 'orb_aura', parent => 'orb' ), fx_part( name => 'orb_glint', parent => 'orb' );
     return @fx;
@@ -466,8 +451,8 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
         ? 'kind "card" (' . $model_def{card}{name} . ').'
         : 'kind "skull" (' . $model_def{skull}{name} . ').' )
       . ' Slot 2: kind "orb" (' . $model_def{orb}{name} . ')'
-      . '. fx: socket_spark/glow/marker (parent "table"), table_slot_glint per slot and table_demo_step (parent "table", base = TOP of the table), '
-      . ( $is_rich ? 'card_glint/card_glow (parent "card")' : 'skull_table_glow/skull_glow (parent "skull")' )
+      . '. fx: socket_spark/glow/marker (parent "table"), '
+      . ( $is_rich ? 'no card points' : 'skull_glow (parent "skull", the floor stone glow)' )
       . ', orb_aura/orb_glint (parent "orb"). The GSC export gives every child part\'s offset in ITS PARENT\'s own frame (undoing that '
       . 'part\'s own yaw, e.g. relay_coil / relay_mast come back out at their exact df_model_offset despite the relay\'s -45 turn), '
       . 'plus a ready-to-paste "table layout" block of df_table_slot_def lines for the three slots.';
@@ -477,8 +462,8 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
       : ( model_part( kind => 'skull', model => $model_def{skull}{name}, x => $skull_pos[0], y => $skull_pos[1], z => $skull_pos[2], pitch => $model_def{skull}{pitch}, roll => $model_def{skull}{roll}, yaw => $skull_yaw, slot => 1 ) );
 
     my @occupant_fx = $is_rich
-      ? ( fx_part( name => 'card_glint', parent => 'card' ), fx_part( name => 'card_glow', parent => 'card' ) )
-      : ( fx_part( name => 'skull_table_glow', parent => 'skull' ), fx_part( name => 'skull_glow', parent => 'skull' ) );
+      ? ()
+      : ( fx_part( name => 'skull_glow', parent => 'skull' ) );
 
     # owner 2026-09-23: the FIRE HAND (kind "ember") on the Maxis table, a child of the table: its export is the
     # df_model_def "ember" offset in the table frame (df_table_point), shown here where M2 leaves it before Step 6
@@ -602,7 +587,7 @@ add_preset(
 );
 
 # ---- sanity check: every one of the 44 registry fx points must appear in the presets above exactly once
-#      (by name; a point may be DRAWN more than once, like tower_column_side or table_slot_glint, but must
+#      (by name; a point may be DRAWN more than once, like tower_column_side, but must
 #      still be reachable), and nothing unknown must have snuck in. ---------------------------------------
 my %used_fx;
 for my $key (@preset_order) {
@@ -1239,7 +1224,7 @@ __SCRIPTS__
 
     // Every fx point, offset in its parent's own frame minus its base (the parent's glTF top/rim bound, or
     // another point's own resolved offset -- see baseX/baseY/baseZ), so the export matches df_fx_point_def's
-    // own registry convention. A point drawn more than once (tower_column_side, table_slot_glint) exports once.
+    // own registry convention. A point drawn more than once (tower_column_side) exports once.
     var fxParts = parts.filter(function(p){ return p.ptype === 'fx'; });
     var seen = {}, fxLines = [];
     fxParts.forEach(function(p){

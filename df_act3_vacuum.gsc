@@ -1571,14 +1571,6 @@ df_s6_place( player )
     level notify( "df_s6_check" );
 }
 
-// Deletes an fx entity after `seconds`.
-df_s6_fx_stop_after( ent, seconds )
-{
-    level endon( "end_game" );
-    wait( seconds );
-    df_fx_stop( ent );
-}
-
 // The node's "charged" visuals go out: set lamps go "drained" (dark, df_lamps.gsc); other nodes lose the
 // beam, our fallback marker and the Act 2 visuals M2 exports on the node struct (.fx/.fx2/.snd).
 df_s6_node_fx_off( node )

@@ -849,14 +849,13 @@ df_preview_refresh( key )
         df_table_preview_slots( key );
 }
 
-// The three deposit slots of the table as key glints on its top, so `!df move DF_TABLE` / `!df ang
-// DF_TABLE` can be judged in game. Slot 0 has the LOWEST glint and each next one is 10 units higher
-// (same convention as the `!df catalog` row), and slot 0 is on the left looking along the table's front.
+// The three deposit slots of the table as glints exactly on their points, so `!df move DF_TABLE` / `!df ang
+// DF_TABLE` can be judged in game.
 df_table_preview_slots( key )
 {
     for ( n = 0; n < 3; n++ )
     {
-        g = df_fx_loop( "fx_zmb_tranzit_light_glow", df_table_slot( n ) + df_fx_point_at( "table_slot_glint", df_table_yaw() ) + df_fx_point( "table_demo_step" ) * n );
+        g = df_fx_loop( "fx_zmb_tranzit_light_glow", df_table_slot( n ) );
 
         if ( isdefined( g ) )
             level.df_preview[key][level.df_preview[key].size] = g;
@@ -1488,9 +1487,6 @@ df_models_init_items()
 //   df_act2_rich.gsc:147        spool   fx_zmb_tranzit_light_glow               ( 0, 0, 14 )    pickup_glint
 //   df_act2_rich.gsc:301        fuse    (led_origin: glow / spark / Simon)      ( 0, 0, 10 )    fuse_led
 //   df_act2_rich.gsc:794        fuse    AVAILABLE glint over the LED            ( 0, 0, 6 )     fuse_focus
-//   df_act2_rich.gsc:816        card    fx_zmb_tranzit_light_glow               ( 0, 0, 10 )    card_glint
-//   df_act2_rich.gsc:845        card    fx_zmb_tranzit_light_glow               ( 0, 0, 10 )    card_glint
-//   df_act2_rich.gsc:856        card    fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 6 )     card_glow
 //   df_act2_rich.gsc:903        table   fx_zmb_tranzit_light_glow               ( 0, 0, 40 )    socket_marker
 //   df_act2_rich.gsc:1354       table   avogadro_phasing                        ( 0, 0, 30 )    socket_glow
 //   df_act2_rich.gsc:2310       relay   fx_zmb_tranzit_light_glow_xsm (array)   ( 0, 0, 40 )    relay_array_node
@@ -1500,7 +1496,6 @@ df_models_init_items()
 //   df_act2_maxis.gsc:778       portal  screecher_death                         ( 0, 0, 10 )    portal_burst_ash
 //   df_act2_maxis.gsc:779       portal  fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 50 )    portal_burst_light
 //   df_act2_maxis.gsc:1177      skull   fx_zmb_tranzit_light_glow               ( 0, 0, 20 )    skull_glow
-//   df_act2_maxis.gsc:1411      skull   fx_zmb_tranzit_light_glow_xsm           ( 0, 0, 8 )     skull_table_glow
 //   df_act2_maxis.gsc:2396      ember   character_fire_death_sm (fire hand)     ( 0, 0, 4 )     hand_fire
 //   df_act2_maxis.gsc:2108      brazier zmb_phdflop_explo                       rim + 0         brazier_rim_fire
 //   df_act2_maxis.gsc:1798      brazier fx_zmb_tranzit_fire_med (stage fx)      rim + 0         brazier_rim_fire
@@ -1528,10 +1523,6 @@ df_models_init_items()
 //   df_finale.gsc:574           table   fx_zmb_tranzit_spark_blue_lg_os         ( 0, 0, 30 )    socket_glow
 //   df_finale.gsc:917           table   zmb_whoosh                              ( 0, 0, 30 )    socket_glow
 //   df_finale.gsc:311           tower   zmb_turn_on                             ( 0, 0, 100 )   tower_power_snd
-//   df_finale.gsc:1075          table   df_fin_slot_glow_fx                     ( 0, 0, 6 )     table_slot_glint
-//   df_act2_maxis.gsc:2385      table   fx_zmb_tranzit_fire_med (ember on slot) ( 0, 0, 6 )     table_slot_glint
-//   df_coords.gsc:788           table   fx_zmb_tranzit_light_glow (demo glints) ( 0, 0, 6 )     table_slot_glint
-//                                       + 10 per slot index                     ( 0, 0, 10 )    table_demo_step
 //   df_lamps.gsc:60             lamp    every lamp fx / hum (bulb fallback)     ( 0, 0, 148 )   lamp_bulb_glow
 //
 // Left as literals on purpose (not prop-relative): the player-carried bursts (df_act1:1810,
@@ -1580,15 +1571,10 @@ df_fx_points_init()
     df_fx_point_def( "socket_spark", "table", ( -2.5, 20.5, 88 ) ); // owner composer 2026-09-23 // unmirrored 2026-09-23 with slot 0 // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
     df_fx_point_def( "socket_glow", "table", ( 0, 0, 42.5 ) );      // owner composer 2026-09-22; the table light, the pulses, the finale stings
     df_fx_point_def( "socket_marker", "table", ( 0, 0, 42.5 ) );    // owner composer 2026-09-22; the AVAILABLE marker over the table
-    df_fx_point_def( "table_slot_glint", "table", ( -2, 5.5, 7 ) ); // owner composer 2026-09-23; horizontal: df_fx_point_at with the table yaw    // base: TOP of the table, df_table_slot( n ) already carries it
-    df_fx_point_def( "table_demo_step", "table", ( 0, 0, 29.5 ) ); // owner composer 2026-09-23    // `!df show DF_TABLE` only: multiplied by the slot index
 
     // ---- the things that sit on the table
-    df_fx_point_def( "card_glint", "card", ( 0, 0.5, 0.5 ) ); // mirrored 2026-09-23      // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
-    df_fx_point_def( "card_glow", "card", ( 0, 0.5, 0.5 ) ); // mirrored 2026-09-23       // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site
-    df_fx_point_def( "card_barn_glint", "card_barn", ( 0, 0.5, 0.5 ) ); // the glint on the floating barn card (was card_glint)
+    df_fx_point_def( "card_barn_glint", "card_barn", ( 0, 0.5, 0.5 ) ); // the glint on the floating barn card
     df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
-    df_fx_point_def( "skull_table_glow", "skull", ( 0, 0, 8 ) );
     df_fx_point_def( "hand_fire", "ember", ( 0, 0, 4 ) );          // owner 2026-09-23: the tiny flame on the fire hand        // owner composer 2026-09-22
 
     // ---- the barn fuse boxes and the Step 6 nodes

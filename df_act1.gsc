@@ -1668,40 +1668,7 @@ df_step4_plugged_relay_spawn()
         top_kind = "relay_mast";
 
     level.df_socket_relay = df_a1_relay_spawn( pos, yaw, top_kind, df_relay_table_turn() );
-    level thread df_a1_plugged_power_watch();
     df_debug_print( "DF: plugged relay at " + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ", top piece " + top_kind );
-}
-
-// Plugged relay light follows the power flag for the rest of the game.
-df_a1_plugged_power_watch()
-{
-    level endon( "end_game" );
-
-    while ( isdefined( level.df_socket_relay ) )
-    {
-        df_a1_plugged_fx( flag( "power_on" ) );
-
-        if ( flag( "power_on" ) )
-            flag_waitopen( "power_on" );
-        else
-            flag_wait( "power_on" );
-    }
-}
-
-// Plugged relay idle look on/off (tiny glow + elec_sm bursts while powered).
-df_a1_plugged_fx( on )
-{
-    level notify( "df_a1_pulse_stop_plugged" );
-    df_fx_stop( level.df_socket_relay_fx );
-    level.df_socket_relay_fx = undefined;
-
-    // owner 2026-09-23: the plugged relay has no idle glow or bursts of its own any more (they stacked with everything else);
-    // its look is the step glows (df_finale df_fin_step_glow)
-    if ( 1 )
-        return;
-
-    level.df_socket_relay_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", level.df_socket_relay.origin + df_fx_point( "relay_glow" ) );
-    level thread df_a1_idle_pulse( level.df_socket_relay, "plugged", df_fx_point( "relay_glow" )[2] );
 }
 
 // Relay on the roof (or dropped on the ground): stand within 120 units, one press to carry it.
