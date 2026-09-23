@@ -376,8 +376,8 @@ df_table_slots_init()
     level.df_table_slots = [];
 
     df_table_slot_def( 0, ( 0, 18, 0 ) ); // owner in game 2026-09-23: the relay on the LEFT of the table     // relay: on the top, its own pivot is at its base
-    df_table_slot_def( 1, ( 3, 8, 3.5 ) ); // owner composer 2026-09-22 (unmirrored 2026-09-23 with slot 0)    // key card (skull on the Maxis side): half the card below its origin
-    df_table_slot_def( 2, ( 9.5, 1, 2 ) ); // owner composer 2026-09-22 (unmirrored 2026-09-23 with slot 0)    // orb: hovers just over the top
+    df_table_slot_def( 1, ( 3, 0, 3.5 ) ); // 2026-09-23: at y 8 the card and the stone sat INSIDE the relay radio (slot 0 at y 18, turned -45): middle of the table
+    df_table_slot_def( 2, ( 3, -18, 2 ) ); // 2026-09-23: the right end, clear of the card; heights are the owner composer values
 }
 
 df_table_slot_def( n, offset )

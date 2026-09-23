@@ -390,6 +390,11 @@ df_s6_run()
 // df_s6_cleanup removes the column / storm.
 df_s6_orb_arrival( pos )
 {
+    // Maxis (owner 2026-09-23): the rock is the ember's fire. The ember on the table flares and bursts, its fire flies to
+    // the landing spot as a trail, Maxis says why, then the usual build-up and strike bring the rock down there.
+    if ( df_s6_is_maxis() )
+        df_s6_ember_burst( pos );
+
     top = df_tower_top();
 
     if ( !isdefined( top ) )
@@ -1797,4 +1802,32 @@ df_s6_aim_debug( range2 )
 
     dot = vectordot( anglestoforward( self getplayerangles() ), vectornormalize( df_s6_orb_pos( node ) - self geteye() ) );
     df_debug_print( "DF: s6 firing near node " + node.index + ", aim " + int( dot * 100 ) + "/100 (need " + int( df_s6_draw_cos() * 100 ) + ")" );
+}
+
+// Maxis Step 6 opening: the spent ember on the table slot 2 bursts and its fire flies to `pos` (the rock's landing spot).
+df_s6_ember_burst( pos )
+{
+    from = df_table_slot( 2 );
+    df_fx_burst( "fx_zmb_tranzit_fire_med", from, 0.8 );
+    playsoundatposition( "zmb_phdflop_explo", from );
+    df_say( "S6_EMBER_MAXIS" );
+
+    trail = df_fx_loop( "fx_zmb_tranzit_fire_med", from + ( 0, 0, 20 ) );
+
+    if ( !isdefined( trail ) )
+        return;
+
+    wait 0.15;
+    t = distance( from, pos ) / 1500;
+
+    if ( t < 1 )
+        t = 1;
+
+    if ( t > 4 )
+        t = 4;
+
+    trail moveto( pos + ( 0, 0, 200 ), t );
+    wait( t );
+    df_fx_stop( trail );
+    df_debug_print( "DF: s6 the ember burst on the table, its fire flew to the landing spot" );
 }

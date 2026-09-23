@@ -251,6 +251,8 @@ df_dialogue_act3_vacuum()
     df_add_line( "S6_START_RICH", "rich", "That crackle at the power plant, Samuel? My storm wants out. Find it a jar." );
     df_add_line( "S6_START_RICH", "maxis", "He has you carrying his batteries now. Follow his light, if you must." );
     df_add_line( "S6_START_MAXIS", "maxis", "The hunter's cabin in the woods keeps a fire. The rock must drink from it." );
+    // S6_EMBER_MAXIS: the ember on the table bursts and its fire flies off to where the rock will fall (df_s6_ember_burst)
+    df_add_line( "S6_EMBER_MAXIS", "maxis", "The ember could not hold the fire. It fell again, far away, as a rock." );
     df_add_line( "S6_START_MAXIS", "rich", "A ROCK, Samuel! He wants you to carry a rock! Oh, I could not make this up!" );
     df_add_line( "S6_HINT_1_RICH", "rich", "Where the lightning struck, Samuel: a rock. Emptier than it looks. Fetch it." );
     df_add_line( "S6_HINT_1_MAXIS", "maxis", "A rock fell with the lightning. Carry it to the hunter's cabin in the woods." );

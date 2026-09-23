@@ -232,7 +232,7 @@ at the node when it overheats. You need a Jet Gun in the team (your patron says 
 nobody carries one).
 
 - RICHTOFEN: the sparking transformer block on the small bridge at the Power station exit. Fire from the bridge.
-- MAXIS: the fireplace of the hunter's cabin in the woods. Stand in front of it (crouched or standing) and fire
+- MAXIS: when the step opens, the ember on the table bursts and its fire flies off to where the rock falls. The node is the fireplace of the hunter's cabin in the woods. Stand in front of it (crouched or standing) and fire
   into the opening. Denizens leave you alone near the cabin while this step is open.
 
 Fully charged (three clinks, an aura and a hum on the orb and on you): press F at the table to place it. If you
