@@ -194,6 +194,8 @@ df_dialogue_act2_maxis()
     // M2_POWER_MAXIS: the grid was ON at the end of a round and a brazier stage is lost (df_m2_power_penalty;
     // dialogue audit v2 section 3, optional key; the caller is requested in tools/requests_V2dialogue.md)
     df_add_line( "M2_POWER_MAXIS", "maxis", "The grid is live. The graves forget their dead while it hums. Cut it." );
+    // M2_GRAVE_COLD: a lit grave was not filled in time (df_m2_grave_timer, owner 2026-09-23)
+    df_add_line( "M2_GRAVE_COLD", "maxis", "Too slow. That grave went cold. Light it again and feed it from the start." );
     df_add_line( "M2_DONE", "maxis", "The ash carries the message. Now the fog will answer it." );
     df_add_line( "M2_DONE", "rich", "Bonfires. He has reduced you to bonfires, Samuel." );
 }

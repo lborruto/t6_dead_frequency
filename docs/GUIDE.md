@@ -167,7 +167,9 @@ it (it never brings you below 15 by itself), and it stays in hand for the whole 
 Four tombstones stand in Town. Carry the fire hand there (the bus is fine; the lamp portals refuse you) and press F
 on any of them to light it (any order, as many as you like). Lighting a grave starts a wave of sprinting
 zombies at it that ends when the grave is full. Kill 5 zombies near a lit grave (5 / 5 / 6 / 7), burning or
-not (a Galvaknuckle kill does not count): the tombstone vanishes and a scorched glow stays on the ground. A
+not (a Galvaknuckle kill does not count): the tombstone vanishes and a scorched glow stays on the ground. A lit grave
+has 90 seconds to be filled: if not, it goes cold (the thump and Maxis tell you), loses its kills and must be lit
+again and filled from zero. A
 kill at an UNLIT grave does not count (a buzz tells you). Denizens leave you alone within a few steps of any of the four graves while
 M2 runs.
 

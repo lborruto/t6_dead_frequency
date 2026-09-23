@@ -1146,11 +1146,13 @@ df_act2_maxis_trail( from, to, flash )
 
     ent moveto( to, time );
     wait( time );
-    // owner 2026-09-23: a grave kill shows only the soul flying in (flash 0), no big fire burst at the grave
+    // owner 2026-09-23: flash 0 = a grave kill (df_m2_soul): no fire flash and no sound here, the caller plays them
     if ( flash )
+    {
         df_cue_side_flash( to );
+        df_snd_near( "evt_player_swiped", to, 600 ); // owner pick 2026-09-11: a soul reaches a brazier
+    }
 
-    df_snd_near( "evt_player_swiped", to, 600 ); // owner pick 2026-09-11: a soul reaches a brazier
     df_fx_stop( ent );
 }
 
@@ -2195,7 +2197,9 @@ df_m2_light( b, player )
         return;
 
     b.lit = 1;
+    b.lit_ms = gettime();
     df_m2_set_stage( b, 1 );
+    level thread df_m2_grave_timer( b );
 
     // the first lit grave teaches the rule (audit v3 #4: M2_HINT_2 had no caller since the ember no longer burns out)
     if ( df_m2_lit_count() == 1 )
@@ -2218,6 +2222,53 @@ df_m2_light( b, player )
 
     df_debug_print( "DF: m2 " + b.name + " lit by " + who + " (" + df_m2_lit_count() + "/4 lit, " + left + " to go" + tail + ")" );
     level notify( "df_m2_check" );
+}
+
+// Owner 2026-09-23: a lit grave has df_m2_grave_time seconds (dvar, default 90) to be filled. Past that it goes
+// cold: unlit, its count back to 0, the PROGRESS LOST cue at the rim and Maxis says so. It must be lit again with
+// the fire hand and filled from zero. One timer per lighting (b.light_id); a grave filled in time stops it.
+df_m2_grave_time()
+{
+    t = getdvarint( "df_m2_grave_time" );
+
+    if ( t <= 0 )
+        t = 90;
+
+    return t;
+}
+
+df_m2_grave_timer( b )
+{
+    level endon( "end_game" );
+    level endon( "df_m2_done" );
+    level endon( "df_skip_m2" );
+
+    if ( !isdefined( b.light_id ) )
+        b.light_id = 0;
+
+    b.light_id++;
+    id = b.light_id;
+    limit = df_m2_grave_time() * 1000;
+
+    while ( true )
+    {
+        wait 1;
+
+        if ( b.done || !b.lit || b.light_id != id )
+            return;
+
+        if ( gettime() - b.lit_ms < limit )
+            continue;
+
+        b.lit = 0;
+        b.count = 0;
+        df_m2_set_stage( b, 0 );
+        df_cue_fail( df_m2_rim_pos( b ) );
+        df_say( "M2_GRAVE_COLD" );
+        df_debug_print( "DF: m2 " + b.name + " went cold (not filled within " + df_m2_grave_time() + " s): light it again and fill it from 0" );
+        level notify( "df_m2_check" );
+        return;
+    }
 }
 
 // ---- kills at a lit grave ------------------------------------------------------------------------
@@ -2255,23 +2306,22 @@ df_m2_on_zombie_death( zombie )
 
     df_touch( "m2" );
     best.count++;
-    // the soul leaves the body as it bursts (owner 2026-09-11): a fire burst at the zombie, then the trail
-    df_snd_near( "evt_player_swiped", zombie.origin, 600 );
-    level thread df_act2_maxis_trail( zombie.origin, df_m2_ash_pos( best ), 0 );
-    level thread df_m2_kill_cue( best );
+    level thread df_m2_soul( zombie.origin, best );
     df_m2_update( best );
     level notify( "df_m2_check" );
 }
 
-// Each counted kill is heard at the bowl: the PROGRESS TICK (df_cue_tick with burst at the rim: piece-add
-// clink + 0.6 s of lava fire) and the lava puff (ignite + rising ash), timed for the fire trail landing
-// (df_act2_maxis_trail takes 0.4-1.5 s).
-df_m2_kill_cue( b )
+// One counted kill, the same every time (owner 2026-09-23: the soul, the burst and the sound each kill): the body
+// bursts (0.5 s of lava fire + the swipe sound at the body), the soul flies to the grave (df_act2_maxis_trail,
+// blocking), and lands with the PROGRESS TICK clink at the rim. Two different aliases, 0.4-1.5 s apart: the same
+// alias twice per kill (swipe at the body and at the grave) was cut by the engine when kills came quickly.
+df_m2_soul( from, b )
 {
     level endon( "end_game" );
 
-    // owner 2026-09-23: the tick sound only; the fire burst and the fire-loop puff at the grave are gone
-    wait 0.5;
+    df_fx_burst( df_side_burst_fx( "maxis" ), from + ( 0, 0, 30 ), 0.5 );
+    df_snd_near( "evt_player_swiped", from, 700 );
+    df_act2_maxis_trail( from, df_m2_ash_pos( b ), 0 );
     df_cue_tick( df_m2_rim_pos( b ), 0 );
 }
 
