@@ -1295,6 +1295,9 @@ df_models_init()
     // owner pick 2026-09-11 (Prop Picker): the EE meteor piece, 5 x 6 x 5, centre pivot (the skull is the same model,
     // owner's choice; the orb spins and wears the aura, the skull sits still on slot 1).
     df_model_def( "orb", "p6_zm_buildable_sq_meteor", 0, 0, 0 );
+    // orb_ground: the rock where it lands and rests on the floor (Step 6 landing spots, drops, Step 7 wander). Offset z = its rest
+    // height above the floor. Posed in the Prop Composer preset "Orb (on the ground)".
+    df_model_def( "orb_ground", "p6_zm_buildable_sq_meteor", 0, 0, 0, ( 0, 0, 3 ) );
 
     // part_a: Diner garage (owner move; the derived fallback below is the cabin jet gun spot), the "battery" of spec 10. Vanilla electric trap battery piece (so_zclassic_zm_transit,
     // zm_transit_buildables.gsc electric_trap pieces): a car battery, clearly a power cell.

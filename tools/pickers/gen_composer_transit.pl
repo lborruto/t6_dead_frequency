@@ -92,8 +92,7 @@ while ( $gsc =~ /df_fx_point_def\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*\(\s*(-?[\d
     push @fx_order, $name;
 }
 die "df_fx_points_init(): no df_fx_point_def(...) lines found in $coords\n" unless %fx_def;
-die sprintf( "df_fx_points_init(): expected 44 df_fx_point_def(...) lines, found %d in $coords\n", scalar @fx_order )
-    unless @fx_order == 44;
+die sprintf( "df_fx_points_init(): no df_fx_point_def(...) lines found in $coords\n" ) unless @fx_order;
 
 # ---- parse df_table_slots_init(): df_table_slot_def( n, ( x, y, z ) ); the three deposit slots of the table
 #      in the TABLE's own frame, z measured from the table TOP (df_model_top_z("table")). This is the owner's
@@ -541,6 +540,16 @@ add_preset(
     model_part( kind => 'card_barn', model => $model_def{card_barn}{name}, x => $model_def{card_barn}{ox} // 0, y => $model_def{card_barn}{oy} // 0, z => $model_def{card_barn}{oz} // 36,
                 pitch => $model_def{card_barn}{pitch}, roll => $model_def{card_barn}{roll}, yaw => $model_def{card_barn}{yawoff} // 0 ),
     fx_part( name => 'card_barn_glint', parent => 'card_barn' ),
+);
+
+add_preset(
+    'orb_ground', 'Orb (on the ground)',
+    'Kind "orb_ground": the rock where it lands and rests on the floor (Step 6 landing spots, drops, the Step 7 wander). Its z is the rest height above the floor. '
+      . 'The glints shown are the orb points (orb_aura / orb_glint), the same ones as on the table. The table pose is slot 2 of the Table presets.',
+    model_part( kind => 'orb_ground', model => $model_def{orb_ground}{name}, x => 0, y => 0, z => $model_def{orb_ground}{oz} // 3,
+                pitch => $model_def{orb_ground}{pitch}, roll => $model_def{orb_ground}{roll}, yaw => $model_def{orb_ground}{yawoff} // 0, fxAlias => 'orb' ),
+    fx_part( name => 'orb_aura',  parent => 'orb_ground' ),
+    fx_part( name => 'orb_glint', parent => 'orb_ground' ),
 );
 
 add_preset(

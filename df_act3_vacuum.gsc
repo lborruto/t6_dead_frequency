@@ -114,7 +114,7 @@ df_s6_drop_seconds()
 // source in df_act3_hold (df_s7_orb_rest_offset): a model swap in df_coords moves both at once.
 df_s6_orb_rest_offset()
 {
-    return ( 0, 0, df_model_rest_z( "orb" ) );
+    return df_model_offset( "orb_ground" ); // the registry (kind orb_ground), set in the Prop Composer
 }
 
 // One slow turn every 8 s (rotateyaw on a script_model, the tombstone skull's spin _zm_tombstone.gsc:332;

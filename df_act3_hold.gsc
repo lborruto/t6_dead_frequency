@@ -201,7 +201,7 @@ df_s7_socket()
 // swap in df_coords moves both at once.
 df_s7_orb_rest_offset()
 {
-    return ( 0, 0, df_model_rest_z( "orb" ) );
+    return df_model_offset( "orb_ground" ); // the registry (kind orb_ground), set in the Prop Composer
 }
 
 // One slow turn every 8 s (rotateyaw, the tombstone skull's spin _zm_tombstone.gsc:332), the same spin Step 6
