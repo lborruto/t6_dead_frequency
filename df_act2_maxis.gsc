@@ -1899,7 +1899,7 @@ df_m2_set_stage( b, stage )
     if ( isdefined( f ) )
     {
         b.fx[b.fx.size] = f;
-        level thread df_fx_keepalive( f );
+        level thread df_m2_flame_keep( f );
     }
 }
 
@@ -2470,7 +2470,7 @@ df_m2_ember_spawn_table( resting )
     if ( isdefined( f ) )
     {
         level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = f;
-        level thread df_fx_keepalive( f );
+        level thread df_m2_flame_keep( f );
     }
 
     df_debug_print( "DF: m2 the fire hand is on the table" );
@@ -2492,6 +2492,22 @@ df_m2_ember_table_remove()
         level.df_m2_hand_table delete();
 
     level.df_m2_hand_table = undefined;
+}
+
+// The small flame burns out after a few seconds (a character death fire, not a looping one: owner 2026-09-23, the
+// hand showed none and only a freshly lit grave had one). Replayed on its carrier every 2 s while it exists.
+df_m2_flame_keep( ent )
+{
+    level endon( "end_game" );
+    fxname = df_m2_small_fire_fx();
+
+    while ( isdefined( ent ) )
+    {
+        wait 2;
+
+        if ( isdefined( ent ) && isdefined( level._effect[fxname] ) )
+            playfxontag( level._effect[fxname], ent, "tag_origin" );
+    }
 }
 
 // The one small flame of M2 (graves and the fire hand); `set df_m2_fire_fx <fx key>` swaps it.

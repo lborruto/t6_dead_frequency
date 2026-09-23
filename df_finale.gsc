@@ -1117,7 +1117,14 @@ df_fin_step_glow( key )
         return;
     }
 
-    fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", relay.origin + df_fx_point_at( "relay_step_glow_" + i, relay.angles[1] ) );
+    // owner 2026-09-23: the xsm light glow was too strong; the tiny bulb glow by default, `set df_step_glow_fx <fx key>`
+    // swaps it for the glows lit after the change
+    fxname = getdvar( "df_step_glow_fx" );
+
+    if ( !isdefined( fxname ) || fxname == "" )
+        fxname = "fx_zmb_tranzit_light_bulb_xsm";
+
+    fx = df_fx_loop( fxname, relay.origin + df_fx_point_at( "relay_step_glow_" + i, relay.angles[1] ) );
 
     if ( isdefined( fx ) )
         level.df_fin_step_fx[i] = fx;
