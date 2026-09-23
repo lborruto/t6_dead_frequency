@@ -1406,7 +1406,7 @@ df_models_init_items()
     // a trigger, 11 x 4 x 10, proven to spawn as a buildable. Fallback: p6_zm_buildable_battery (16 x 14 x 9).
     // receiver (the phone's part) = the wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the
     // same model R2's spools use: the relay carries one on the radio.
-    df_model_def( "receiver", "p6_zm_buildable_sq_electric_box", 0, 10, 14 ); // owner composer 2026-09-22, mirrored 2026-09-23 (the composer viewer showed the world mirrored left/right): the viewer's "pitch -10" was a roll about the forward axis, mirrored = roll +10; yaw -14 mirrored = 14
+    df_model_def( "receiver", "p6_zm_buildable_sq_electric_box", 0, -10, 14 ); // owner composer 2026-09-22; roll sign checked in game 2026-09-23 (the engine rolls the other way than a right-hand turn about forward)
 
     // spool: the wire spool a filled lamp drops in R2 (audit 9). The jet gun wire bundle piece
     // (so_zclassic_zm_transit, ALWAYS, zm_transit_buildables.gsc jetgun pieces), 25 x 7 x 25: a coil of cable.

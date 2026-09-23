@@ -875,7 +875,7 @@ __SCRIPTS__
   function setPose(obj, p){
     obj.position.copy(toThree(p.x, p.y, p.z));
     var e = new THREE.Euler(
-      THREE.MathUtils.degToRad(p.roll),
+      -THREE.MathUtils.degToRad(p.roll),
       THREE.MathUtils.degToRad(p.yaw),
       -THREE.MathUtils.degToRad(p.pitch),
       'YZX'
