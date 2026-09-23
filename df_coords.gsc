@@ -376,8 +376,8 @@ df_table_slots_init()
     level.df_table_slots = [];
 
     df_table_slot_def( 0, ( 0, 18, 0 ) ); // owner in game 2026-09-23: the relay on the LEFT of the table     // relay: on the top, its own pivot is at its base
-    df_table_slot_def( 1, ( 3, 0, 3.5 ) ); // 2026-09-23: at y 8 the card and the stone sat INSIDE the relay radio (slot 0 at y 18, turned -45): middle of the table
-    df_table_slot_def( 2, ( 3, -18, 2 ) ); // 2026-09-23: the right end, clear of the card; heights are the owner composer values
+    df_table_slot_def( 1, ( -3, 8, 3.5 ) ); // owner composer 2026-09-23 (fixed viewer)
+    df_table_slot_def( 2, ( -7.5, -1, 2 ) ); // owner composer 2026-09-23 (fixed viewer)
 }
 
 df_table_slot_def( n, offset )
@@ -842,7 +842,7 @@ df_table_preview_slots( key )
 {
     for ( n = 0; n < 3; n++ )
     {
-        g = df_fx_loop( "fx_zmb_tranzit_light_glow", df_table_slot( n ) + df_fx_point( "table_slot_glint" ) + df_fx_point( "table_demo_step" ) * n );
+        g = df_fx_loop( "fx_zmb_tranzit_light_glow", df_table_slot( n ) + df_fx_point_at( "table_slot_glint", df_table_yaw() ) + df_fx_point( "table_demo_step" ) * n );
 
         if ( isdefined( g ) )
             level.df_preview[key][level.df_preview[key].size] = g;
@@ -1371,7 +1371,7 @@ df_models_init()
     // height: a flat card seen edge-on has no visible area. Pose here (owner composer 2026-09-22): pitch 180
     // with the face turned 44 off the front, the look the owner settled on for the card on the table and on
     // the barn wall (DF_CARD_SPAWN shows it like a badge).
-    df_model_def( "card", "p6_zm_keycard", 90, 0, -44 ); // lies flat (pitch 90, known good in game); turn -44 = the owner's 44 mirrored. The viewer applied pitch as a roll before 2026-09-23, so its 180 is not used
+    df_model_def( "card", "p6_zm_keycard", 0, 0, -45 ); // owner composer 2026-09-23 (fixed viewer): lies flat at pitch 0, turned -45
     // card_barn: the same card where it FIRST appears in the barn (standing, floating, random turn + this yaw). Offset z =
     // its float height above the floor under DF_CARD_SPAWN (df_r1_card_pos). Posed in the Prop Composer preset "Key card (barn)".
     df_model_def( "card_barn", "p6_zm_keycard", 0, 0, 0, ( 0, 0, 36 ) );
@@ -1549,11 +1549,11 @@ df_fx_points_init()
     df_fx_point_def( "relay_array_step", "relay", ( 0, 0, 16 ) );   // multiplied by the array level, on top of relay_array_node
 
     // ---- the table under the tower (DF_SOCKET sits on DF_TABLE)
-    df_fx_point_def( "socket_spark", "table", ( 1, 17.5, 52 ) ); // unmirrored 2026-09-23 with slot 0 // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
+    df_fx_point_def( "socket_spark", "table", ( -2.5, 20.5, 88 ) ); // owner composer 2026-09-23 // unmirrored 2026-09-23 with slot 0 // owner composer 2026-09-22; horizontal: df_fx_point_at with df_table_yaw() at the call site
     df_fx_point_def( "socket_glow", "table", ( 0, 0, 42.5 ) );      // owner composer 2026-09-22; the table light, the pulses, the finale stings
     df_fx_point_def( "socket_marker", "table", ( 0, 0, 42.5 ) );    // owner composer 2026-09-22; the AVAILABLE marker over the table
-    df_fx_point_def( "table_slot_glint", "table", ( 0, 0, 6 ) );    // base: TOP of the table, df_table_slot( n ) already carries it
-    df_fx_point_def( "table_demo_step", "table", ( 0, 0, 10 ) );    // `!df show DF_TABLE` only: multiplied by the slot index
+    df_fx_point_def( "table_slot_glint", "table", ( -2, 5.5, 7 ) ); // owner composer 2026-09-23; horizontal: df_fx_point_at with the table yaw    // base: TOP of the table, df_table_slot( n ) already carries it
+    df_fx_point_def( "table_demo_step", "table", ( 0, 0, 29.5 ) ); // owner composer 2026-09-23    // `!df show DF_TABLE` only: multiplied by the slot index
 
     // ---- the things that sit on the table
     df_fx_point_def( "card_glint", "card", ( 0, 0.5, 0.5 ) ); // mirrored 2026-09-23      // owner composer 2026-09-22; horizontal: df_fx_point_at with the card yaw at the call site

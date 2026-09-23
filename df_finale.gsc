@@ -1072,7 +1072,7 @@ df_fin_slot_glow( n )
     if ( isdefined( level.df_fin_slot_fx[n] ) )
         return;
 
-    fx = df_fx_loop( df_fin_slot_glow_fx(), df_table_slot( n ) + df_fx_point( "table_slot_glint" ) );
+    fx = df_fx_loop( df_fin_slot_glow_fx(), df_table_slot( n ) + df_fx_point_at( "table_slot_glint", df_table_yaw() ) );
 
     if ( isdefined( fx ) )
         level.df_fin_slot_fx[n] = fx;
