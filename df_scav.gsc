@@ -182,7 +182,7 @@ df_scav_icon( kind )
         case "receiver":
             return "zm_hud_icon_sq_powerbox"; // owner 2026-09-25: the power box (the coil is the fuse box again)
         case "spool":
-            return "zm_hud_icon_spool";
+            return "zm_hud_icon_battery"; // owner 2026-09-25: R2 carries batteries now
         case "battery":
             return "zm_hud_icon_battery";
         case "skull":
@@ -212,11 +212,11 @@ df_scav_display_name( kind )
     switch ( kind )
     {
         case "receiver":
-            return "Wire coil";
+            return "Power box";
         case "spool":
-            return "Wire spool";
+            return "Battery"; // R2 (owner 2026-09-25)
         case "battery":
-            return "Battery";
+            return "Fuse battery"; // the R1 fail path, charges the four barn boxes
         case "skull":
             return "Lantern"; // owner 2026-09-25: Maxis's lantern (code kind "skull")
         case "parts":
@@ -271,7 +271,8 @@ df_scav_carry_set( kind, count, total, who, item )
 
     progress = undefined;
 
-    if ( total > 1 )
+    // owner 2026-09-25: the R1 fuse battery counts the boxes it charged: no "(0/4)" at the pickup
+    if ( total > 1 && ( count > 0 || kind != "battery" ) )
         progress = count + "/" + total;
 
     name = df_scav_display_name( kind );

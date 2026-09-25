@@ -1491,6 +1491,8 @@ df_models_init_items()
     // spool: the wire spool a filled lamp drops in R2 (audit 9). The jet gun wire bundle piece
     // (so_zclassic_zm_transit, ALWAYS, zm_transit_buildables.gsc jetgun pieces), 25 x 7 x 25: a coil of cable.
     df_model_def( "spool", "p6_zm_buildable_jetgun_wires", 0, 0, 0 );
+    // owner 2026-09-25: R2 drops a BATTERY (the car battery of the R1 fail path), carried to the table
+    df_model_def( "r2_battery", "p6_zm_buildable_battery", 0, 0, 0 );
 
     // ember: the M2 FIRE HAND (owner 2026-09-23; the kind keeps the old "ember" name, it was the meteor piece):
     // the power switch hand piece p6_zm_buildable_pswitch_hand (zm_transit, 9 x 8 x 9) with a tiny flame.

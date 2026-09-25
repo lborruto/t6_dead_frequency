@@ -35,6 +35,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   finding new prop candidates.
 
 ### Changed
+- Pickup notices: the Step 1 item is the "Power box" (the EE fuse box model again), the R1 fail-path
+  battery is the "Fuse battery" (no "0/4" at pickup), the rock says "Rock" / "Charged rock".
 - R1 is punished properly: a wrong Simon press starts a new sequence from one spark, and a failed
   capture needs the bus battery in all four boxes AND the Simon again before a new key card comes.
 - Finale gift: the perks stay on after a power-off (vanilla pauses them; before the finale they
@@ -44,7 +46,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   follow the build first, then the ride. `!df goto step2` is an alias of `step3`; the relay
   mast shows eight step glows instead of nine.
 - R2: lamp quota lowered to 10 / 12 / 14 / 16 kills (was 12 / 15 / 18 / 18), and a punched
-  full lamp's wire spool now flies to the table by itself - no pickup, carry or table trip.
+  full lamp drops a BATTERY (was a wire spool): carried to the table, one per press, each one
+  stands under the table sparking.
 - R3 Blackout: the three switches must all be ON within one round (see Added).
 - Step 6: the rock's release is seen and heard by the whole team - a screen shake and a loud
   crack for every player, and the trail climbs high above the tower before it curves down to
@@ -83,8 +86,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Richtofen is heard only by the Stuhlinger player, recordings included: his Step 4 lock line
   played in 3D at the table, audible to everyone nearby.
-- Lights Out with four players: all four set lamps hum and three put out win; the fourth now
-  goes out with the win instead of humming for the rest of the game.
+- Lights Out uses exactly three lamps at every player count (a full lobby had four).
 - Claymore kills at a Lights Out lamp count (the game reports them as weapon "none"); a splash
   kill counts only right after a nearby claymore detonates.
 - A grave could miss the shot: it now takes bullets on its trigger, its model and two bullet

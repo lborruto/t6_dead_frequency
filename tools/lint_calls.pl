@@ -69,5 +69,25 @@ for my $f ( sort glob("$repo/df_*.gsc") ) {
     close $h;
 }
 
-if ($bad) { print "lint_calls.pl: $bad unknown call(s)\n"; exit 1 }
+# owner 2026-09-25 (COM_ERROR "Unresolved external waittill_any with 6 parameters"): the vanilla utility helpers
+# take a fixed number of notify names; more is a load-time error the compiler does not catch.
+my %maxargs = ( waittill_any => 5, waittill_any_return => 7, waittill_any_timeout => 6, waittill_either => 2 );
+for my $f ( sort glob("$repo/df_*.gsc") ) {
+    open my $h, '<', $f or die;
+    local $/;
+    my $src = <$h>;
+    close $h;
+    $src =~ s{//[^\n]*}{}g;
+    while ( $src =~ /\b(waittill_any|waittill_any_return|waittill_any_timeout|waittill_either)\s*\(([^;]*?)\)\s*;/g ) {
+        my ( $fn, $args ) = ( $1, $2 );
+        my @parts = split /,/, $args;
+        next if @parts <= $maxargs{$fn};
+        my $name = $f;
+        $name =~ s{.*/}{};
+        print "TOO MANY ARGS $name  $fn( " . scalar(@parts) . " args, max $maxargs{$fn} )\n";
+        $bad++;
+    }
+}
+
+if ($bad) { print "lint_calls.pl: $bad problem call(s)\n"; exit 1 }
 print "calls ok\n";

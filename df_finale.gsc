@@ -814,7 +814,7 @@ df_fin_perks_keep( perks )
 
     while ( true )
     {
-        level waittill_any( "juggernog_off", "revive_off", "sleight_off", "doubletap_off", "marathon_off", "tombstone_off" );
+        level waittill_any_return( "juggernog_off", "revive_off", "sleight_off", "doubletap_off", "marathon_off", "tombstone_off" ); // waittill_any takes 5 at most
         wait 0.05;
 
         if ( !isdefined( self.disabled_perks ) )

@@ -99,7 +99,7 @@ df_dialogue_act1()
     df_add_line( "D1_MAXIS", "maxis", "Yes. The pattern holds. He will hear this too. A pity." );
     df_add_line( "D1_RICH", "rich", "Four rusty pipes in the mud! THAT is his grand antenna? Oh, Maxis. Hahaha!" );
     // ITEM_RECEIVER: the solved pipes call the coil down by a strike near the Depot, the relay's third part
-    df_add_line( "ITEM_RECEIVER", "maxis", "The sky struck near the Depot. It left a coil of wire. The relay will need it." );
+    df_add_line( "ITEM_RECEIVER", "maxis", "The sky struck near the Depot. It left a power box. The relay will need it." );
 
     // Step 3 - Ride the Line (owner 2026-09-25, design audit 2.1: the old Step 2 "Salvage" is merged in). The step
     // opens with the build: S3_START (was S2_START), the build rungs S3_BUILD_HINT_n (were S2_HINT_n; phase
@@ -111,7 +111,7 @@ df_dialogue_act1()
     df_add_line( "S3_BUILD_HINT_1", "maxis", "A garage and a barn, past the fog. The sky gave you the third." );
     df_add_line( "S3_BUILD_HINT_2", "maxis", "A radio by the Diner, a mast up in the barn loft. Where does a relay ride?" );
     df_add_line( "S3_BUILD_HINT_2", "rich", "Three parts, Samuel, and something with wheels to wear them. Think!" );
-    df_add_line( "S3_BUILD_HINT_3", "maxis", "Garage radio, barn mast, the coil. Build the relay on the bus roof." );
+    df_add_line( "S3_BUILD_HINT_3", "maxis", "Garage radio, barn mast, the power box. Build the relay on the bus roof." );
     df_add_line( "S3_BUILD_HINT_3", "rich", "Three parts and a school bus roof, Samuel. Even Maxis could build that." );
     df_add_line( "D2_DONE", "rich", "A relay on a school bus! Genius, Samuel. Now lights on, wheels turning!" );
     df_add_line( "D2_DONE", "maxis", "It travels. Now it needs current, and distance. Both at once." );
@@ -150,7 +150,7 @@ df_dialogue_act1()
 // insert it at the table, the storm drags the creature to the tower, defeat him within 900 of it (vanilla:
 // knife only) inside capture_time s, failure: ONE bus battery refills all four boxes; R2 three set lamp
 // posts (one always nearest the tower) each swallow a quota of kills (10 solo) within 450 units, a full lamp
-// glows steady and a Galvaknuckles punch on the post frees a wire spool that flies to the table (ITEM_SPOOL_RICH).
+// glows steady and a Galvaknuckles punch on the post drops a battery, carried to the table (ITEM_SPOOL_RICH).
 // Story: the creature's energies were Maxis's plan (canon), Richtofen steals them (R1_MAXIS_TAUNT is a loss);
 // the stolen storm sits in the sparking block on the bridge (the S6 node) until the orb carries it to the obelisk.
 df_dialogue_act2_rich()
@@ -190,8 +190,8 @@ df_dialogue_act2_rich()
     df_add_line( "R1_MAXIS_TAUNT", "maxis", "Nein! The creature's energies were to be mine. You have set the design back." );
 
     // R2 - 115 on the Line
-    // R2 phase PUNCH (df_step_phase "r2"): a lamp is full and its spool still sits in the post
-    df_add_line( "R2_START", "rich", "A storm in a box is nothing without wires, Samuel. Look for sparks in the fog." );
+    // R2 phase PUNCH (df_step_phase "r2"): a lamp is full and its battery still sits in the post
+    df_add_line( "R2_START", "rich", "A storm in a box wants batteries, Samuel. Look for sparks in the fog." );
     df_add_line( "R2_START", "maxis", "He fattens his sparking lamps on the dead, then beats them. How crude." );
     df_add_line( "R2_HINT_1", "rich", "Some lamp posts spit sparks now. They are hungry, and they only eat one thing." );
     df_add_line( "R2_HINT_2", "rich", "Feed the hungry posts the dead, Samuel. Close to the post, till it glows!" );
@@ -199,15 +199,19 @@ df_dialogue_act2_rich()
     df_add_line( "R2_PUNCH_HINT_1", "rich", "A full lamp is waiting, Samuel. It wants a punch. A shocking one!" );
     df_add_line( "R2_PUNCH_HINT_2", "rich", "Fists that bite, Samuel! Look up at the Diner. Then shake the post's hand!" );
     df_add_line( "R2_PUNCH_HINT_3", "rich", "Galvaknuckles, Samuel! Diner roof. Then punch the full lamp's post with them!" );
+    // R2 phase CARRY: a battery is out (on the ground or in hand) and not in the table yet
+    df_add_line( "R2_CARRY_HINT_1", "rich", "A battery lies loose in the fog, Samuel. My obelisk is starving for it." );
+    df_add_line( "R2_CARRY_HINT_2", "rich", "Batteries go where the relay sleeps, Samuel. One at a time, if you like." );
+    df_add_line( "R2_CARRY_HINT_3", "rich", "Carry each battery to the table under the obelisk and insert it there." );
     df_add_line( "R2_RICH_FULL", "rich", "Full! Now it wants a punch, Samuel. And not from your little knife." );
     df_add_line( "R2_RICH_NOFISTS", "rich", "Bare steel? No. Electricity wants electricity. Galvaknuckles, Samuel." );
     // R2_POWER_RICH: the grid is off while R2 runs, the lamps leak (df_act2_rich, owner 2026-09-23)
     df_add_line( "R2_POWER_RICH", "rich", "Lights out, Samuel! A dark grid and my storm leaks away. Power. ON." );
     df_add_line( "R2_DONE", "rich", "Every lamp fat with 115! Lines on a map, Samuel. Oh, it is beautiful!" );
     df_add_line( "R2_DONE", "maxis", "He is building a cage. Do you not see it? Listen to the fog." );
-    // ITEM_SPOOL_RICH: the first punched lamp's wire spool flies to the table by itself (owner 2026-09-25, nothing
-    // to carry); the spools build the array on the relay (audit section 9)
-    df_add_line( "ITEM_SPOOL_RICH", "rich", "A spool of wire, Samuel! See it fly home to the obelisk? Wunderbar!" );
+    // ITEM_SPOOL_RICH: the first punched lamp's battery (owner 2026-09-25, was a wire spool): carried to the
+    // table, one per press (audit section 9)
+    df_add_line( "ITEM_SPOOL_RICH", "rich", "A battery, fat with 115! The obelisk is hungry for it, Samuel. Wunderbar!" );
 }
 
 // Act 2M (Maxis only; Richtofen heckles once per step). Mechanics (df_act2_maxis.gsc): M1 a denizen

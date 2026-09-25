@@ -48,7 +48,7 @@ Kick the pipes in that order: for each group, find the pipe whose blink count ma
 right pipe sparks, stops blinking and stays lit. A wrong pipe buzzes and every pipe goes back to blinking; the
 order stays the same, so just count the far light again and start over.
 
-When all four are lit the bus dashboard pulses, Maxis and Richtofen speak, and the wire COIL arrives by a strike
+When all four are lit the bus dashboard pulses, Maxis and Richtofen speak, and the POWER BOX arrives by a strike
 (burst, thunder, quake) on the ground near the Depot. Look for the glint and press F to take it: "Relay parts
 (1/3)". The wall phones play no part.
 
@@ -142,16 +142,18 @@ near a hungry lamp pulls two zombies to you every few seconds (up to 12 around y
 looking.
 
 A full lamp stops sparking and keeps a steady glow, and Richtofen tells you to punch the post. Buy the
-GALVAKNUCKLES (Diner roof, through the hatch, 3000 points) and melee the post with them: the wire SPOOL leaves the
-lamp and flies to the table by itself as a spark trail, and lands in place with a clink ("Wire spool 1/3"). Nothing
-to carry. A knife or any other melee is refused ("Bare steel? No.").
+GALVAKNUCKLES (Diner roof, through the hatch, 3000 points) and melee the post with them: a BATTERY drops by the
+lamp. Take it (batteries stack, "Battery 1/3") and insert them at the table, one per press of F: each one stands
+on the ground under the table, sparking. A knife or any other melee is refused ("Bare steel? No."). Go down with
+batteries and they drop where you fell (on the bus roof they ride along); left alone 60 s they fly back to their
+lamp.
 
-Every lamp's spool on the table = R2 done, and the Act 2 reward drops at once (see below). If nobody in the team carries a Jet Gun, Richtofen says you will
+Every lamp's battery in the table = R2 done, and the Act 2 reward drops at once (see below). If nobody in the team carries a Jet Gun, Richtofen says you will
 need one before the end.
 
 Richtofen side rules from here on: Avogadro returns every round (not while Step 6 is open); turrets work
 without a turbine. Ending a round with the power OFF costs you and Richtofen says so: the fullest hungry lamp
-loses 5 kills (a full lamp whose spool is still in the post can reopen), or during the R1 lock one charged box
+loses 5 kills (a full lamp whose battery is still in the post can reopen), or during the R1 lock one charged box
 loses its battery. When R2 completes every lamp of the set counts as full.
 
 ---
@@ -245,9 +247,8 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
   way and the lamp does not care - after a few such kills Maxis tells you so, once for the whole game ("Not by
   your hand. His light falls only at the step of the dead."). Every lamp you put out costs him a little ("One lamp is dark. His
   voice is thinner already."), and at the end of every round while a lamp still hums, Richtofen relights one dark
-  lamp again ("He has relit one of them. Put it out again."). With a full lobby the set has four lamps and all
-  four hum. Put out THREE lamps at once (every lamp if the set is smaller) and M3 is done (a fourth lamp still
-  humming goes out with the win) - no hold, no timer, nothing to lose by taking your time.
+  lamp again ("He has relit one of them. Put it out again."). Three lamps hum at every player count.
+  Put out all THREE at once and M3 is done - no hold, no timer, nothing to lose by taking your time.
 
 </details>
 

@@ -11,7 +11,7 @@ Install first: `perl tools/deploy.pl` from the repo (Git Bash). Today the source
 else from the repo. `!df status` prints the version: `DF <version> | side none | players 1 | round 1 | prompts off | texthints on`.
 
 Every `!df` answer and every quest event lands in the console as `[DF] ...`: paste those lines when something is off.
-ONE press of F = every pickup and placement (parts, coil, relay, card, battery, spools, the M1 / M2 lantern, rock) and every
+ONE press of F = every pickup and placement (parts, power box, relay, card, fuse battery, R2 batteries, the M1 lantern, rock) and every
 pipe kick / grave touch / Blackout switch flip.
 Holds only: build the relay (3 s, vanilla bar + builder hands), power the relay (1.5 s,
 small bar "Powering the relay"), open the frequency (2.5 s, bar "Opening the frequency"). NO timer on screen anywhere:
@@ -62,7 +62,7 @@ Everything below must already be there. Missing = the biggest bug of this build.
   message; a hum at `DF_SIGNAL_SND`. Is the far light visible from the Depot? Can you count four blinking pipes?
   Say so. The wall phone: no glint, no prompt, nothing on press.
 - Fog: `!df tp DF_PART_A` radio (Diner garage, behind the box), `DF_PART_B` mast (Farm barn upper floor, a 117-tall post
-  standing). Glint on each. There is no DF_PART_C any more (the third part is the wire coil, which arrives after Step 1).
+  standing). Glint on each. There is no DF_PART_C any more (the third part is the power box, which arrives after Step 1).
   Take one part now: notice "Relay parts (1/3)", console `radio taken (1/3)`. It must count later.
 - Tower: `!df tp DF_TABLE`: the work bench stands there, empty. Walk into it: you must NOT pass through, and you must
   NOT be able to jump onto it (two rows of clips, a 64-tall wall). `!df move DF_TABLE 20 0 0` moves the real table
@@ -84,7 +84,7 @@ Everything below must already be there. Missing = the biggest bug of this build.
   `!df fire lamps` lists 3 lamps `set 1 state off`. None of them is diner or townbridge; one is the lamp nearest the tower.
 - Bus parts: the ladder lies at the Depot (-7313 5441), the hatch at the Diner (-3537 -7214). `!df fire busparts`
   re-runs the pin and prints the pools.
-- Not there yet, correct: coil, key card, rock, battery on the bus, spools, the M1 lantern.
+- Not there yet, correct: coil, key card, rock, battery on the bus, R2 batteries, the M1 lantern.
 
 ## 2. Models, effects, sounds (once)
     !df show
@@ -92,7 +92,7 @@ Everything below must already be there. Missing = the biggest bug of this build.
                           tall post on slot 0, card on slot 1, the rock on slot 2 (`!df hide` removes them)
     !df tp DF_TV_1        chimney pipe (pb_pole_telephone_bulb, 9 tall) on the ground (also TV_2..4)
     !df tp DF_SIGNAL      the far light spot (light 70 above); DF_SIGNAL_SND the hum spot
-    !df tp DF_COIL_DROP   where the coil lands after Step 1 (-6311 5019 -46): preview of the wire coil
+    !df tp DF_COIL_DROP   where the coil lands after Step 1 (-6311 5019 -46): preview of the power box
                           (p6_zm_buildable_jetgun_wires, slightly tilted)
     !df tp DF_FUSE_1      power box on the barn wall (also FUSE_2..4); IN the wall or floating? say which
     !df tp DF_BRAZIER_1   tombstone OUTSIDE the map around Town (also 2..4); sunk? floating? shootable from where
@@ -130,7 +130,7 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
 - Wrong pipe: the deny buzz (you only), all pipes blink again, console `wrong pipe, all pipes back to blinking (the
   signal keeps flashing the order)`. Same order. `!df fire a1_tv` kicks the next expected pipe.
 - All four: `step1 solved, all four screens on`, bus dashboard pulse 5 s (NO horn), D1 lines, the step-done groan,
-  `step complete step1`. Then the STRIKE at DF_COIL_DROP (burst, thunder, quake) and a glinting wire coil on the
+  `step complete step1`. Then the STRIKE at DF_COIL_DROP (burst, thunder, quake) and a glinting power box on the
   ground: `the phone dropped the receiver (part 3) at ...`, Richtofen names it. One press: "Relay parts (n/3)". The
   pipes stay, dark, no spark; the far light and its hum are off.
 - Fx to try (before loading): `set df_fx_pipe_flash <fx>`, `set df_fx_signal <fx>`, `set df_fx_pipe_locator <fx>` with
@@ -214,7 +214,7 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
   blue burst on each, `step complete r1`, the fourth step glow on the relay. Maxis's vanilla stab line once.
 - Wrong: paste `simon ...`, `avogadro ...` lines.
 
-**R2 115 on the Line**. Skips: `!df fire r2_soul` (one kill), `r2_punch` (every full lamp frees its spool), `r2_spool` (one spool counted), `!df souls` (all).
+**R2 115 on the Line**. Skips: `!df fire r2_soul` (one kill), `r2_punch` (every full lamp drops its battery), `r2_spool` (one battery counts as inserted), `!df souls` (all).
 - Console `r2 3 lamps, 10 souls each` (12 / 14 / 16 in co-op), then per lamp `r2 lamp X: N spawn structs for its waves`. At a set lamp: the
   side colour IN the bulb, a hum, a spark every 2 s (HUNGRY), a light shaft from the tower and a light column at the
   base. NOT green.
@@ -224,21 +224,22 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
   absorbed: NNN from lamp X (need 450, ...)`.
 - At 10: `lamp X filled`, NavCard chime + blue flash + runner to the tower, beam off, the sparks STOP and the bulb keeps
   a steady glow (no electric arcs), Richtofen: "punch the post". Console `lamp X full: punch the post with the knuckles
-  to get the spool (!df fire r2_punch drops every ready spool)`.
+  to get the battery (!df fire r2_punch drops every ready battery)`.
 - Buy the Galvaknuckles (Diner roof, through the hatch, 3000). Melee the post within 90: a spark on the post, `r2 lamp X
-  punched by <you>, the spool flies to the table`, `spool of lamp X flies to the table`: a blue spark trail from the
-  bulb to the relay slot (NO strike, nothing on the ground, nothing to pick up), then a clink + spark at the relay
-  slot, `spool placed on the table, n/3`, `r2 antenna array n/3`, notice "Wire spool n/3" for everyone. Richtofen
-  names the first spool. Knife the post instead (or any gun melee): deny buzz + "Bare steel? No." (once per 20 s),
-  console `r2 <you> hit lamp X without the knuckles (<weapon>)`, no spool.
-- Last spool landed (NO glows on the mast for the spools): `step complete r2`, R2_DONE, the fifth step glow on the
-  relay, the spool notice goes, M3 / R3 opens. Every lamp of
+  punched by <you>, its battery is out`, the item STRIKE 40 from the pole towards the tower and a glinting BATTERY
+  (`battery at lamp X`); Richtofen names the first one. "Press F to take the battery" within 100 (`battery taken (n in
+  hand, k inserted)`, notice "Battery (n/3)"): they stack. At the table (within 150) "Press F to insert a battery":
+  ONE per press (`battery inserted by <you>, k/3`), clink + spark at the relay slot, and the battery stands on the
+  ground under the table with a small blue spark loop. Knife the post instead (or any gun melee): deny buzz +
+  "Bare steel? No." (once per 20 s), console `r2 <you> hit lamp X without the knuckles (<weapon>)`, no battery.
+- Last battery in: `step complete r2`, R2_DONE, the fifth step glow on the relay, the notice goes, M3 / R3 opens.
+  Every lamp of
   the set ends filled with its beam off. Nobody holding a Jet Gun: A2_JETGUN_RICH ("Before the end you will need a Jet Gun").
 - Act 2 reward at once: `act 2 reward given (rich): side reward + Max Ammo at the table`, Richtofen's reward line, blue
   runners start climbing the tower next to the white one. Place a turret (`!gun turret_zm`) with no turbine: it fires.
 - Side rules: hold the Jet Gun until the heat passes 50: the needle stalls. Power OFF and end a round: `power off: lamp X
-  -5, n` + R2_POWER_RICH ("Lights out, Samuel!"); a filled lamp whose spool is still in the post reopens (hungry again),
-  one whose spool is out never does. Avogadro comes back EVERY round (`avogadro returns next round`), except while
+  -5, n` + R2_POWER_RICH ("Lights out, Samuel!"); a filled lamp whose battery is still in the post reopens (hungry
+  again), one whose battery is out never does. Avogadro comes back EVERY round (`avogadro returns next round`), except while
   Step 6 is open.
 
 ## 4M. Maxis side (power OFF): `!df goto m1` in a fresh game (the goto locks the side)
@@ -349,8 +350,8 @@ m2_ember` is GONE, 2026-09-25, with the whole old lantern take/carry/monitor cod
 ## 5. Act 3 (shared; what differs per side is marked)
 **M3 / R3 Lights Out (Maxis)**. Skips: `!df fire s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again), `!df goto step6`.
 - S5 START waits until the end-of-Act-2 lines are over (at most 90 s). Console `DF: s5 lights out: 3 lamps hum with
-  his power, a claymore kill within 250 puts one out, 3 dark to win` (with 4 set lamps in a full lobby all four hum and
-  the need stays 3; fewer only if the set itself is smaller). Every set lamp is state "possessed": his look, a big looping
+  his power, a claymore kill within 250 puts one out, 3 dark to win` (exactly three lamps at every player count; a full
+  lobby's fourth set lamp stays vanilla). Every set lamp is state "possessed": his look, a big looping
   electric spark, a blue glow and his hum on the bulb, no hold prompt anywhere - nothing to press.
 - Buy a CLAYMORE at the Farm wall buy (`claymore_zm`, 8827 -5838) and plant one at the foot of a humming lamp
   (within 250 of its base, up from 150: a claymore throws its kill several steps before it dies, and 150 missed
@@ -375,8 +376,7 @@ m2_ember` is GONE, 2026-09-25, with the whole old lantern take/carry/monitor cod
   relit lamp X at the end of the round`, the `zmb_turn_on` sound, LO_RELIGHT ("He has relit one of them. Put it
   out again."), one random dark lamp goes back to "possessed" (his spark, glow and hum return). With zero dark,
   or all of them dark, end of round does nothing.
-- Put out THREE lamps at once (every lamp if the set is smaller): with a 4th lamp still humming it goes out with
-  the win (blue snap + trail to the tower, owner 2026-09-25), then `DF: s5 3 lamps dark, step done`, D5_DONE
+- Put out all THREE lamps at once: `DF: s5 3 lamps dark, step done`, D5_DONE
   ("His lamps are dark. His voice is gone. Now the lantern must give up its fire."), `step complete step5`.
 - No countdown, no soul penalty, nothing lost by taking your time: only the claymore mechanic and the end-of-round
   relight move the count.
@@ -528,7 +528,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - R1, capture fail: kill him far from the tower, or walk him away after 240 s: `avogadro not captured`, EMP thump at the
   table, Richtofen's fail line, the key card LEAVES the table, `r1 locked, one battery from the bus charges the four
   boxes`, the boxes go dark. ONE glinting BATTERY on the bus dashboard (`battery on the bus`), Richtofen names it.
-  "Press F to take the battery" within 100 (`battery taken`, notice "0/4"). Walk to the barn: "Press F to charge the box"
+  "Press F to take the battery" within 100 (`battery taken`, notice "Fuse battery"). Walk to the barn: "Press F to charge the box"
   at every empty panel (within 70): glow + sparks + clink, `box n charged k/4`, NO deny buzz or EMP thump on these
   presses (nor on the fourth), the battery STAYS in hand; at the fourth `battery consumed, all four boxes charged`,
   NavCard chime + runner, `r1 unlocked, play the Simon again (a press on a box starts it)`: the Simon from the start, then a new key
@@ -540,9 +540,10 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - R1, key card dropped (carrier down or leaves): `key card dropped`, it lands where it fell (linked to the bus if you
   were on it); left untaken 60 s it flies home to its barn spawn (`dropped key card untouched for 60 s, back at the
   barn`, owner 2026-09-25).
-- R2, full lamp punched with the wrong tool: deny + "Bare steel? No.", no spool; `!df fire r2_punch` frees every ready spool.
-- R2, spools are never carried any more (2026-09-25: they fly to the table by themselves), so there is nothing to
-  drop or lose.
+- R2, full lamp punched with the wrong tool: deny + "Bare steel? No.", no battery; `!df fire r2_punch` frees every ready
+  battery.
+- R2, battery carrier down: `battery dropped` where you fell (linked to the bus if you were on it); left untaken 60 s
+  it flies back to its lamp (`dropped battery untouched for 60 s, back at lamp X`).
 - M1, timeout: see 4M. M1, lantern carrier down: `m1 lantern dropped (<you> went down), take it again`. Carrier leaves:
   `m1 lantern carrier left, the lantern lies at the tower return point`.
 - M2, no carrier to lose any more: the lantern never leaves the table this step (see 4M), so there is no "carrier
