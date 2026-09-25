@@ -336,10 +336,8 @@ df_apply_overrides()
     // (df_m2_place_braziers).
     // owner 2026-09-25: the four graves stand OUTSIDE the map around Town (owner spots, !df grab): shot to light, their kill
     // zone is where the shooter stood (df_act2_maxis df_m2_grave_shot)
-    df_coord_override( "DF_BRAZIER_1", ( 1944, -1040, 124 ), ( 0, 127, 0 ) );
-    df_coord_override( "DF_BRAZIER_2", ( 328, -797, 132 ), ( 0, 297, 0 ) );
-    df_coord_override( "DF_BRAZIER_3", ( 2062, 374, 88 ), ( 0, 259, 0 ) );
-    df_coord_override( "DF_BRAZIER_4", ( -86, 224, -36 ), ( 0, 43, 0 ) );
+    // owner 2026-09-25: eight owner spots around Town; every game draws four of them at random (df_grave_pool_pick)
+    df_grave_pool_pick();
 
     // The four M1 cold-room spawn points inside the Nacht bunker: player spots, no model (df_coord_set above
     // passes undefined and df_coord_override leaves the model alone), read as .origin by df_act2_maxis.
@@ -1109,6 +1107,33 @@ df_coord_tune_move( key, player, f, r, u )
 // After any live tune: re-spawn that preview and, for the table, keep DF_SOCKET on it and print the new
 // slot positions. Tuning a side's orb anchor (DF_ORB_TOWER / DF_ORB_DINER) re-copies the current pick into
 // DF_ORB_SPAWN (no new draw); tuning a landing spot DF_ORB_SPOT_n makes it the pick (df_orb_spot_pick).
+// owner 2026-09-25: the M2 graves take four of these eight spots at random, one draw per game (the owner's !df grab
+// readings around Town, outside the playable area). "!df setpos" / "!df grab" on a DF_BRAZIER_n still move it for the game.
+df_grave_pool_pick()
+{
+    if ( is_true( level.df_grave_pool_done ) )
+        return;
+
+    level.df_grave_pool_done = 1;
+    pool = [];
+    pool[pool.size] = array( ( 1944, -1040, 124 ), 127 );
+    pool[pool.size] = array( ( 328, -797, 132 ), 297 );
+    pool[pool.size] = array( ( 2062, 374, 88 ), 259 );
+    pool[pool.size] = array( ( -86, 224, -36 ), 43 );
+    pool[pool.size] = array( ( 2581, -1009, -55 ), 139 );
+    pool[pool.size] = array( ( 2610, 413, -55 ), 204 );
+    pool[pool.size] = array( ( 2812, -264, -62 ), 218 );
+    pool[pool.size] = array( ( 799, -1024, -52 ), 56 );
+    pool = array_randomize( pool );
+
+    for ( i = 0; i < 4; i++ )
+    {
+        spot = pool[i];
+        df_coord_override( "DF_BRAZIER_" + ( i + 1 ), spot[0], ( 0, spot[1], 0 ) );
+        df_debug_print( "DF: m2 grave " + ( i + 1 ) + " drawn at " + int( spot[0][0] ) + " " + int( spot[0][1] ) + " " + int( spot[0][2] ) );
+    }
+}
+
 df_coord_tune_done( key )
 {
     if ( key == "DF_TABLE" )
