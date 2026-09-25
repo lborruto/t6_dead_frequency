@@ -1,18 +1,17 @@
-// Dead Frequency - Act 3 "Convergence", Step 5 "Frequency Sweep" (shared; the ANCHOR verb differs per side,
-//   design audit 2026-09-08 #2 / #4).
+// Dead Frequency - Act 3 "Convergence", Step 5 "Frequency Sweep" (Maxis-only, owner 2026-09-25: Richtofen
+//   runs "Blackout" instead, df_act3_blackout.gsc; df_s5_run / df_s5_setup dispatch there by side).
+//   design audit 2026-09-08 #2 / #4.
 //   The game's ONE lamp set (df_lamps.gsc: the lamps R2 filled with souls on the Richtofen side, picked here
 //   on the Maxis side) must be TUNED (hold use at the lamp, 5 s: a short channelling) and ANCHORED.
-//   The anchor FORK (owner 2026-09-09; canon: vanilla Maxis's third node IS two turbines at denizen lamps):
-//   - Maxis (grid OFF): a running TURBINE within 200 of the lamp base (level.local_power[]: one struct per
-//     powering turbine, .origin / .radius, _zm_power.gsc:248 add_local_power / :297 end_local_power). The
-//     turbine gives the lamp the power the dark grid does not; it is chewed by zombies like any equipment.
-//   - Richtofen (grid ON): a Galvaknuckles PUNCH (jolt) on the lamp post, within 90 of it (df_s5_jolt_loop,
-//     owner 2026-09-11): it counts during the tuning or up to df_s5_anchor_fresh (45) seconds before it.
-//     Without the knuckles a melee there is refused (deny + S5_NOFISTS_RICH). Denizen burrows no longer count
-//     (they were RNG); df_lamp_power_silent still keeps the lamp's power flag set for the step.
-//   Three anchors win (df_s5_need_all; fewer only with a smaller set). The FIRST ANCHOR starts the countdown: Richtofen reads
-//   the "sweep_time_rich" row (480/360/300/270; steps audit v2 #3) when df_steps has it, else "sweep_time";
-//   Maxis reads "sweep_time" (360/300/270/240).
+//   The anchor (owner 2026-09-09; canon: vanilla Maxis's third node IS two turbines at denizen lamps): a
+//   running TURBINE within 200 of the lamp base (level.local_power[]: one struct per powering turbine,
+//   .origin / .radius, _zm_power.gsc:248 add_local_power / :297 end_local_power). The turbine gives the lamp
+//   the power the dark grid does not; it is chewed by zombies like any equipment. (owner 2026-09-25: Task 6
+//   removed the dead Richtofen anchor branch, a Galvaknuckles jolt on the post, and everything it gated:
+//   df_s5_is_rich, df_s5_jolt_loop / df_s5_jolt_target, level.df_s5_anchor_fresh, lamp.jolt_time,
+//   df_s5_near_light_once, the "sweep_time_rich" row. The side had already been routed to Blackout.)
+//   Three anchors win (df_s5_need_all; fewer only with a smaller set). The FIRST ANCHOR starts the countdown:
+//   the "sweep_time" row (360/300/270/240).
 //   Expiry FAILS FORWARD (steps audit v2 #2, 2026-09-09): the anchored lamps STAY anchored (beam and look
 //   kept); only the lamps that were NOT anchored pay souls (df_s5_pen_quota: 12 + 3 per player = 15/18/21/24,
 //   unless a "sweep_souls" row exists; kills within 400 of the base) and re-tune; the clock restarts at the
@@ -29,8 +28,6 @@
 //   three); "Signal lost" = FAIL thump + side loss fx at the lamp (df_cue_fail, was silent to all but the
 //   tuner); expiry = the EMP thump to everyone + D5_FAIL. No zmb_spawn_powerup here any more (it is the shared
 //   STEP AVAILABLE alias) and no navcard / powerup_grabbed of our own (STEP DONE comes from df_complete).
-//   Voice: vox_zmba_sidequest_near_light_0 once per game to Stuhlinger when the first tune starts on the
-//   Richtofen side (zm_transit_sq.gsc:1156, df_vox_once).
 // Shared helpers relied on: df_lamp_* (df_lamps), df_prompt, df_fx_loop / df_fx_stop, df_soul_fly,
 // df_death_listen_*, df_scaled_step, df_touch, df_complete, df_say, df_debug_print, df_ground, df_coord,
 // df_sys_clock_run, df_sys_hud_timers, and the 2026-09-09 core additions df_step_focus, df_cue_tick,
@@ -59,8 +56,7 @@ df_s5_config()
     level.df_s5_wait_time = 15;
     level.df_s5_drain_time = 10;
     level.df_s5_tune_radius = 200;
-    level.df_s5_turbine_radius = 200; // Maxis anchor: a running turbine this close to the lamp base
-    level.df_s5_anchor_fresh = 45; // Richtofen anchor: a knuckle jolt this recent still counts
+    level.df_s5_turbine_radius = 200; // the anchor: a running turbine this close to the lamp base
     level.df_s5_soul_radius = 400;
     level.df_s5_soul_cue_every = 5;
     level.df_s5_timer_warn = 30;
@@ -94,20 +90,11 @@ df_s5_pen_quota()
     return 12 + 3 * n; // audit v3 #8: 15 solo (was 8), expiry now costs more than the rush it replaces
 }
 
-// level.df_side is locked by Step 4; undefined counts as Maxis rules (turbine anchor).
-df_s5_is_rich()
-{
-    return isdefined( level.df_side ) && level.df_side == "rich";
-}
-
-// Countdown length in seconds (steps audit v2 #3): Richtofen reads the "sweep_time_rich" row when df_steps
-// defines it (480/360/300/270: three denizen latches are RNG), else "sweep_time"; Maxis always
-// "sweep_time" (360/300/270/240). Both on the player count snapshotted when Step 5 opened (df_scaled_step).
+// Countdown length in seconds (steps audit v2 #3): the "sweep_time" row (360/300/270/240), on the player
+// count snapshotted when Step 5 opened (df_scaled_step). owner 2026-09-25: df_s5_is_rich and the
+// "sweep_time_rich" branch removed; this step is Maxis-only now (Richtofen runs Blackout).
 df_s5_sweep_seconds()
 {
-    if ( df_s5_is_rich() && isdefined( level.df_scale ) && isdefined( level.df_scale["sweep_time_rich"] ) )
-        return df_scaled_step( "sweep_time_rich", "step5" );
-
     return df_scaled_step( "sweep_time", "step5" );
 }
 
@@ -150,7 +137,6 @@ df_s5_run()
         df_s5_lamp_reset( lamp );
         lamp.anchored = 0;
         lamp.touched = 0;
-        df_lamp_power_silent( lamp, 1 ); // keeps the lamp's power flag on for the step; harmless on Maxis
         df_lamp_state_set( lamp, "filled" );
         df_s5_glint_set( lamp, 1 ); // "take me" glint until this lamp's first hold (art audit S5.2)
         level thread df_s5_claim_keeper( lamp );
@@ -161,12 +147,6 @@ df_s5_run()
     df_step_focus( "step5", df_lamp_bulb_pos( level.df_s5_lamps[0] ) );
 
     verb = "turbine within " + level.df_s5_turbine_radius;
-
-    if ( df_s5_is_rich() )
-    {
-        verb = "knuckle jolt on the post";
-        level thread df_s5_jolt_loop();
-    }
 
     df_debug_print( "DF: s5 sweep open: " + level.df_s5_lamps.size + " set lamps, anchor " + level.df_s5_need + " (" + verb + "), timer " + df_s5_sweep_seconds() + " s from the first anchor" );
 
@@ -246,7 +226,6 @@ df_s5_teardown( everything )
     {
         df_s5_bar_hide( lamp );
         df_s5_glint_set( lamp, 0 );
-        df_lamp_power_silent( lamp, 0 );
 
         if ( everything )
             lamp.anchored = 0;
@@ -467,32 +446,18 @@ df_s5_prompts_clear()
 }
 
 // =========================================================================================
-// anchors (Richtofen: Galvaknuckles jolt on the post; Maxis: running turbine within 200 of the base)
+// anchor (a running turbine within 200 of the base)
 // =========================================================================================
 
-// The fork (owner 2026-09-09, see the header). Maxis: a running turbine within df_s5_turbine_radius of the
+// The anchor (owner 2026-09-09, see the header): a running turbine within df_s5_turbine_radius of the
 // lamp base. level.local_power holds one struct per turbine that is currently powering (add_local_power on
 // warm-up _zm_equip_turbine.gsc:410, removed by end_local_power when it is picked up, dies or is EMPed); a
 // distance test to the base is the honest check (the powered item's .power flag is also set by main power,
-// _zm_power.gsc:365 set_global_power, and cannot tell a turbine apart in general).
-// Richtofen: a knuckle jolt during the tuning, or a recent one (df_s5_anchor_fresh).
+// _zm_power.gsc:365 set_global_power, and cannot tell a turbine apart in general). owner 2026-09-25: the dead
+// Richtofen Galvaknuckle-jolt branch removed (df_s5_jolt_loop, lamp.jolt_time, df_s5_anchor_fresh).
 df_s5_has_anchor( lamp )
 {
-    if ( !df_s5_is_rich() )
-        return df_s5_turbine_near( lamp );
-
-    // owner 2026-09-11 (fists 5): Richtofen's anchor is a Galvaknuckle JOLT on the post (df_s5_jolt_loop), during the
-    // tuning or within df_s5_anchor_fresh seconds before it. The denizen burrow no longer counts (it was RNG).
-    if ( !isdefined( lamp.jolt_time ) )
-        return false;
-
-    if ( gettime() - lamp.jolt_time <= level.df_s5_anchor_fresh * 1000 )
-        return true;
-
-    if ( isdefined( lamp.tune_start ) && lamp.jolt_time >= lamp.tune_start )
-        return true;
-
-    return false;
+    return df_s5_turbine_near( lamp );
 }
 
 // True when a powering turbine stands within df_s5_turbine_radius (flat + height) of the lamp base.
@@ -548,8 +513,7 @@ df_s5_anchor( lamp )
 // countdown (starts at the first ANCHOR, shown top-centre to every player)
 // =========================================================================================
 
-// Side-aware length (df_s5_sweep_seconds: "sweep_time_rich" on Richtofen when the row exists, else
-// "sweep_time"), on the player count snapshotted when Step 5 opened.
+// Length from df_s5_sweep_seconds ("sweep_time"), on the player count snapshotted when Step 5 opened.
 df_s5_timer_start()
 {
     seconds = df_s5_sweep_seconds();
@@ -577,8 +541,7 @@ df_s5_timer_watch()
 // Expiry fails forward (steps audit v2 #2): the anchored lamps KEEP their anchor (look, beam, flag); the
 // buzz (zmb_bus_emp_shutdown, zm_transit_bus.gsc:3097) and D5_FAIL play, then the soul penalty runs only on
 // the lamps that were NOT anchored when the time ran out (audit 1.1); those reopen for tuning afterwards
-// (back to "filled", their stale jolt forgotten) and the next anchor starts a fresh timer with only the
-// missing anchors left to win. A Richtofen fail no longer costs three denizen latches.
+// (back to "filled") and the next anchor starts a fresh timer with only the missing anchors left to win.
 df_s5_fail()
 {
     level notify( "df_s5_timer_over" );
@@ -595,7 +558,6 @@ df_s5_fail()
             continue;
 
         unanchored[unanchored.size] = lamp;
-        lamp.jolt_time = undefined;
         df_s5_lamp_reset( lamp );
         df_s5_bar_hide( lamp );
     }
@@ -648,14 +610,12 @@ df_s5_hud_loop()
     }
 }
 
-// Side colour (blue / orange) until the warning, then red.
+// Maxis orange until the warning, then red. owner 2026-09-25: the Richtofen (blue) branch removed, this
+// step is Maxis-only now.
 df_s5_timer_color( remaining )
 {
     if ( remaining <= level.df_s5_timer_warn )
         return ( 1, 0.35, 0.3 );
-
-    if ( isdefined( level.df_side ) && level.df_side == "rich" )
-        return ( 0.6, 0.82, 1 );
 
     return ( 1, 0.78, 0.5 );
 }
@@ -1018,36 +978,22 @@ df_s5_tick_waiting( lamp, holder )
     }
 }
 
-// The patron names the missing anchor once per game, the first time a tuned lamp waits for it:
-// S5_ANCHOR_DENIZEN_RICH (Richtofen: a digger must ride you there) / S5_ANCHOR_TURBINE_MAXIS (Maxis: a
-// turbine at the lamp's foot).
+// The patron names the missing anchor once per game, the first time a tuned lamp waits for it: a turbine at
+// the lamp's foot.
 df_s5_anchor_hint_once()
 {
     if ( is_true( level.df_s5_anchor_said ) )
         return;
 
     level.df_s5_anchor_said = 1;
-
-    if ( df_s5_is_rich() )
-        df_say( "S5_ANCHOR_DENIZEN_RICH" );
-    else
-        df_say( "S5_ANCHOR_TURBINE_MAXIS" );
-}
-
-// Richtofen's canon "you are at a lamp" line (vox_zmba_sidequest_near_light_0, zm_transit_sq.gsc:1156) to
-// Stuhlinger, once per game (df_vox_once keeps the flag, threads and serializes df_rich_vox itself), the
-// first time a tune starts on the Richtofen side (art audit S5.4). Nothing on Maxis (no canon line fits).
-df_s5_near_light_once()
-{
-    if ( df_s5_is_rich() )
-        df_vox_once( "vox_zmba_sidequest_near_light_0", undefined );
+    df_say( "S5_ANCHOR_TURBINE_MAXIS" );
 }
 
 // Someone holds use: the bar fills (the "tuning" look sparks, the rise loop plays), a tick pattern every
 // 25 %; at 100 % the loop ends (zmb_power_rise_stop, zm_transit_power.gsc:409) and two PROGRESS clinks
 // (df_s5_tuned_clinks) say the lamp is tuned and waits (owner 2026-09-09: one distinct sound for that
 // moment; art audit S5.3: the PaP ding was the wrong family). The first hold on a lamp is its "touch":
-// the glint goes, and on the Richtofen side the first tune of the game gets Richtofen's near_light line.
+// the glint goes.
 // (The old "a denizen grabbing the tuner costs 50 %" rule is gone, audit #2.)
 df_s5_tick_fill( lamp, holder, tick )
 {
@@ -1058,7 +1004,6 @@ df_s5_tick_fill( lamp, holder, tick )
         lamp.touched = 1;
         df_s5_glint_set( lamp, 0 );
         df_touch( "step5" );
-        df_s5_near_light_once();
         df_debug_print( "DF: s5 tuning started at lamp " + lamp.name );
     }
 
@@ -1326,59 +1271,4 @@ df_s5_debug_time_hook()
         df_debug_print( "DF: s5 debug: expiring the countdown" );
         level.df_s5_force_expire = 1;
     }
-}
-
-// ---- fists (owner 2026-09-11, idea 5) ---------------------------------------------------------
-// Richtofen's Step 5 anchor: melee with the Galvaknuckles within 90 of a set lamp's post = a jolt (lamp.jolt_time);
-// df_s5_has_anchor reads it while the lamp waits. Another melee there: deny + Richtofen names the fists (20 s).
-df_s5_jolt_loop()
-{
-    level endon( "end_game" );
-    level endon( "df_s5_stop" );
-    level endon( "df_skip_step5" );
-
-    while ( true )
-    {
-        wait 0.05;
-
-        foreach ( player in getplayers() )
-        {
-            if ( !is_player_valid( player ) || !df_melee_edge( player ) )
-                continue;
-
-            lamp = df_s5_jolt_target( player.origin );
-
-            if ( !isdefined( lamp ) )
-                continue;
-
-            if ( !df_has_knuckles( player ) )
-            {
-                df_cue_deny( player );
-
-                if ( !isdefined( level.df_s5_nofists_time ) || gettime() - level.df_s5_nofists_time > 20000 )
-                {
-                    level.df_s5_nofists_time = gettime();
-                    df_say( "S5_NOFISTS_RICH" );
-                }
-
-                continue;
-            }
-
-            lamp.jolt_time = gettime();
-            df_punch_fx( lamp.origin, df_lamp_bulb_pos( lamp ) );
-            df_debug_print( "DF: s5 lamp " + lamp.name + " jolted by " + player.name + " (counts as the anchor for " + level.df_s5_anchor_fresh + " s)" );
-        }
-    }
-}
-
-// The set lamp (not yet anchored) whose post is within 90 of pos.
-df_s5_jolt_target( pos )
-{
-    foreach ( lamp in level.df_s5_lamps )
-    {
-        if ( !is_true( lamp.anchored ) && distancesquared( pos, lamp.origin ) <= 90 * 90 )
-            return lamp;
-    }
-
-    return undefined;
 }

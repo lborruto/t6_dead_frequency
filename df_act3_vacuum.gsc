@@ -1995,8 +1995,10 @@ df_s6_card_discharge( pos )
 
     df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", from );
     playsoundatposition( "zmb_zombie_arc", from ); // the arc crack the finale pulses use on this side
-    df_s6_trail_fly( "richtofen_sparks", from, pos );
+    // owner 2026-09-25: say the line before the blocking trail fly, not after (df_s6_trail_fly waits for the
+    // runner to land, which delayed the cue by 1-4 s)
     df_say( "S6_CARD_RICH" );
+    df_s6_trail_fly( "richtofen_sparks", from, pos );
     df_debug_print( "DF: s6 the key card discharged on the table, its charge flew to the landing spot" );
 }
 

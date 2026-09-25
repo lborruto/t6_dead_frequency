@@ -3,7 +3,7 @@
 //                       relay socket: DF_SOCKET resolves to DF_TABLE since 2026-09-08); it dies there and
 //                       opens an orange portal into the Nacht bunker, where a timed denizen hunt takes
 //                       place (spec 5, M1). Timeout: everyone is sent back and the latch starts again.
-//                       The last kill leaves a SKULL (df_model "skull" = zombie_skull) on the bunker floor: one
+//                       The last kill leaves the hand (df_model "skull" = zombie_skull) on the bunker floor: one
 //                       press TAKES it in hand (carry notice, no fire, no lamp portals, dropped at the feet on
 //                       down), everyone is sent back, and one press within 150 of table slot 1 PLACES it at its
 //                       own pose on the table: that completes M1. Nobody took it before the return: it lies at
@@ -38,9 +38,9 @@
 // Polish 2026-09-08 (tools/polish_act2_maxis.md): models through df_model( "portal" | "brazier" ); the hole
 //   spins with an orbiting orange light; cold fog at the Nacht anchors; dig sound where a denizen rises; a
 //   distinct final sting; an ash burst at the return point; braziers crackle and each counted kill is heard.
-// Audit 2026-09-08 (tools/audit_D.md): braziers at boot, ember chain, skull item, ride cue, downed teleport,
+// Audit 2026-09-08 (tools/audit_D.md): braziers at boot, ember chain, hand item, ride cue, downed teleport,
 //   side rules, power penalty. Cross-file needs in tools/requests_D.md.
-// Owner run 2026-09-09 (tools/audit_M2fix.md): the skull is carried and placed by hand (M1 completes on the
+// Owner run 2026-09-09 (tools/audit_M2fix.md): the hand is carried and placed manually (M1 completes on the
 //   placement); the hole opens at anchor DF_PORTAL; four fixed braziers at the owner's spots, one ember lights
 //   them all, five kills each (burning or not since 2026-09-23). Cross-file needs in tools/requests_M2fix.md.
 // Polish V2 2026-09-09 (tools/audit_V2maxis.md, from audit_art / audit_steps_v2 / audit_dialogue_v2): one cue
@@ -48,8 +48,9 @@
 //   progress lost, df_cue_deny = wrong input, df_step_focus = the AVAILABLE glint, df_node_done_trail = the
 //   canon node -> tower runner, df_vox_once = a vanilla Maxis line once); the whole file is fire family (no
 //   blue one-shot: every trail here is maxis_sparks landing in df_cue_side_flash, df_act2_maxis_trail); the latch cue
-//   is the portal spawn sound; the skull is announced when it APPEARS (ITEM_SKULL_MAXIS) with a 30 s window and
-//   a puzzle prompt for the room; M1 / M2 end on the uniform step sting (df_complete, not quiet); brazier fire
+//   is the portal spawn sound; the hand is announced when it APPEARS (ITEM_HAND_MAXIS, renamed from ITEM_SKULL_MAXIS,
+//   owner 2026-09-25) with a 30 s window and a puzzle prompt for the room; M1 / M2 end on the uniform step
+//   sting (df_complete, not quiet); brazier fire
 //   heights come from df_model_top_z( "brazier" ) (the low lava-rock cairn: rim 16); a brazier full is a sub-goal
 //   (navcard + fire burst + trail to the tower); all four full raise a 20 s smoke column at the tower top; the
 //   ember consumed fires the second hint rung; the power penalty speaks (M2_POWER_MAXIS).
@@ -77,8 +78,8 @@ df_act2_maxis_init()
 // M1 - The Cold Room
 // =========================================================================================
 
-// Latch -> portal -> walk in -> timed hunt; a timeout loops back to the latch. Success: the skull appears in
-// the bunker (a short window to take it), everyone returns, and the step ends when the skull is placed on
+// Latch -> portal -> walk in -> timed hunt; a timeout loops back to the latch. Success: the hand appears in
+// the bunker (a short window to take it), everyone returns, and the step ends when the hand is placed on
 // table slot 1 (owner 2026-09-09: M1 completes on the placement, not on the return).
 df_m1_run()
 {
@@ -130,7 +131,7 @@ df_m1_run()
 
 // After the return: the tower's safety volume is back (the latch removed it), the denizen rules are vanilla's
 // again (mode "place": neither the latch nor the room rule applies, the side rules wait for M1 done), and the
-// step blocks until the skull is on slot 1 (df_m1_skull_place_table notifies; a skull already placed by
+// step blocks until the hand is on slot 1 (df_m1_skull_place_table notifies; a hand already placed by
 // "!df fire m1_skull" during the latch counts).
 df_m1_wait_placed()
 {
@@ -160,7 +161,7 @@ df_m1_finish()
     df_complete( "m1" );
 }
 
-// "!df goto" past m1: the skull is already on the table, the side rules apply.
+// "!df goto" past m1: the hand is already on the table, the side rules apply.
 df_m1_setup()
 {
     level.df_m1_mode = undefined;
@@ -169,8 +170,8 @@ df_m1_setup()
     df_m1_after_rules();
 }
 
-// Everything M1 spawned goes on "!df goto" past it: portal, lights, fog, huds, cold room denizens, floor skull,
-// a carried skull. The hooks stay (df_m1_setup re-arms them right after) and the tower safety volume comes back.
+// Everything M1 spawned goes on "!df goto" past it: portal, lights, fog, huds, cold room denizens, floor hand,
+// a carried hand. The hooks stay (df_m1_setup re-arms them right after) and the tower safety volume comes back.
 df_m1_skip_cleanup()
 {
     level endon( "end_game" );
@@ -360,38 +361,25 @@ df_m1_latch_poll()
     }
 }
 
-// Once per game: table pulses orange 5 s and M1_EVENT (the event line is the whole teaching; no hint rung here).
+// Once per game: the portal spawn cue at the table and M1_EVENT (the event line is the whole teaching; no
+// hint rung here).
 df_m1_ride_cue()
 {
     level endon( "end_game" );
 
-    df_debug_print( "DF: m1 first ride: table pulse + event line" );
+    df_debug_print( "DF: m1 first ride: table cue + event line" );
     df_say( "M1_EVENT" );
-    df_m1_table_pulse( 5 );
+    df_m1_table_pulse();
 }
 
-// Orange light over the table on / off every 0.5 s for `seconds` (lamp light alias zm_transit_fx.gsc:114),
-// announced ONCE by the denizen portal opening sound (zmb_screecher_portal_spawn, zm_transit_ai_screecher.gsc:80):
-// louder than the quiet zmb_souls_end it replaces and in the family of what the latch will open.
-df_m1_table_pulse( seconds )
+// Announced ONCE by the denizen portal opening sound (zmb_screecher_portal_spawn,
+// zm_transit_ai_screecher.gsc:80): louder than the quiet zmb_souls_end it replaces and in the family of what
+// the latch will open. owner 2026-09-25: the orange light glow/blink (fx_zmb_tranzit_light_glow_xsm) removed,
+// the sound is the whole cue now.
+df_m1_table_pulse()
 {
-    level endon( "end_game" );
-
     pos = df_coord( "DF_SOCKET" ).origin + ( 0, 0, 60 );
-    n = int( seconds * 2 );
     playsoundatposition( "zmb_screecher_portal_spawn", pos );
-
-    for ( i = 0; i < n; i++ )
-    {
-        if ( i % 2 == 0 )
-            fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos );
-        else
-            df_fx_stop( fx );
-
-        wait 0.5;
-    }
-
-    df_fx_stop( fx );
 }
 
 // "!df fire m1_latch": open the portal without a denizen.
@@ -434,8 +422,8 @@ df_m1_debug_kills_hook()
 //   "!df fire m1_burst" the return burst at DF_TOWER_RETURN;
 //   "!df fire m1_fog"   toggles the cold room fog at the Nacht anchors (visit with !df tp DF_NACHT_SPAWN_1);
 //   "!df fire m1_ride"  the first-ride cue (table pulse + M1_EVENT) even without a denizen;
-//   "!df fire m1_skull" drops the skull in front of the first player; fired again (skull on the floor or in
-//                       a hand) it goes onto table slot 1, which completes M1 once the cold room is done.
+//   "!df fire m1_skull" drops the hand in front of the first player; fired again (the hand on the floor or
+//                       already carried) it goes onto table slot 1, which completes M1 once the cold room is done.
 df_m1_debug_cue_hook()
 {
     level endon( "end_game" );
@@ -1161,15 +1149,16 @@ df_act2_maxis_trail( from, to, flash )
     df_fx_stop( ent );
 }
 
-// ---- skull (audit 9, ITEM_SKULL_MAXIS; owner 2026-09-09: carried by hand) ---------------------------
-// The last kill leaves a skull on the bunker floor. One press within 100 TAKES it into the hand (carry notice
-// via df_scav_carry_set "skull", no fire; lamp portals must refuse player.df_skull like the ember: df_portal_use,
-// requests_M2fix.md). The return brings the carrier home; one press within 150 of table slot 1 PLACES it
-// (df_coords df_table_slot, the slot the key card fills on the other side; the skull itself sits at its own
-// table pose, no glow), and M1 completes on that. Nobody took it before the return: it lies at the tower return point under its glint,
-// still pickable, never auto-placed. A carrier who goes down drops it at the feet (like the ember).
+// ---- hand (audit 9, ITEM_HAND_MAXIS, renamed from ITEM_SKULL_MAXIS owner 2026-09-25; owner 2026-09-09: carried by hand) ----
+// The last kill leaves the hand on the bunker floor (still the zombie_skull model, df_model "skull"). One press
+// within 100 TAKES it (carry notice via df_scav_carry_set "skull", no fire; lamp portals must refuse
+// player.df_skull like the ember: df_portal_use, requests_M2fix.md). The return brings the carrier home; one
+// press within 150 of table slot 1 PLACES it (df_coords df_table_slot, the slot the key card fills on the
+// other side; the hand itself sits at its own table pose, no glow), and M1 completes on that. Nobody took it
+// before the return: it lies at the tower return point under its glint, still pickable, never auto-placed.
+// A carrier who goes down drops it at the feet (like the ember).
 
-// Success: the skull drops at the last corpse and Maxis names it (ITEM_SKULL_MAXIS, the TAKE line since the
+// Success: the hand drops at the last corpse and Maxis names it (ITEM_HAND_MAXIS, the TAKE line since the
 // dialogue audit v2), then a 30 s window (steps audit v2 #9: co-op players are still shooting when it drops)
 // for someone to take it before the return. The poll started by the drop does the prompts and presses (and the
 // room-wide puzzle prompt while it lies in the bunker); it keeps running after the return.
@@ -1188,11 +1177,11 @@ df_m1_skull_appear()
 
     df_item_arrival( df_ground( pos ) ); // the shared strike of every quest item (owner 2026-09-11)
     df_m1_skull_drop( df_ground( pos ) );
-    df_say( "ITEM_SKULL_MAXIS" );
+    df_say( "ITEM_HAND_MAXIS" );
     df_m1_skull_wait_take( 30 );
 }
 
-// Blocks until somebody carries the skull or `seconds` pass.
+// Blocks until somebody carries the hand or `seconds` pass.
 df_m1_skull_wait_take( seconds )
 {
     level endon( "end_game" );
@@ -1206,8 +1195,8 @@ df_m1_skull_wait_take( seconds )
         df_debug_print( "DF: m1 hand not taken in " + seconds + " s, it comes along to the tower" );
 }
 
-// A skull still lying on the floor after the return moves to the tower return point (48 units left of where
-// the first player lands) so it is never left in the bunker; a carried skull travels with its carrier.
+// A hand still lying on the floor after the return moves to the tower return point (48 units left of where
+// the first player lands) so it is never left in the bunker; a carried hand travels with its carrier.
 df_m1_skull_follow_return()
 {
     if ( !isdefined( level.df_m1_skull ) || isdefined( level.df_m1_skull_carrier ) )
@@ -1218,7 +1207,7 @@ df_m1_skull_follow_return()
     df_debug_print( "DF: m1 hand lies at the tower return point, take it to the table" );
 }
 
-// The skull lies on the floor under a glint (fx_zmb_tranzit_light_glow at df_fx_point "skull_glow")
+// The hand lies on the floor under a glint (fx_zmb_tranzit_light_glow at df_fx_point "skull_glow")
 // and the poll (prompts / presses) runs from here until the placement.
 df_m1_skull_drop( ground )
 {
@@ -1232,9 +1221,10 @@ df_m1_skull_drop( ground )
 }
 
 // Prompts and presses every 0.05 s (df_press_use is edge-triggered): a standing player within 100 of the floor
-// skull takes it (not while carrying the relay, an orb or the ember); the carrier within 150 of slot 1 places
-// it. While the skull lies on the BUNKER floor, every other player in the room sees the puzzle prompt "take
-// the skull" (df_prompt_puzzle, hidden with `!df hints off`; steps audit v2 #9) until it is taken or leaves
+// hand takes it (not while carrying the relay, an orb or the ember); the carrier within 150 of slot 1 places
+// it. While the hand lies on the BUNKER floor, every other player in the room sees the puzzle prompt "take
+// the hand before the cold closes" (df_prompt_puzzle, hidden with `!df hints off`; steps audit v2 #9) until
+// it is taken or leaves
 // the room. One instance at a time (a new drop restarts it); ends with the placement or a skip.
 df_m1_skull_poll()
 {
@@ -1293,7 +1283,7 @@ df_m1_skull_poll()
     }
 }
 
-// True while the floor skull and this player are both inside the bunker (the take window and just after).
+// True while the floor hand and this player are both inside the bunker (the take window and just after).
 df_m1_skull_in_room_with( player )
 {
     if ( !isdefined( level.df_m1_skull ) )
@@ -1341,7 +1331,7 @@ df_m1_skull_prompt_clear( player )
     player df_prompt( 0, undefined );
 }
 
-// The skull goes into the hand: flag (lamp portals refuse it), carry notice, pickup sound, drop watch.
+// It goes into the player's hand: flag (lamp portals refuse it), carry notice, pickup sound, drop watch.
 df_m1_skull_take( player )
 {
     df_m1_skull_remove_floor();
@@ -1355,7 +1345,7 @@ df_m1_skull_take( player )
     df_debug_print( "DF: m1 hand taken by " + player.name + ", carry it to the table (slot 1, one press within 150)" );
 }
 
-// The skull leaves the hand (placed, dropped, skip): flag off, notice cleared.
+// It leaves the player's hand (placed, dropped, skip): flag off, notice cleared.
 df_m1_skull_release( player )
 {
     if ( isdefined( player ) )
@@ -1368,7 +1358,7 @@ df_m1_skull_release( player )
     df_scav_carry_clear( "skull" );
 }
 
-// Every carried skull back out of the hands (no poll restart: callers decide); both prompt slots cleared.
+// Every carried hand released (no poll restart: callers decide); both prompt slots cleared.
 df_m1_skull_clear_hands()
 {
     foreach ( player in getplayers() )
@@ -1383,7 +1373,7 @@ df_m1_skull_clear_hands()
     level.df_m1_skull_carrier = undefined;
 }
 
-// Skip: floor skull, carried skull and the poll all go.
+// Skip: floor hand, carried hand and the poll all go.
 df_m1_skull_clear_world()
 {
     level notify( "df_m1_skull_poll_stop" );
@@ -1391,7 +1381,7 @@ df_m1_skull_clear_world()
     df_m1_skull_clear_hands();
 }
 
-// The carrier goes down (player_is_in_laststand, _zm_laststand.gsc:56): the skull drops at the feet with its
+// The carrier goes down (player_is_in_laststand, _zm_laststand.gsc:56): the hand drops at the feet with its
 // glint and the PROGRESS LOST cue (df_cue_fail: emp thump to all + ash where it fell), anyone takes it again.
 // The carrier leaves the game: it drops at the tower return point.
 df_m1_skull_monitor( player )
@@ -1426,7 +1416,7 @@ df_m1_skull_monitor( player )
     }
 }
 
-// The carrier places it: hand emptied, skull on slot 1 with the full cue.
+// The carrier places it: hand emptied, the hand on slot 1 with the full cue.
 df_m1_skull_place_by( player )
 {
     df_m1_skull_release( player );
@@ -1444,9 +1434,9 @@ df_m1_skull_remove_floor()
     level.df_m1_skull_fx = undefined;
 }
 
-// Skull on the table at its own pose (df_coords df_model_def "skull" offset, table frame), slow spin like the hole,
+// The hand on the table at its own pose (df_coords df_model_def "skull" offset, table frame), slow spin like the hole,
 // no glow (the placing snap only). quiet = 1 (goto): no snap, no trail. The line (M1_DONE) is
-// df_m1_finish's; ITEM_SKULL_MAXIS moved to the drop. Any floor or carried skull is gone first (debug / goto
+// df_m1_finish's; ITEM_HAND_MAXIS moved to the drop. Any floor or carried hand is gone first (debug / goto
 // paths). The "df_m1_skull_placed" notify is LAST on purpose: it ends the poll (which may be the calling
 // thread) and wakes df_m1_wait_placed.
 df_m1_skull_place_table( quiet )
@@ -1456,13 +1446,13 @@ df_m1_skull_place_table( quiet )
 
     df_m1_skull_remove_floor();
     df_m1_skull_clear_hands();
-    // owner 2026-09-23: the skull (zombie_skull, pivot 14 over its base) has its own pose in the table frame, set in the
+    // owner 2026-09-23: the hand (zombie_skull, pivot 14 over its base) has its own pose in the table frame, set in the
     // Prop Composer (df_coords df_model_def "skull" offset); slot 1 stays the card's
     pos = df_table_point( df_model_offset( "ember" ) ); // owner 2026-09-25: exactly where the fire hand will lie
     level.df_m1_skull_table = spawn( "script_model", pos );
     level.df_m1_skull_table setmodel( df_model( "skull" ) );
     level.df_m1_skull_table.angles = df_model_angles( "ember", df_table_yaw() );
-    // owner 2026-09-23: no glow on the skull (one glow per step on the relay); the placing snap only
+    // owner 2026-09-23: no glow on the hand (one glow per step on the relay); the placing snap only
     if ( !is_true( quiet ) )
         df_cue_table_place( pos );
     df_debug_print( "DF: m1 hand on the table, slot 1 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
@@ -1484,7 +1474,7 @@ df_m1_skull_spin()
     }
 }
 
-// "!df fire m1_skull": a skull on the floor or in a hand -> placed on the table (completes M1 once the cold
+// "!df fire m1_skull": the hand, on the floor or already carried, -> placed on the table (completes M1 once the cold
 // room is done); none -> one drops 60 in front of the player.
 df_m1_debug_skull( player )
 {

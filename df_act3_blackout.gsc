@@ -51,7 +51,11 @@ df_bo_spawn()
         s.body.angles = df_model_angles( "pswitch_body", s.yaw );
         s.lever = spawn( "script_model", c.origin + df_model_offset_at( "pswitch_lever", s.yaw ) );
         s.lever setmodel( df_model( "pswitch_lever" ) );
-        s.lever.angles = df_model_angles( "pswitch_lever", s.yaw ) + ( 0, 0, -90 ); // ON
+        // owner 2026-09-25: absolute angles stored once, so df_bo_set rotates TO a fixed pose instead of BY a
+        // relative amount (repeated relative rotates could drift the lever off true ON/OFF)
+        s.off_angles = df_model_angles( "pswitch_lever", s.yaw );
+        s.on_angles = s.off_angles + ( 0, 0, -90 );
+        s.lever.angles = s.on_angles; // ON
         s.on = 1;
         level.df_bo[level.df_bo.size] = s;
     }
@@ -59,7 +63,8 @@ df_bo_spawn()
     df_debug_print( "DF: blackout " + level.df_bo.size + " power switch(es) standing ON" );
 }
 
-// Rolls one lever; quiet = no sound (setup / debug).
+// Rolls one lever to its stored absolute angles (owner 2026-09-25: was a relative rotateroll); quiet = no
+// sound (setup / debug).
 df_bo_set( s, on, quiet )
 {
     if ( s.on == on )
@@ -68,9 +73,9 @@ df_bo_set( s, on, quiet )
     s.on = on;
 
     if ( on )
-        s.lever rotateroll( -90, 0.3 );
+        s.lever rotateto( s.on_angles, 0.3 );
     else
-        s.lever rotateroll( 90, 0.3 );
+        s.lever rotateto( s.off_angles, 0.3 );
 
     if ( is_true( quiet ) )
         return;
@@ -147,13 +152,21 @@ df_bo_setup()
     df_bo_stop();
 }
 
+// owner 2026-09-25: only clears players whose df_bo_prompt is actually set (df_bo_press_loop is the only
+// other writer of that flag, and resets it itself; this covers the "stopped mid-prompt" case)
 df_bo_stop()
 {
     level.df_bo_active = 0;
     level notify( "df_bo_stop" );
 
     foreach ( player in getplayers() )
+    {
+        if ( !is_true( player.df_bo_prompt ) )
+            continue;
+
+        player.df_bo_prompt = 0;
         player df_prompt( 0, undefined );
+    }
 }
 
 df_bo_skip_cleanup()
@@ -340,7 +353,9 @@ df_bo_sprint()
     }
 }
 
-// "!df fire blackout_off": all three OFF (a running step keeps going); "!df fire blackout_on": all three ON.
+// "!df fire blackout_off": all three OFF, refused unless Blackout is currently running (a step not running
+// has no switches to press back on, and no wave to spawn); "!df fire blackout_on": all three ON, always
+// (owner 2026-09-25).
 df_bo_debug_hook()
 {
     level endon( "end_game" );
@@ -349,6 +364,12 @@ df_bo_debug_hook()
     {
         what = level waittill_any_return( "df_debug_blackout_off", "df_debug_blackout_on" );
         df_bo_spawn();
+
+        if ( what == "df_debug_blackout_off" && !is_true( level.df_bo_active ) )
+        {
+            df_debug_print( "DF: blackout debug: blackout_off refused, Blackout is not running" );
+            continue;
+        }
 
         foreach ( s in level.df_bo )
             level thread df_bo_set( s, what == "df_debug_blackout_on" );

@@ -1,5 +1,5 @@
 // Dead Frequency - Act 3, Step 7 "The Line Holds" (spec 5, Step 7; owner redesign v3, polish pass 2026-09-08).
-//   A player powers the relay at the table under the tower (hold 3 s, a channelling action the owner
+//   A player powers the relay at the table under the tower (hold 1.5 s, a channelling action the owner
 //   validated; the radius is keyed on df_coord( "DF_SOCKET" ).origin, which IS the table since 2026-09-08).
 //   The charge orb (the ROCK, df_model( "orb" ) = the meteor piece p6_zm_buildable_sq_meteor, the same rock
 //   Step 6 left on table slot 2, spun by rotateyaw) lifts off its slot and wanders under the tower
@@ -18,8 +18,8 @@
 //   player who holds the line with the stone wins; the one who trains at 600 loses it.
 //   Side pressure from the START of the wave (audit 2.3): Richtofen recalls Avogadro, a boss in the wave
 //   (camping the orb damages it; three knife hits banish him and drop a Max Ammo at the table, audit 8b(3))
-//   with fewer sprinters; Maxis lets the denizens loose on the tower (safety volume off) with the full
-//   sprinter cap and an ash / smoke column at the tower top for the whole wave (the fire side's far cue,
+//   with fewer sprinters; Maxis gets no denizens (owner 2026-09-25) - the full sprinter cap and an ash /
+//   smoke column at the tower top for the whole wave carry the pressure instead (the fire side's far cue,
 //   art audit S7.6). The Easter Egg song plays during the wave (one start per song length, df_s7_song_seconds:
 //   stopsounds does not end the stream).
 //   Success = the countdown runs out with the orb alive: it glides back onto the table (slot 2, rising sound,
@@ -452,7 +452,7 @@ df_s7_teardown()
     level thread df_s7_afterwave(); // owner 2026-09-11: the dead keep coming until the song ends
     df_s7_release_hunters();
     df_s7_boost( 0 );
-    df_s7_denizens( 0 );
+    df_s7_denizens();
     df_s7_song_stop();
     df_fx_stop( level.df_s7_storm );
     level.df_s7_storm = undefined;
@@ -1552,8 +1552,9 @@ df_s7_hud_refresh_all()
 // Side pressure, from the start of the wave (audit 2.3)
 // =========================================================================================
 
-// Richtofen: Avogadro is recalled at once and is the wave's boss (df_s7_avogadro_boss); Maxis: the denizens
-// are loose on the tower from the first second (levers + safety volume, df_s7_denizens).
+// Richtofen: Avogadro is recalled at once and is the wave's boss (df_s7_avogadro_boss); Maxis: no denizens
+// (owner 2026-09-25: a latching denizen made guarding the rock unfair) - the fast zombies and the smoke
+// column carry the pressure instead.
 df_s7_side_pressure()
 {
     level endon( "end_game" );
@@ -1806,37 +1807,18 @@ df_s7_avogadro_watch()
     }
 }
 
-// ---- Maxis: denizens on the tower -----------------------------------------------------------
-// Three verified levers, all restored at the end of the wave:
+// ---- Maxis: denizen levers (restore only) ----------------------------------------------------
+// owner 2026-09-25: the release branch (on = 1) is gone - Maxis no longer lets denizens loose on the tower
+// (a latching denizen made guarding the rock unfair, df_s7_side_pressure). Nothing sets level.df_s7_denizens_on
+// true any more, so this is a safe no-op kept for the one teardown call site (df_s7_teardown, "safe to call
+// when no wave runs"); it would restore the three levers if anything ever set the flag again:
 //   level.zones["zone_cornfield_prototype"].screecher_zone (zm_transit::init_screecher_zones),
 //   level.zombie_ai_limit_screecher (2 in _zm_ai_screecher::init) raised to 4,
 //   the tower's "screecher_volume" safety box (ents dump: info_volume at 7640 -457 -11) taken out of
 //   level.safety_volumes (zm_transit::player_entered_safety_zone), which otherwise makes every player
 //   at the tower invisible to the denizen spawner.
-
-// on = 1: flip the three levers (saved first); on = 0: restore them.
-df_s7_denizens( on )
+df_s7_denizens()
 {
-    if ( on )
-    {
-        if ( is_true( level.df_s7_denizens_on ) )
-            return;
-
-        level.df_s7_denizens_on = 1;
-
-        if ( isdefined( level.zones ) && isdefined( level.zones["zone_cornfield_prototype"] ) )
-        {
-            level.df_s7_zone_saved = level.zones["zone_cornfield_prototype"].screecher_zone;
-            level.zones["zone_cornfield_prototype"].screecher_zone = 1;
-        }
-
-        level.df_s7_limit_saved = level.zombie_ai_limit_screecher;
-        level.zombie_ai_limit_screecher = 4;
-        df_s7_tower_safety_volume( 0 );
-        df_debug_print( "DF: s7 denizens released on the tower" );
-        return;
-    }
-
     if ( !is_true( level.df_s7_denizens_on ) )
         return;
 

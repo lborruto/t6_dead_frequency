@@ -1033,7 +1033,6 @@ df_r1_summon( inserter )
     level thread df_tower_fx_stop_after( 12 );
     playsoundatposition( "zmb_avogadro_spawn_3d", df_coord( "DF_SOCKET" ).origin );
     level thread df_r1_summon_hum();
-    level thread df_r1_table_pulse();
 
     foreach ( player in getplayers() )
         player playsoundtoplayer( "zmb_power_off_quad", player );
@@ -1083,31 +1082,6 @@ df_r1_wait_chamber( inserter )
         df_r1_call_down( inserter );
 
     level thread df_r1_keep_avogadro_at_tower( inserter );
-}
-
-// Audit 4: while he is alive within 900 of the tower the table pulses blue (the Richtofen lamp light,
-// fx_zmb_tranzit_light_safety_ric, zm_transit_fx.gsc:115): 5 s on, a short gap, until the capture ends.
-df_r1_table_pulse()
-{
-    level endon( "end_game" );
-    level endon( "df_r1_capture_over" );
-    level endon( "df_skip_r1" );
-
-    pos = df_coord( "DF_SOCKET" ).origin + ( 0, 0, 30 );
-
-    while ( true )
-    {
-        if ( !df_r1_avogadro_near_tower() )
-        {
-            wait 1;
-            continue;
-        }
-
-        fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", pos );
-        wait 5;
-        df_fx_stop( fx );
-        wait 0.6;
-    }
 }
 
 // True while Avogadro is down (idle / chasing / phasing) within 900 units of the tower centre.
