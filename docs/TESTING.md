@@ -229,9 +229,9 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
 - Walk to the table with it: it dies in ash, `m1 denizen latched at the table`, `m1 portal at 7623 -457 ...`: the hole
   rises out of the ground in front of the table and spins with an orbiting orange light; the glint moves onto it.
 - Walk INTO the hole (no F): warp sound, black flash, Nacht. `m1 cold room 60 s, 6 denizen kills`, cold fog, the
-  tick-tock (no timer). Denizens rise two at a time at a RANDOM one of the four Nacht anchors at least 150 from every
+  tick-tock (no timer). Denizens rise two at a time at the FARTHEST of three Nacht spots (DF_NACHT_SPAWN_1..3) from every
   player, never the same one twice in a row (`m1 denizen rising at x y`: the coordinates must change); each kill =
-  trail + ash + `m1 denizen kill k/6`.
+  red trail + 5 s of rising embers + `m1 denizen kill k/6`. The hand floats 14 above the floor, turning, with a tiny glow.
 - Success: `m1 cold room over: success (6/6)`, the STRIKE where the last one died and the HAND (the power switch hand,
   `p6_zm_buildable_pswitch_hand`; code kind `skull`, so the console still says skull) lies there with a glint (`m1
   skull on the floor at ..., one press takes it`), Maxis (ITEM_HAND_MAXIS): "The cold left a hand behind. The

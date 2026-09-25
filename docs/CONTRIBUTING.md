@@ -108,7 +108,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   settles filled at R2 end), and the Richtofen side rules (Avogadro every round except while Step 6 is open, turrets
   without turbine, the power-OFF penalty, which runs from R1 open so its refill-lock branch works).
 - `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt
-  in Nacht with a random anchor per denizen, the plain HAND, code kind `skull`, left on the table at the fire hand's
+  in Nacht at the farthest of three rising spots (DF_NACHT_SPAWN_1..3, never twice in a row), the plain HAND, code kind `skull`, left on the table at the fire hand's
   pose), M2 Fire and Ash (the same hand taken from the table, cold and harmless until the four graves are ash, then
   the FIRE HAND: flame + burn on the carrier, set back on the table where it rests burning until Step 6; four graves in Town, kills at a
   lit grave burning or not, the 90 s cold timer per lit grave, the scorched glows; at completion it exports the ONE

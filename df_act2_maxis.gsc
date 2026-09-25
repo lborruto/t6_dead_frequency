@@ -921,18 +921,18 @@ df_m1_spawn_loop()
     }
 }
 
-// A Nacht anchor for the next denizen, as a fresh struct (screecher_prespawn reads .origin/.angles). Owner
-// 2026-09-23: they all rose from the one anchor farthest from the players. Now a random anchor among those
-// at least 150 from every player, never the one used last; the farthest one only when nothing else qualifies.
+// A Nacht anchor for the next denizen, as a fresh struct (screecher_prespawn reads .origin/.angles).
 df_m1_pick_spawn()
 {
+    // owner 2026-09-25: THREE rising spots (DF_NACHT_SPAWN_1..3), the one farthest from every player in the room;
+    // the same spot twice in a row gives way to the next farthest
     players = df_m1_room_players();
-    best = undefined;
-    best_i = 0;
-    best_d2 = -1;
-    ok = [];
+    first = undefined;
+    first_d2 = -1;
+    second = undefined;
+    second_d2 = -1;
 
-    for ( i = 1; i <= 4; i++ )
+    for ( i = 1; i <= 3; i++ )
     {
         c = df_coord( "DF_NACHT_SPAWN_" + i );
         d2 = 999999999;
@@ -945,27 +945,30 @@ df_m1_pick_spawn()
                 d2 = pd2;
         }
 
-        if ( d2 > best_d2 )
+        if ( d2 > first_d2 )
         {
-            best_d2 = d2;
-            best = c;
-            best_i = i;
+            second = first;
+            second_d2 = first_d2;
+            first = i;
+            first_d2 = d2;
         }
-
-        if ( d2 >= 150 * 150 && ( !isdefined( level.df_m1_last_spawn ) || level.df_m1_last_spawn != i ) )
-            ok[ok.size] = i;
+        else if ( d2 > second_d2 )
+        {
+            second = i;
+            second_d2 = d2;
+        }
     }
 
-    if ( ok.size > 0 )
-    {
-        best_i = random( ok );
-        best = df_coord( "DF_NACHT_SPAWN_" + best_i );
-    }
+    pick = first;
 
-    level.df_m1_last_spawn = best_i;
+    if ( isdefined( level.df_m1_last_spawn ) && level.df_m1_last_spawn == first && isdefined( second ) )
+        pick = second;
+
+    level.df_m1_last_spawn = pick;
+    c = df_coord( "DF_NACHT_SPAWN_" + pick );
     spot = spawnstruct();
-    spot.origin = best.origin;
-    spot.angles = best.angles;
+    spot.origin = c.origin;
+    spot.angles = c.angles;
     return spot;
 }
 
@@ -1081,7 +1084,9 @@ df_m1_kill_cue( k, pos )
     }
 
     level thread df_act2_maxis_trail( pos + ( 0, 0, 30 ), to );
-    df_fx_burst( "fx_zmb_ash_rising_md", pos, 0.8 ); // owner 2026-09-23: a loop fx, df_fx_once left it running
+    // owner 2026-09-25: the red embers rising off each kill, the "soul sucking" look the owner wants back: 5 s (the
+    // 0.8 s cut of 2026-09-23 made them vanish; df_fx_once would never end, the fx loops)
+    df_fx_burst( "fx_zmb_ash_rising_md", pos, 5 );
     df_cue_tick( pos, 1 );
     wait 0.4;
 
@@ -1212,12 +1217,27 @@ df_m1_skull_follow_return()
 df_m1_skull_drop( ground )
 {
     df_m1_skull_remove_floor();
-    level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, df_model_rest_z( "skull" ) ) ); // resting on its base
+    // owner 2026-09-25: it sank half into the floor: it floats 14 above the ground like the rock, turns slowly and
+    // carries a tiny glow on itself
+    level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, 14 ) );
     level.df_m1_skull setmodel( df_model( "skull" ) );
-    level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", ground + df_fx_point( "skull_glow" ) );
+    level.df_m1_skull thread df_m1_floor_hand_spin();
+    level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", ground + ( 0, 0, 14 ) );
     playsoundatposition( "zmb_buildable_piece_add", ground );
     level thread df_m1_skull_poll();
     df_debug_print( "DF: m1 hand on the floor at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", one press takes it" );
+}
+
+// self = the floor hand: a slow turn, like the rock on the ground.
+df_m1_floor_hand_spin()
+{
+    self endon( "death" );
+
+    while ( true )
+    {
+        self rotateyaw( 360, 8 );
+        self waittill( "rotatedone" );
+    }
 }
 
 // Prompts and presses every 0.05 s (df_press_use is edge-triggered): a standing player within 100 of the floor
