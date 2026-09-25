@@ -559,7 +559,28 @@ df_lamp_state_set( lamp, state )
         df_lamp_hum_set( lamp, "zmb_avogadro_loop", undefined );
     }
     else if ( state == "dark" )
-        df_lamp_exploder_set( lamp, 0 ); // owner 2026-09-25: Maxis Step 5 "Lights Out": the vanilla light off, nothing of ours
+    {
+        // owner 2026-09-25: M3 "Lights Out" put out: the vanilla light off, nothing of ours, black
+        df_lamp_exploder_set( lamp, 0 );
+        df_lamp_glow_set( lamp, 0 );
+    }
+    else if ( state == "possessed" )
+    {
+        // owner 2026-09-25: M3 "Lights Out": Richtofen's power in the lamp, easy to spot in the fog: a big looping
+        // electric spark at the bulb, a blue glow and his electric hum (on purpose on the Maxis side: it is HIS light)
+        g = df_fx_loop( "fx_zmb_tranzit_spark_blue_lg_loop", bulb );
+
+        if ( isdefined( g ) )
+            lamp.fx[lamp.fx.size] = g;
+
+        g = df_fx_loop( "fx_zmb_tranzit_light_glow", bulb );
+
+        if ( isdefined( g ) )
+            lamp.fx[lamp.fx.size] = g;
+
+        lamp.snd = spawn( "script_origin", bulb );
+        lamp.snd playloopsound( "zmb_avogadro_loop" );
+    }
     else if ( state == "final" )
         df_lamp_exploder_set( lamp, 1 );
     else if ( state != "drained" )

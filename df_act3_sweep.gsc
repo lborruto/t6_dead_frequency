@@ -10,8 +10,8 @@
 //     (LO_RELIGHT), the mirror of Maxis's knock in Blackout. All three dark at once: the step is done.
 //   Replaces the old tune + turbine sweep (the turbine is his electricity; the owner wanted the fire side to break
 //   the lamps instead).
-// Lamp looks come only from df_lamp_state_set (df_lamps.gsc): "filled" = humming with his power (steady bulb
-// glow + the fire-side hum), "dark" = the vanilla light off and nothing of ours.
+// Lamp looks come only from df_lamp_state_set (df_lamps.gsc): "possessed" = humming with his power (a big
+// looping electric spark, a blue glow, his hum: it is Richtofen's light), "dark" = the vanilla light off, black.
 #include common_scripts\utility;
 #include maps\mp\_utility;
 #include maps\mp\zombies\_zm_utility;
@@ -137,7 +137,7 @@ df_s5_lamp_set( lamp, dark, quiet )
     if ( dark )
         df_lamp_state_set( lamp, "dark" );
     else
-        df_lamp_state_set( lamp, "filled" );
+        df_lamp_state_set( lamp, "possessed" );
 
     if ( is_true( quiet ) )
         return;
