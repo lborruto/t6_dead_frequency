@@ -1,5 +1,4 @@
-// Dead Frequency - Step 5 on the Richtofen side, "Blackout" (owner 2026-09-25, spec
-//   docs/superpowers/specs/2026-09-25-blackout-and-persistent-props-design.md).
+// Dead Frequency - Step 5 on the Richtofen side, "Blackout" (owner 2026-09-25).
 //   Three power switches (vanilla's switch without its hand: kinds pswitch_body + pswitch_lever, anchors
 //   DF_BLACKOUT_1..3) stand ON from boot on both sides. When Step 5 opens on Richtofen, Maxis cuts the grid: the three
 //   levers roll OFF. One press of F within 80 of an OFF switch rolls it ON again (vanilla: rotateroll -90 = ON,
