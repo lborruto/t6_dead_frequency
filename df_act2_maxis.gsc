@@ -719,17 +719,20 @@ df_m1_zone_start()
         return;
 
     level.df_m1_zone_on = 1;
-    level.df_m1_zone_radius = 1500;
+    level.df_m1_zone_radius = 1000; // owner 2026-09-25: the farthest boundary reading is 935 from DF_M1_ZONE
     level.df_m1_saved_limit = level.zombie_ai_limit_screecher;
     level.zombie_ai_limit_screecher = 0;
     level.df_m1_saved_near_miss = level.near_miss;
     level.near_miss = 2;
 
-    foreach ( ai in df_m1_denizens_alive() )
-        ai dodamage( ai.health + 666, ai.origin );
+    foreach ( ai in getaiarray( level.zombie_team ) )
+    {
+        if ( isdefined( ai ) && isalive( ai ) && is_true( ai.isscreecher ) && df_m1_in_zone( ai.origin ) )
+            ai dodamage( ai.health + 666, ai.origin );
+    }
 
     level thread df_m1_zone_watch();
-    df_debug_print( "DF: m1 no-denizen zone ON (" + level.df_m1_zone_radius + " around the woods behind the cabin)" );
+    df_debug_print( "DF: m1 no-denizen zone ON (" + level.df_m1_zone_radius + " around DF_M1_ZONE, the woods behind the cabin)" );
 }
 
 df_m1_zone_end()
@@ -751,6 +754,12 @@ df_m1_zone_end()
     df_debug_print( "DF: m1 no-denizen zone OFF, vanilla denizens are back" );
 }
 
+// Inside the no-denizen zone: level.df_m1_zone_radius (2D) around DF_M1_ZONE.
+df_m1_in_zone( pos )
+{
+    return distance2dsquared( pos, df_coord( "DF_M1_ZONE" ).origin ) < level.df_m1_zone_radius * level.df_m1_zone_radius;
+}
+
 // Walking out ends the zone as if the players were sent back.
 df_m1_zone_watch()
 {
@@ -764,7 +773,7 @@ df_m1_zone_watch()
 
         foreach ( player in getplayers() )
         {
-            if ( df_m1_in_match( player ) && df_m1_in_room( player.origin, level.df_m1_zone_radius ) )
+            if ( df_m1_in_match( player ) && df_m1_in_zone( player.origin ) )
                 inside = 1;
         }
 

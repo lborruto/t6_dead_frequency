@@ -162,6 +162,9 @@ df_coords_init()
 
     // ---- Nacht bunker: walkable nodes around the room centre (13520, -776), players face east (+x).
     // owner spot 2026-09-11 ([CHEAT] pos 13703 -822 -189 | ang 0 1 0), the four players 40 apart around it
+    // owner 2026-09-25: the no-denizen zone of the cold room in the woods behind the cabin: the centre of the owner's
+    //      eight boundary readings (4844..6056 x, 7111..8559 y); radius 1000 in df_act2_maxis df_m1_zone_start
+    df_coord_set( "DF_M1_ZONE", ( 5477, 7813, -60 ), ( 0, 0, 0 ), undefined );
     df_coord_set( "DF_NACHT_SPAWN_1", ( 13703, -822, -189 ), ( 0, 1, 0 ), undefined );
     df_coord_set( "DF_NACHT_SPAWN_2", ( 13703, -862, -189 ), ( 0, 1, 0 ), undefined );
     df_coord_set( "DF_NACHT_SPAWN_3", ( 13703, -782, -189 ), ( 0, 1, 0 ), undefined );
