@@ -94,7 +94,7 @@ df_m1_run()
     level thread df_m1_debug_cue_hook();
     // AVAILABLE glint 20 over the table top until the first latch (art audit change 2; df_step_focus wants the
     // glint point itself); it moves to the hole when it opens
-    df_step_focus( "m1", df_coord( "DF_SOCKET" ).origin + ( 0, 0, df_model_top_z( "table" ) + 20 ) );
+    // owner 2026-09-25: no AVAILABLE glint over the table (nothing of ours on the table)
     df_debug_print( "DF: m1 waiting for a denizen latched within 300 of the table" );
 
     while ( true )
@@ -142,7 +142,7 @@ df_m1_wait_placed()
     if ( isdefined( level.df_m1_skull_table ) )
         return;
 
-    df_debug_print( "DF: m1 waiting for the skull on table slot 1 (carry it within 150 of the table, one press)" );
+    df_debug_print( "DF: m1 waiting for the hand on table slot 1 (carry it within 150 of the table, one press)" );
     level waittill( "df_m1_skull_placed" );
 }
 
@@ -1203,7 +1203,7 @@ df_m1_skull_wait_take( seconds )
         wait 0.1;
 
     if ( !isdefined( level.df_m1_skull_carrier ) )
-        df_debug_print( "DF: m1 skull not taken in " + seconds + " s, it comes along to the tower" );
+        df_debug_print( "DF: m1 hand not taken in " + seconds + " s, it comes along to the tower" );
 }
 
 // A skull still lying on the floor after the return moves to the tower return point (48 units left of where
@@ -1215,7 +1215,7 @@ df_m1_skull_follow_return()
 
     c = df_coord( "DF_TOWER_RETURN" );
     df_m1_skull_drop( df_ground( c.origin + anglestoright( c.angles ) * -48 ) );
-    df_debug_print( "DF: m1 skull lies at the tower return point, take it to the table" );
+    df_debug_print( "DF: m1 hand lies at the tower return point, take it to the table" );
 }
 
 // The skull lies on the floor under a glint (fx_zmb_tranzit_light_glow at df_fx_point "skull_glow")
@@ -1228,7 +1228,7 @@ df_m1_skull_drop( ground )
     level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", ground + df_fx_point( "skull_glow" ) );
     playsoundatposition( "zmb_buildable_piece_add", ground );
     level thread df_m1_skull_poll();
-    df_debug_print( "DF: m1 skull on the floor at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", one press takes it" );
+    df_debug_print( "DF: m1 hand on the floor at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", one press takes it" );
 }
 
 // Prompts and presses every 0.05 s (df_press_use is edge-triggered): a standing player within 100 of the floor
@@ -1352,7 +1352,7 @@ df_m1_skull_take( player )
     df_scav_carry_set( "skull", 1, 1, player );
     level thread df_m1_skull_monitor( player );
     df_touch( "m1" );
-    df_debug_print( "DF: m1 skull taken by " + player.name + ", carry it to the table (slot 1, one press within 150)" );
+    df_debug_print( "DF: m1 hand taken by " + player.name + ", carry it to the table (slot 1, one press within 150)" );
 }
 
 // The skull leaves the hand (placed, dropped, skip): flag off, notice cleared.
@@ -1407,7 +1407,7 @@ df_m1_skull_monitor( player )
         {
             df_m1_skull_release( undefined );
             df_m1_skull_drop( df_ground( df_coord( "DF_TOWER_RETURN" ).origin ) );
-            df_debug_print( "DF: m1 skull carrier left, the skull lies at the tower return point" );
+            df_debug_print( "DF: m1 hand carrier left, the hand lies at the tower return point" );
             return;
         }
 
@@ -1420,7 +1420,7 @@ df_m1_skull_monitor( player )
             df_m1_skull_release( player );
             df_m1_skull_drop( ground );
             df_cue_fail( ground );
-            df_debug_print( "DF: m1 skull dropped (" + player.name + " went down), take it again" );
+            df_debug_print( "DF: m1 hand dropped (" + player.name + " went down), take it again" );
             return;
         }
     }
@@ -1430,7 +1430,7 @@ df_m1_skull_monitor( player )
 df_m1_skull_place_by( player )
 {
     df_m1_skull_release( player );
-    df_debug_print( "DF: m1 skull placed by " + player.name );
+    df_debug_print( "DF: m1 hand placed by " + player.name );
     df_m1_skull_place_table( 0 );
 }
 
@@ -1465,7 +1465,7 @@ df_m1_skull_place_table( quiet )
     // owner 2026-09-23: no glow on the skull (one glow per step on the relay); the placing snap only
     if ( !is_true( quiet ) )
         df_cue_table_place( pos );
-    df_debug_print( "DF: m1 skull on the table, slot 1 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
+    df_debug_print( "DF: m1 hand on the table, slot 1 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
 
     if ( !is_true( quiet ) )
         level thread df_act2_maxis_trail( pos + ( 0, 0, 200 ), pos );
@@ -1490,7 +1490,7 @@ df_m1_debug_skull( player )
 {
     if ( isdefined( level.df_m1_skull_table ) )
     {
-        df_debug_print( "DF: m1 skull already on the table" );
+        df_debug_print( "DF: m1 hand already on the table" );
         return;
     }
 
@@ -1540,7 +1540,7 @@ df_m2_run()
     level.df_m2_ember_returned = 0;
     level.df_m2_ember_charged = 0;
     df_m2_ember_spawn_table();
-    df_step_focus( "m2", level.df_m2_ember_pos + ( 0, 0, 10 ) );
+    // owner 2026-09-25: no AVAILABLE glint over the table (nothing of ours on the table)
     df_debug_print( "DF: m2 the fire hand burns on the table: take it (one press), touch any tombstone with it, " + level.df_m2_target + " zombies killed at a lit one make it vanish; all four gone = bring the charged fire hand back to the table" );
 
     while ( !df_m2_all_done() || !is_true( level.df_m2_ember_returned ) )
@@ -2122,7 +2122,7 @@ df_m2_ember_take( player )
     player thread df_m2_ember_carry();
     level thread df_m2_ember_monitor( player );
     df_touch( "m2" );
-    df_debug_print( "DF: m2 fire hand taken from the table by " + player.name + " (5 hp/s while carried; it stays in hand for the whole step)" );
+    df_debug_print( "DF: m2 hand taken from the table by " + player.name + " (no burn until the four graves are ash; it stays in hand for the whole step)" );
 
     if ( is_true( level.df_m2_ember_said ) )
         return;

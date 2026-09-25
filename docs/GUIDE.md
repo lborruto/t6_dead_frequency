@@ -9,15 +9,18 @@
 A few things that are true for the whole quest:
 
 - Every pickup and placement is ONE press of F. Only four actions are holds: building the relay (3 s), tuning
-  a lamp (5 s), powering the relay (3 s) and opening the frequency (5 s).
+  a lamp (5 s), powering the relay (1.5 s) and opening the frequency (5 s).
 - No timer is ever drawn on screen. When something is on a clock you HEAR it: the Pack-a-Punch tick-tock rides
   you, and dry ticks join in the last 30 seconds.
 - One sound always means the same thing: a portal-like whoosh + a glint on an object = a step is available;
   a small clink = progress; the NavCard chime + a spark flying to the tower = a sub-goal done; a deep groan =
   a step is complete; a buzz that only you hear = wrong input; the bus EMP thump = something was lost; a burst
   + thunder + a short quake = a quest item has just arrived somewhere.
-- Everything electric (blue sparks) belongs to Richtofen; everything fire and ash belongs to Maxis. Before you
-  pick a side the world is electric.
+- Everything electric (blue sparks, arcs, lightning, thunder) belongs to Richtofen; everything fire and ash
+  belongs to Maxis, and nothing on Maxis's side looks or sounds electric. Before you pick a side the world is
+  electric.
+- The table under the tower never lights up: what you put on it just clinks. The lasting look is on the relay's
+  mast (one small glow per finished step).
 - The vanilla Easter Egg is off. The NavCard and its table still work as usual.
 
 Player-count scaling is written as solo (2 / 3 / 4 players).
@@ -75,14 +78,14 @@ When the bus reaches the next stop with the power on, the relay is locked (the d
 
 Press F on the locked relay to take it (sparks on your back; you cannot use the lamp portals while carrying;
 it drops at your feet if you go down). The first lift warns you that a choice is coming. Carry it to the work
-TABLE that stands under the tower, next to the cornfield. As you get close, a light on the table shows the side
-you are about to choose:
+TABLE that stands under the tower, next to the cornfield. The table shows nothing: the power state at the
+moment you plug in is the choice (the patrons tell you so):
 
-- power ON -> blue -> RICHTOFEN. The four tombstones in Town vanish.
-- power OFF -> orange -> MAXIS. The four power boxes in the Farm barn vanish.
+- power ON -> RICHTOFEN. The four tombstones in Town vanish.
+- power OFF -> MAXIS. The four power boxes in the Farm barn vanish.
 
-Press F at the table to plug the relay in (a blue snap for Richtofen, a fire snap for Maxis). The choice is
-final for this game. A white runner light now climbs the tower for the rest of the game, and the relay's mast
+Press F at the table to plug the relay in (a clink and the switch-on sound, no light on the table). The choice
+is final for this game. A white runner light now climbs the tower for the rest of the game, and the relay's mast
 gets one small glow per finished step (the steps done so far light at once), so it ends fully lit. If a
 carrier leaves the game, the relay he dropped moves onto the table by itself after 60 s untouched: take it
 there and plug it in.
@@ -162,21 +165,20 @@ Cold room: 60 s solo (75 / 90 / 100). Denizens rise two at a time, at random spo
 you; kill 6 (9 / 12 / 15). Downed players come along and can be revived inside. Timeout: everyone is sent back
 to the tower; get a denizen on your head again and repeat.
 
-Success: a SKULL arrives by a strike where the last denizen died. You have 30 s to take it (F) before everyone
-is sent back; if nobody takes it, it comes along and lies at the return point at the tower, still pickable.
-Carry it (no lamp portals; dropped at your feet if you go down) and press F at the table to place it. That
-completes M1. While M1 waits for a denizen, denizens can rise at the tower itself.
+Success: a HAND (the hand of the power switch) arrives by a strike where the last denizen died. You have 30 s
+to take it (F) before everyone is sent back; if nobody takes it, it comes along and lies at the return point at
+the tower, still pickable. Carry it (no lamp portals; dropped at your feet if you go down) and press F at the
+table to place it (a clink): it lies on the table, cold and still. That completes M1. While M1 waits for a denizen, denizens can rise at the tower itself.
 
 </details>
 
 <details><summary><b>M2 - Fire and Ash (Town)</b> (click to reveal)</summary>
 
 
-A FIRE HAND (a burning hand) now lies on the table. Press F to take it: fire on your body, 5 health a second while
-you carry it (never below half your health, and not while you stand next to a lit grave), and it stays in hand
-for the whole step.
+The hand M1 left on the table is the one you need now. Press F to take it (it does not burn yet, no damage);
+it stays in hand for the whole step.
 
-Four tombstones stand in Town, each with a small flame. Carry the fire hand there (the bus is fine; the lamp
+Four tombstones stand in Town, each with a small flame. Carry the hand there (the bus is fine; the lamp
 portals refuse you) and press F on any of them to light it (any order, as many as you like); a lit grave
 crackles. Lighting a grave starts a wave of sprinting zombies at it that ends when the grave is full. Kill 5
 zombies near a lit grave (5 / 5 / 6 / 7, fixed when M2 opens), burning or not (a Galvaknuckle kill does not
@@ -186,13 +188,15 @@ end): if not, it goes cold (the thump and Maxis tell you), loses its kills and m
 zero. A kill at an UNLIT grave does not count (a buzz tells you). Denizens leave you alone within a few steps of
 any of the four graves while M2 runs.
 
-All four gone: chime, the flame on you grows. Go back to the table and press F to return the fire hand (a fire
-snap); it stays on the table. That completes M2 and the Act 2 reward drops at once. If nobody in the team
+All four gone: chime, and the hand becomes the FIRE HAND: fire on your body, 5 health a second while you carry
+it (never below half your health, and not while you stand next to a lit grave). Go back to the table and press F
+to set the fire hand on the table (a clink); it rests there, burning, until Step 6. That completes M2 and the Act 2 reward drops at once. If nobody in the team
 carries a Jet Gun, Maxis says you will need one before the end.
 
-Going down with the fire hand, or leaving the game with it, sends it back to the table (take it again; lit
-graves keep their count). Ending a round with the power ON makes the lit, unfinished grave with the most kills
-forget them. The Galvaknuckles are refused near the graves and while you hold the fire hand.
+Going down with the hand, or leaving the game with it, sends it back to the table (take it again; lit
+graves keep their count, and a fire hand stays a fire hand). Ending a round with the power ON makes the lit,
+unfinished grave with the most kills forget them. The Galvaknuckles are refused near the graves and while you
+hold the hand.
 
 Maxis side rules from M1 on: there are twice as many denizens in the fog; they leave you alone only near the
 four graves while M2 runs and near the cabin fireplace while Step 6 is open (plus vanilla's own safe places). After M2 the lamp portals open without a turbine.
@@ -225,7 +229,7 @@ No anchor within 15 s: "signal lost", the lamp drains for 10 s, then you can tun
 lost.
 
 The FIRST anchor starts a countdown you hear, not see: Maxis 360 s solo (300 / 270 / 240), Richtofen 480 s
-(360 / 300 / 270). Anchor every set lamp before it ends and Step 5 is done. If it runs out, the anchored lamps
+(360 / 300 / 270). Anchor THREE lamps before it ends (every lamp if the set is smaller) and Step 5 is done. If it runs out, the anchored lamps
 STAY anchored; only the lamps you missed need kills again (15 / 18 / 21 / 24 each near the post, solo to four players) before
 they can be tuned, and the next anchor starts a fresh countdown with only the missing lamps left.
 
@@ -238,7 +242,7 @@ The step opens at the table: RICHTOFEN, the key card discharges and its storm fl
 bursts and its fire flies off. Three seconds of build-up over the tower, then a strike at one of THREE spots,
 drawn once at the start of the game: the Diner, Town or the Power station.
 It falls there as a small ROCK. Look for the glint and the light beam pointing at it from the tower. Press F to
-take it (no lamp portals while carrying). Left untouched for 3 minutes, it flies to the front of the table by
+take it (no lamp portals while carrying; on Maxis the strike is a fire burst, no thunder). Left untouched for 3 minutes, it flies to the front of the table by
 itself. Every charged node also gets a beam from the tower and a light column, and the Step 5 lamps go dark.
 
 Charge the rock (the draw is heard as a rising sound):
@@ -254,7 +258,7 @@ in the team (your patron says so when the Act 2 step ends and nobody carries one
   into the opening. Denizens leave you alone near the cabin while this step is open.
 
 Fully charged (three clinks, your patron speaks, an aura and a hum on the rock and on you): press F at the table
-to place it (one snap: blue for Richtofen, fire for Maxis). If you drop the rock (down, or you leave it) its
+to place it (a clink, no light on the table). If you drop the rock (down, or you leave it) its
 charges are kept, and after 60 s it flies back home by itself, to the landing spot or to the table front,
 whichever is nearer.
 
@@ -263,7 +267,7 @@ whichever is nearer.
 <details><summary><b>Step 7 - The Line Holds (the tower)</b> (click to reveal)</summary>
 
 
-HOLD F for 3 s at the table ("power the relay"). The rock leaves its slot and hovers under the tower for 75 s
+HOLD F for 1.5 s at the table ("power the relay"). The rock leaves its slot and hovers under the tower for 75 s
 solo (90 / 105 / 120) while the Easter Egg song plays. Fast zombies keep rising around the tower and run at the
 rock. Your job is to keep it alive and to STAY AT THE TOWER: 10 s of cumulative absence from the tower area
 fails the step (a horn and a warning from your patron at 5 s; 5 s continuously back inside resets the count).
@@ -274,8 +278,8 @@ charge strikes that hit it every 10-20 s heal it more. Below 30 % health it flic
 
 - RICHTOFEN: Avogadro is recalled at once as a boss. Camping the rock hurts it; three knife hits banish him and
   drop a Max Ammo in front of the table.
-- MAXIS: the denizens are let loose on the tower for the whole wave (Maxis says so), with a smoke column at the
-  top.
+- MAXIS: no boss and no denizens: the fast zombies carry the wave, with a smoke column at the top. On this side
+  the charge strikes are fire bursts (no thunder) and the rock flickers with fire when it is hit.
 
 Fail: the rock bursts and the CHARGED rock reappears in front of the table. Take it, place it, hold again (the
 song does not restart while it is still playing). Win: the rock glides back onto the table. After the hold the
@@ -290,9 +294,10 @@ you can start the finale meanwhile.
 Set the right power state: RICHTOFEN power ON; MAXIS power OFF now, or off at the start of this round. HOLD F
 for 5 s at the table ("open the frequency"). Wrong power state: a buzz and a complaint.
 
-Every perk first, a 6 s build-up, the rock rises into the tower top, the burst, then the permanent world change:
-on Richtofen every fog lamp of the map turns blue and Avogadro is banished for good; on Maxis every lamp turns
-orange and the denizens are gone for good. Then the sting, a Max Ammo, the side reward if Act 2 did not already
+Every perk first, a 6 s build-up, the rock rises into the tower top, the burst (Richtofen: lightning and
+thunder; Maxis: a fire pulse at the top, no lightning, no thunder), then the permanent world change: on Richtofen
+every fog lamp of the map turns blue and Avogadro is banished for good; on Maxis every lamp burns with a fire
+glow and the denizens are gone for good. Then the sting, a Max Ammo, the side reward if Act 2 did not already
 give it, a screen message, the closing lines, and the globe in the main menu lights up for your side.
 
 </details>
