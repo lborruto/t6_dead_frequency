@@ -981,16 +981,25 @@ df_m1_spawn_loop()
         if ( gettime() < next )
             continue;
 
-        cap = df_m1_room_players().size * 2;
+        // owner 2026-09-25: too easy: three per player in the woods zone (at least four), one every 0.4 s
+        n = 0;
 
-        if ( cap < 2 )
-            cap = 2;
+        foreach ( player in getplayers() )
+        {
+            if ( is_player_valid( player ) && is_true( level.df_m1_zone_on ) && df_m1_in_zone( player.origin ) )
+                n++;
+        }
+
+        cap = n * 3;
+
+        if ( cap < 4 )
+            cap = 4;
 
         if ( df_m1_denizens_alive().size >= cap )
             continue;
 
         df_m1_spawn_denizen();
-        next = gettime() + 600;
+        next = gettime() + 400;
     }
 }
 
@@ -1156,11 +1165,14 @@ df_m1_kill_cue( k, pos )
         }
     }
 
-    level thread df_act2_maxis_trail( pos + ( 0, 0, 30 ), to );
-    // owner 2026-09-25: the red embers rising off each kill, the "soul sucking" look the owner wants back: 5 s (the
-    // 0.8 s cut of 2026-09-23 made them vanish; df_fx_once would never end, the fx loops)
+    // owner 2026-09-25: the red trail and the red embers only, no fire (flash 0 = no fire burst where it lands,
+    // tick burst 0 = no lava burst at the corpse)
+    level thread df_act2_maxis_trail( pos + ( 0, 0, 30 ), to, 0 );
+    df_snd_near( "evt_player_swiped", pos, 700 );
+    // the red embers rising off each kill, the "soul sucking" look the owner wants back: 5 s (the 0.8 s cut of
+    // 2026-09-23 made them vanish; df_fx_once would never end, the fx loops)
     df_fx_burst( "fx_zmb_ash_rising_md", pos, 5 );
-    df_cue_tick( pos, 1 );
+    df_cue_tick( pos, 0 );
     wait 0.4;
 
     dings = k;
@@ -1296,8 +1308,15 @@ df_m1_skull_drop( ground )
     level.df_m1_skull setmodel( df_model( "skull" ) );
     level.df_m1_skull thread df_m1_floor_hand_spin();
     // owner 2026-09-25: the tiny xsm glow was invisible in the fog: the full light glow on the hand plus the key glint
-    level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", ground + ( 0, 0, 14 ) );
-    level.df_m1_skull_glint = df_fx_loop( "fx_zmb_tranzit_key_glint", ground + ( 0, 0, 18 ) );
+    level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", level.df_m1_skull.origin );
+    level.df_m1_skull_glint = df_fx_loop( "fx_zmb_lava_crevice_glow_50", level.df_m1_skull.origin );
+
+    // owner 2026-09-25: the light rides ON the hand (linked to the model): a white glow and the orange lava glow
+    if ( isdefined( level.df_m1_skull_fx ) )
+        level.df_m1_skull_fx linkto( level.df_m1_skull );
+
+    if ( isdefined( level.df_m1_skull_glint ) )
+        level.df_m1_skull_glint linkto( level.df_m1_skull );
     playsoundatposition( "zmb_buildable_piece_add", ground );
     level thread df_m1_skull_poll();
     df_debug_print( "DF: m1 hand on the floor at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", one press takes it" );
