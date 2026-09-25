@@ -457,7 +457,8 @@ df_step1_dashboard_cue()
 
 // owner 2026-09-25 (design audit 2.1): the build half of Step 3 (was the whole of Step 2). Blocks until the relay
 // stands on the roof. Built: Maxis's canon "build complete" line once at the relay (vox_maxi_build_complete_0,
-// zm_transit.gsc:3326), then D2_DONE and S3_RIDE (the ride's opening); no STEP DONE sting, the step goes on.
+// zm_transit.gsc:3326), then D2_DONE (it carries the ride's opening; S3_RIDE merged in, owner 2026-09-25: 26 s of talk
+// in a row was too long); no STEP DONE sting, the step goes on.
 // The ladder speaks the build rungs (S3_BUILD_HINT_n, phase "BUILD" of df_step_dlg_key) until the relay is built.
 df_a1_build_phase()
 {
@@ -476,7 +477,6 @@ df_a1_build_phase()
         df_vox_once( "vox_maxi_build_complete_0", level.df_relay.origin + ( 0, 0, 30 ) );
 
     df_say( "D2_DONE" );
-    df_say( "S3_RIDE" );
 }
 
 // Parts the relay needs: 2 fog parts + the receiver (steps audit v2 #7 CUT: was 4; the cornfield-edge part

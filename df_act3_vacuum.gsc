@@ -1063,6 +1063,8 @@ df_s6_orb_take()
     if ( orb.charges >= level.df_s6_target )
         return;
 
+    df_step_phase( "step6", "ROCK" ); // owner 2026-09-25: S6_ROCK_HINT_n (find the node) while the rock is empty
+
     // audit section 4: the pickup is the moment to say what draws the charge. Either side with no Jet Gun anywhere:
     // the side's "build a Jet Gun" line, once. Afterwards the generic D6_HINT, once per game
     // (dialogue audit v2 1.4 #8: drop-and-pick cycles used to queue a 6.5 s line every time).
@@ -1606,6 +1608,8 @@ df_s6_drain( node, player )
         level thread df_s6_ready_clinks( ready_at );
         df_debug_print( "DF: s6 orb fully charged, bring it to the tower socket" );
 
+        df_step_phase( "step6", "FULL" ); // owner 2026-09-25: S6_FULL_HINT_n until it is placed
+
         // owner 2026-09-23: the full rock is said aloud by side
         if ( df_s6_is_maxis() )
             df_say( "D6_FULL_MAXIS" );
@@ -1701,7 +1705,7 @@ df_s6_place( player )
     orb.carrier = undefined;
     orb.state = "placed";
     df_s6_orb_table_show();
-    df_scav_carry_clear( "orb" ); // owner 2026-09-23: the "Rock 1/1" TAB notice goes with the placement
+    df_scav_carry_clear( "orb" ); // owner 2026-09-23: the "Charged rock" TAB notice goes with the placement
 
     socket_pos = df_coord( "DF_SOCKET" ).origin;
 

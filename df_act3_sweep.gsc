@@ -5,8 +5,8 @@
 //   - Maxis: "Lights Out" (this file): Richtofen feeds his power into THREE lamps of the fog (the game's ONE lamp
 //     set, df_lamps df_lamp_set_get); the players put them out. Only the dead may break his light: a lamp goes
 //     dark when a zombie dies to a CLAYMORE (claymore_zm, sold at the Farm wall buy) within
-//     level.df_s5_kill_radius of its base. Any other kill there does nothing (Maxis says why once,
-//     LO_NOTHAND_MAXIS). At every end of round while a lamp still hums, Richtofen relights ONE dark lamp
+//     level.df_s5_kill_radius of its base. Any other kill there does nothing (Maxis says why once, after five
+//     such kills, LO_NOTHAND_MAXIS). At every end of round while a lamp still hums, Richtofen relights ONE dark lamp
 //     (LO_RELIGHT), the mirror of Maxis's knock in Blackout. Three dark at once: the step is done (level.df_s5_need =
 //     3; with 4 players the set has 4 lamps and ALL of them hum, any three win and the 4th goes out with the win).
 //   Replaces the old tune + turbine sweep (the turbine is his electricity; the owner wanted the fire side to break
@@ -326,7 +326,7 @@ df_s5_claymore_blast( lamp, mod )
     return isdefined( lamp.df_s5_clay_gone_ms ) && gettime() - lamp.df_s5_clay_gone_ms < 1500;
 }
 
-// Only a claymore puts a lamp out: the dead set it off, not the player's hand (LO_NOTHAND_MAXIS once otherwise).
+// Only a claymore puts a lamp out: the dead set it off, not the player's hand (LO_NOTHAND_MAXIS once, after five refused kills).
 df_s5_on_zombie_death( zombie )
 {
     lamp = df_s5_lit_near( zombie.origin );
@@ -356,7 +356,14 @@ df_s5_on_zombie_death( zombie )
             return;
         }
 
-        if ( !is_true( level.df_s5_nothand_said ) )
+        // owner 2026-09-25 (design audit 5.4): said once per game, and only after five refused kills by a humming lamp,
+        // so the first stray kill no longer teaches the step (the line itself does not name the claymore)
+        if ( !isdefined( level.df_s5_nothand_n ) )
+            level.df_s5_nothand_n = 0;
+
+        level.df_s5_nothand_n++;
+
+        if ( level.df_s5_nothand_n >= 5 && !is_true( level.df_s5_nothand_said ) )
         {
             level.df_s5_nothand_said = 1;
             df_say( "LO_NOTHAND_MAXIS" );

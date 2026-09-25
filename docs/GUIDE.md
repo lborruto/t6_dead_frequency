@@ -2,8 +2,9 @@
 
 > **SPOILER WARNING.** This page is the complete solution of the quest, both branches, every step.
 > The Easter Egg was built to be DISCOVERED: the patrons talk you through it, every object of the current step
-> shines, and if you stall, a hint comes by itself after 4 minutes without progress and a much clearer one after 10. Finding it is the
-> fun part. Use this page only when you are truly stuck, one step at a time: each step below is folded, open only
+> shines, and if you stall, a hint comes by itself after 4 minutes without progress (6 on the four puzzle steps:
+> Dead Air, R1, M1, R3 / M3), a sharper one after 10 (15), and one last, plain one after 20; then the patrons keep
+> quiet until you make progress. The hints point, they do not solve: finding it is the fun part. Use this page only when you are truly stuck, one step at a time: each step below is folded, open only
 > the one you need.
 
 A few things that are true for the whole quest:
@@ -241,8 +242,8 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
   a zombie dying to a CLAYMORE (sold at the Farm wall buy, or one already planted there) within 250 units of a
   humming lamp's base snaps his power off it - a blue spark flies away toward the tower and the lamp goes back
   to exactly the light the map gave it, nothing of his left on it. Kill it there any other
-  way and the lamp does not care - Maxis tells you why, once for the whole game ("Not your gun. His light must
-  fall at the step of the dead. A claymore."). Every lamp you put out costs him a little ("One lamp is dark. His
+  way and the lamp does not care - after a few such kills Maxis tells you so, once for the whole game ("Not by
+  your hand. His light falls only at the step of the dead."). Every lamp you put out costs him a little ("One lamp is dark. His
   voice is thinner already."), and at the end of every round while a lamp still hums, Richtofen relights one dark
   lamp again ("He has relit one of them. Put it out again."). With a full lobby the set has four lamps and all
   four hum. Put out THREE lamps at once (every lamp if the set is smaller) and M3 is done (a fourth lamp still

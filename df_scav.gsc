@@ -173,7 +173,7 @@ df_scav_disconnect_watch()
 
 // Kind -> HUD icon (tools/assets/shaders_zm_transit.txt). Every kind the acts pass (grep df_scav_carry_set):
 // parts (Step 3 relay parts, team count; item part_a / part_b / receiver picks the notice icon), relay (Step 4
-// carry), card (R1 key card), battery (R1, n/4), spool (R2, n/lamps), skull and ember (M1 / M2, 1/1),
+// carry), card (R1 key card), battery (R1, n/4), spool (R2, n/lamps), skull (the M1 lantern, 1/1),
 // orb (Step 6, charges). Unknown kind -> the powerbox.
 df_scav_icon( kind )
 {
@@ -185,8 +185,6 @@ df_scav_icon( kind )
             return "zm_hud_icon_spool";
         case "battery":
             return "zm_hud_icon_battery";
-        case "ember":
-            return "zm_hud_icon_sq_meteor"; // owner 2026-09-23: the rock picture on the fire hand too
         case "skull":
             return "zm_hud_icon_sq_meteor"; // owner 2026-09-23: the scoreboard skull (precached by df_coords_precache)
         case "part_a":
@@ -219,10 +217,8 @@ df_scav_display_name( kind )
             return "Wire spool";
         case "battery":
             return "Battery";
-        case "ember":
-            return "Lantern";
         case "skull":
-            return "Lantern"; // owner 2026-09-23: a real skull again (was "Stone" on the meteor model)
+            return "Lantern"; // owner 2026-09-25: Maxis's lantern (code kind "skull")
         case "parts":
         case "part_a":
         case "part_b":
@@ -242,7 +238,7 @@ df_scav_display_name( kind )
 // ---------------------------------------------------------- carry API ----
 
 // The act owners call this on every pickup / count change (see tools/requests_scav.md).
-//   kind   "parts" | "relay" | "card" | "battery" | "spool" | "skull" | "ember" | "orb" (the TAB square shows
+//   kind   "parts" | "relay" | "card" | "battery" | "spool" | "skull" | "orb" (the TAB square shows
 //          the kind set most recently; when it is cleared, the most recent one still set)
 //   count  what the team has now (parts collected, orb charges, 1 for a carried relay / card); default 0
 //   total  the goal (3 parts, level.df_s6_target charges, 1); default 1
@@ -275,11 +271,14 @@ df_scav_carry_set( kind, count, total, who, item )
 
     progress = undefined;
 
-    // the rock (kind "orb") always shows its charge, even with one node per side: "Rock 0/1" empty, "Rock 1/1" full
-    if ( total > 1 || kind == "orb" )
+    if ( total > 1 )
         progress = count + "/" + total;
 
     name = df_scav_display_name( kind );
+
+    // owner 2026-09-25: "Rock (0/1)" read as a bug: the rock says its state in words (one node per side)
+    if ( kind == "orb" && total <= 1 && count >= total )
+        name = "Charged rock";
     shader = df_scav_icon( icon_kind );
 
     if ( isdefined( who ) && isplayer( who ) )
@@ -695,7 +694,7 @@ df_scav_wait_all_free( max_seconds )
 
 // -------------------------------------------------------------- debug ----
 
-// `!df fire scav`      -> state dump + a demo notice on every screen ("Rock (0/1)" with the meteor icon)
+// `!df fire scav`      -> state dump + a demo notice on every screen ("Rock" with the meteor icon)
 // `!df fire scav_slot` -> fake "Relay parts 2/3" in the TAB square for 20 s, then complete for 10 s,
 //                         then cleared (hold TAB to watch it move)
 df_scav_debug_listener()
@@ -715,7 +714,7 @@ df_scav_debug_listener()
         df_scav_debug_dump();
 
         foreach ( player in getplayers() )
-            player thread df_scav_notify( "Rock", df_scav_icon( "orb" ), "0/1" );
+            player thread df_scav_notify( "Rock", df_scav_icon( "orb" ), undefined );
     }
 }
 

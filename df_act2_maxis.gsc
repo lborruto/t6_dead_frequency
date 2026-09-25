@@ -1,25 +1,26 @@
-// Dead Frequency - Act 2M "Maxis" (power stays OFF).
-//   M1 "The Cold Room": a denizen latched onto a player is carried to the table under the tower (the
-//                       relay socket: DF_SOCKET resolves to DF_TABLE since 2026-09-08); it dies there and
-//                       opens an orange portal into the Nacht bunker, where a timed denizen hunt takes
-//                       place (spec 5, M1). Timeout: everyone is sent back and the latch starts again.
-//                       The last kill leaves the hand (df_model "skull" = zombie_skull) on the bunker floor: one
-//                       press TAKES it in hand (carry notice, no fire, no lamp portals, dropped at the feet on
-//                       down), everyone is sent back, and one press within 150 of table slot 1 PLACES it at its
-//                       own pose on the table: that completes M1. Nobody took it before the return: it lies at
-//                       the tower return point instead, still pickable.
-//   M2 "Fire and Ash":  FOUR graves (df_model "brazier" = ch_tombstone1; "brazier" names are historical) stand
-//                       in Town from game start (owner spots 2026-09-23), each with one small flame. M2 puts the
-//                       FIRE HAND (kind "ember", p6_zm_buildable_pswitch_hand) on the table: one press takes it
-//                       (burns 5 hp/s down to half health, not beside a lit grave; no portals; back on the table
-//                       when the carrier goes down), one press within 100 of a grave lights it, any order, and
-//                       the hand stays in hand. Each lit grave runs a sprinter wave and a cold timer and needs
-//                       df_m2_quota kills beside it (five at least, burning or not); a full grave vanishes.
-//                       All four spent: the hand is charged and goes back on the table (one press within 150),
-//                       where it rests until Step 6. Act 3's node is the cabin hearth (one).
-//   Side rules (audit 2.4, Maxis = fog / fire / silence): after M1 denizens leave players alone within 400
-//                       of any grave while M2 runs (of the cabin hearth while Step 6 is open), denizen spawns are
-//                       doubled, and power ON at the end of a round costs the fullest lit grave its kills.
+// Dead Frequency - Act 2M "Maxis" (power stays OFF). Current design (refreshed 2026-09-25, design audit 6.12):
+//   M1 "The Cold Room": a denizen riding a player is carried within 300 of the table under the tower (the
+//                       relay socket: DF_SOCKET resolves to DF_TABLE); it dies there and an orange hole opens in
+//                       front of the table. Walking into it takes the whole team to the woods behind the hunter's
+//                       cabin, where a timed denizen hunt takes place (cold_room_time / cold_room_kills). Timeout:
+//                       everyone is sent back and the latch starts again. The last kill leaves Maxis's LANTERN
+//                       (df_model "skull" = p_lights_cagelight02_red_off, a dead red cage lamp; ITEM_HAND_MAXIS):
+//                       one press TAKES it (carry notice, no lamp portals, dropped at the feet on down), everyone
+//                       is sent back, and one press within 150 of table slot 1 PLACES it: that completes M1.
+//                       Nobody took it before the return: it lies at the tower return point, still pickable.
+//   M2 "Fire and Ash":  the lantern stays on the table for the whole step (nobody carries it). FOUR graves
+//                       (df_model "brazier" = ch_tombstone1; "brazier" names are historical) stand OUTSIDE the
+//                       map around Town from game start, out of reach: a SHOT lights one (df_m2_grave_shot_watch)
+//                       and opens a kill zone on the ground where the shooter stood (on the road under the bus
+//                       for a shot from the bus). Each lit grave runs a sprinter wave and a cold timer and needs
+//                       df_m2_quota kills inside its zone (five at least, burning or not; a Galvaknuckle kill is
+//                       refused, M2_KNUCKLES_MAXIS); a full grave bursts and is gone, a cold one can be shot
+//                       again. All four spent: the lantern on the table becomes the burning lantern by itself
+//                       (df_m2_ember_charged). Act 3's node is the cabin hearth (one). The dialogue ladder uses
+//                       the phases DOOR / LANTERN (M1) and LIT (M2) of df_steps df_step_phase.
+//   Side rules (audit 2.4, Maxis = fog / fire / silence): after M1 denizens leave players alone within a lit
+//                       grave's kill zone while M2 runs (near the cabin hearth while Step 6 is open), denizen
+//                       spawns are doubled, and power ON at the end of a round costs the fullest lit grave its kills.
 // Vanilla facts this file relies on (Maps\Tranzit\maps\mp\zombies\_zm_ai_screecher.gsc,
 // Maps\Tranzit\maps\mp\zm_transit_ai_screecher.gsc, zm_transit.gsc):
 //   - player.screecher = the denizen riding that player (set when it jumps, cleared when it detaches or dies);
@@ -102,8 +103,13 @@ df_m1_run()
     {
         df_m1_wait_latch();
         df_m1_portal_open();
+        df_step_phase( "m1", "DOOR" ); // owner 2026-09-25: M1_DOOR_HINT_n while nobody stepped into the hole
         who = df_m1_wait_portal_use();
         result = df_m1_cold_room( who );
+        df_step_phase( "m1", undefined ); // back to the ride rungs; success sets LANTERN below
+
+        if ( result == "success" )
+            df_step_phase( "m1", "LANTERN" ); // owner 2026-09-25: M1_LANTERN_HINT_n until it is on the table
 
         if ( result == "success" )
             df_m1_skull_appear();
@@ -2345,6 +2351,11 @@ df_m2_light( b, player )
     level thread df_m2_grave_timer( b );
 
     // the first lit grave teaches the rule (audit v3 #4: M2_HINT_2 had no caller since the ember no longer burns out)
+    // owner 2026-09-25: from the first lit grave on the ladder speaks the lit rungs (M2_LIT_HINT_n); the phase is
+    // set first so the event rung is M2_LIT_HINT_2
+    if ( df_m2_lit_count() == 1 )
+        df_step_phase( "m2", "LIT" );
+
     if ( df_m2_lit_count() == 1 )
         level thread df_hint_now( "m2", 2 ); // owner 2026-09-25: threaded, never holds up the shot watcher
     // fire whoosh, 1.4 s, 750 range: the closest thing to an ignition in the banks (zmb_firetrap_start and

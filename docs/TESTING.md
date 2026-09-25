@@ -19,8 +19,8 @@ every clock is the Pack-a-Punch tick-tock loop on every player plus dry ticks in
 under 10 s). `set df_hud_timers 1` before loading brings the old top-centre timers back for a test.
 Two switches: `!df hints on|off` = on-screen PUZZLE prompts (the Simon boxes, Jet Gun hints, "Take the lantern before
 the cold closes" in the cold room), default OFF; mechanic prompts (take / place / build / hold) always stay. The pipes
-never show a prompt, whatever the switch. `!df texthints on|off` = the spoken HINT_1 (4 min) / HINT_2 (10 min, then
-every 6 min) ladder and the event hints, default ON; START / FAIL / DONE lines play whatever it says.
+never show a prompt, whatever the switch. `!df texthints on|off` = the spoken HINT_1 (4 min, 6 on the puzzle steps) / HINT_2 (10 min
+and 16 min, 15 on the puzzle steps) / HINT_3 (20 min, once) ladder and the event hints, default ON; START / FAIL / DONE lines play whatever it says.
 Cue grammar, one sound = one meaning: portal-arrive sound + glint on the object = a step is AVAILABLE; piece-add clink =
 progress tick; NavCard chime + side flash + a spark runner flying to the tower top = a sub-goal done; the bridge groan
 (2D) = STEP DONE (the only step-done sound); NavCard fail buzz = wrong input (only you hear it); bus EMP thump =
@@ -140,14 +140,14 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
 
 **Step 3 Ride the Line, part 1: build** (fog, then the bus roof; the old Step 2 Salvage, merged 2026-09-25). Skip the
 whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an alias of `!df goto step3`.
-- Step 3 opens right after Step 1: S3_START ("A voice needs a body...", the old S2_START text). While the relay is
-  not built the stall ladder speaks the build rungs S3_BUILD_HINT_1 / _2 (the old S2 hints), afterwards the ride
-  rungs S3_HINT_1 / _2 (console `stall hint S3_BUILD_HINT_1 (step3 untouched)`).
+- Step 3 opens right after Step 1: S3_START ("The signal needs a voice that travels..."). While the relay is not
+  built the stall ladder speaks the build rungs S3_BUILD_HINT_1 / _2 / _3 (phase BUILD), afterwards the ride rungs
+  S3_HINT_1 / _2 / _3 (console `stall hint S3_BUILD_HINT_1 (step3 untouched, rung 1)`).
 - Take the remaining parts (one press, notice n/3, TAB square). `!df fire a1_parts` takes the rest, coil included.
 - Bus roof with TWO parts: NO build prompt. With all THREE: "Hold F to build the relay", gun lowers, vanilla progress
   bar + builder hands, 3 s, the relay stands on the roof turned 45 degrees: radio, the coil box on it, the 117-tall
   mast on the box (the same relay as later on the table), console `relay built on the bus roof at ..., hp 800`,
-  Maxis's vanilla "build complete" voice once, then D2_DONE and S3_RIDE (the old S3_START text). NO step-done groan
+  Maxis's vanilla "build complete" voice once, then D2_DONE (two lines, it opens the ride; no S3_RIDE). NO step-done groan
   here (the step goes on with the ride). `!df fire a1_build` demos the hands anywhere.
 - `!df power off`: relay dark. `!df power on`: tiny glow + a spark every 2-3 s.
 
@@ -247,7 +247,8 @@ front of you; fire again = on the table). `!df goto` past M1 while a team is sti
 returns them to the tower first (owner 2026-09-25 fix; before, a goto mid-room left players stranded in the woods).
 - `!df goto m1`: console `m1 waiting for a denizen latched within 300 of the table`. The tower keeps its vanilla
   safety box: no denizen rises or latches at the tower; get one on your head in the fog and walk it in.
-- Let a denizen jump on you anywhere: the portal-open sound, Maxis's M1_EVENT line, console `m1 first ride:
+- Let a denizen jump on you anywhere: the portal-open sound, Maxis's M1_EVENT line ("Wait. That one clings to you..."; it no
+  longer names the table), console `m1 first ride:
   table cue + event line`. No light. Only the first time.
 - Walk to the table with it: it dies in ash, `m1 denizen latched at the table`, `m1 portal at 7623 -457 ...`: the hole
   rises out of the ground in front of the table and spins with an orbiting orange light; the glint moves onto it.
@@ -368,15 +369,15 @@ m2_ember` is GONE, 2026-09-25, with the whole old lantern take/carry/monitor cod
   that kill is the winning one.
 - Kill a zombie within 250 of a humming lamp with anything that is not a claymore (gun, melee, a grenade with no
   claymore planted there): the console `weapon ..., mod ...` line still prints, but the lamp does not change,
-  LO_NOTHAND_MAXIS ("Not your gun. His light must fall at the step of the dead. A claymore.") plays once for the
-  whole game - kill a few more that way and it does not repeat.
+  on the FIFTH such kill LO_NOTHAND_MAXIS ("Not by your hand. His light falls only at the step of the dead.") plays,
+  once for the whole game - kill a few more that way and it does not repeat.
 - End a round (`!round <n>`) with at least one lamp still dark and at least one still humming: `DF: s5 Richtofen
   relit lamp X at the end of the round`, the `zmb_turn_on` sound, LO_RELIGHT ("He has relit one of them. Put it
   out again."), one random dark lamp goes back to "possessed" (his spark, glow and hum return). With zero dark,
   or all of them dark, end of round does nothing.
 - Put out THREE lamps at once (every lamp if the set is smaller): with a 4th lamp still humming it goes out with
   the win (blue snap + trail to the tower, owner 2026-09-25), then `DF: s5 3 lamps dark, step done`, D5_DONE
-  ("Three lamps dark. His voice is gone. Now the lantern must give up its fire."), `step complete step5`.
+  ("His lamps are dark. His voice is gone. Now the lantern must give up its fire."), `step complete step5`.
 - No countdown, no soul penalty, nothing lost by taking your time: only the claymore mechanic and the end-of-round
   relight move the count.
 - `!df fire s5_dark` / `s5_relight`: `DF: s5 debug: every lamp df_debug_s5_dark` / `df_debug_s5_relight` (the
@@ -406,8 +407,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - Press an OFF switch while the map's main power is OFF: deny buzz, BO_NOPOWER_RICH ("Power ON first, Samuel! A
   switch on a dead grid is a toy."), said at most once every 10 s even if you hold the key.
 - End of a round with at least one switch still OFF and at least one ON: `DF: blackout round over with n/3 ON: Maxis
-  knocked them all OFF (all three within one round)`, EVERY ON lever rolls OFF, BO_OFF_MAXIS ("Another of his
-  switches falls. The dark is patient."). All three must be ON within ONE round (owner 2026-09-25; was one switch
+  knocked them all OFF (all three within one round)`, EVERY ON lever rolls OFF, BO_OFF_MAXIS ("The round is
+  over. Every switch he lit falls dark again. The dark is patient.", + Richtofen for Stuhlinger). All three must be ON within ONE round (owner 2026-09-25; was one switch
   knocked per round). Nothing ON: nothing happens.
 - Third switch ON: at once (not at the round end) sub-goal cue, `DF: blackout all switches ON`, D5_DONE_RICH ("All three ON! The obelisk
   drinks, Samuel. Now my card wants to let go!"), `step complete step5`.
@@ -437,7 +438,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   flies there and the glint follows.
 - "Press F to take the rock" within 100 (`s6 orb picked up by <you> (0/1 charges)`, notice "Rock 0/1", TAB square). No
   lamp portals while carrying. With no Jet Gun in any inventory: the side's "build a Jet Gun" line once (RICH "No
-  engine? Build one...", MAXIS "The rock needs a Jet Gun"); otherwise D6_HINT once per game.
+  engine? Build one...", MAXIS "The rock needs a Jet Gun"); otherwise D6_HINT once per game (it points at the node, no recipe).
+  From this pickup the ladder speaks the S6_ROCK_HINT_n rungs, once full the S6_FULL_HINT_n rungs.
 - BOTH SIDES, the same draw: `!gun jetgun_zm` (the upgraded Jet Gun works too), carry the rock to the node, fire at it
   within 350 looking at it (cone 55 degrees on the aim point): a rising power sound (no bar), `s6 drawing node 0`, side
   bursts at the node. Keep firing until the gun OVERHEATS while still aimed: `s6 jet gun overheated at the node: the
@@ -581,16 +583,20 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   without the burst/sound/quake; nothing to see at `!df tp DF_BRAZIER_n` past this point.
   `!df goto step7` / `finale`: the rock rests on the right slot (no "Rock" notice), the burning lantern is gone, tracker
   runners on.
-- Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched)` + one line, then at 10 min and every
-  6 min; every touch of the step starts the ladder over (HINT_1 4 min after the LAST touch); an event hint earlier
-  (`event hint ...`) skips that rung once. `!df texthints off` mutes them (the clock keeps running); `!df hints off`
+- Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched, rung 1)` + one line, HINT_2 at 10 and
+  16 min, HINT_3 (the plain one) once at 20 min, then nothing more. Puzzle steps (step1, r1, m1, step5, while they have
+  no phase): HINT_1 at 6 min, HINT_2 once at 15, HINT_3 at 20. Every touch of the step, and every phase change (console
+  key names `<P>_<PHASE>_HINT_n`, e.g. R1_WAKE_HINT_1 while Avogadro sleeps in the chamber), starts the ladder over
+  from that moment; an event hint earlier (`event hint ...`) skips that rung once. `!df texthints off` mutes them (the clock keeps running); `!df hints off`
   (default) only hides puzzle prompts.
 - `!df vox <alias>` plays a vanilla patron line (e.g. `vox_maxi_tv_distress_0` 3D at your feet). Silence = unknown alias.
 - `!df freeze` while testing a placement: every regular zombie stands inert; toggle again to release them.
 - Scavenger: pick up a real jet gun part: it goes to the pool (top-left notice), TAB shows the squares. Any console
   error naming `zm_scavenger` or `epod_key`? The pinned ladder / hatch must still be buildable as vanilla.
 - Co-op only, when you have a second player: Richtofen's blue lines and his recorded voice reach the Stuhlinger
-  player ONLY (vanilla rule; without Stuhlinger he is silent), Maxis reaches everyone; the M3 / R3 "one lamp each" line appears; a downed player is
+  player ONLY (vanilla rule; without Stuhlinger he is silent), Maxis reaches everyone; on the Richtofen side a player who is NOT Stuhlinger still hears ONE
+  cold Maxis line at the start of R1, R2, R3, Step 6, Step 7 and the finale (the idea of the step, never the recipe);
+  the M3 / R3 "one lamp each" line appears; a downed player is
   teleported into the cold room with the team and can be revived there; the Step 7 after-hold waves rise near a random living
   player; a carrier who leaves drops the relay (back on the table after 60 s), the M1 lantern (at the tower return
   point, or home in 60 s if untaken), the R1 key card or the R1 refill battery (each flies home after

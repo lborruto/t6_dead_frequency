@@ -60,12 +60,19 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   `level.df_done`, notifies `df_<key>_done`, `df_step_done`, `df_step_available`, `df_skip_<key>`,
   `df_side_locked`. Holds the scaling table (one row per key, four columns = 1..4 players; `df_scaled_step`
   freezes a step's quotas at the player count it opened with, or snapshots it on the first read) and the
-  stall-hint ladder (START at +2 s, HINT_1 at 4 min, HINT_2 at 10 min then every 6 min; every `df_touch` restarts
-  it at HINT_1 from the last touch). `df_set_side` is final: a different side once one is locked is refused
+  stall-hint ladder (START at +2 s, HINT_1 at 4 min, HINT_2 at 10 min and once more at 16 min, HINT_3 once at 20 min,
+  then silence; the puzzle steps `step1` / `r1` / `m1` / `step5` wait 6 / 15 min while they have no phase,
+  `level.df_hint_puzzle`; every `df_touch` restarts it at HINT_1 from the last touch). `df_step_phase( key, name )`
+  names a sub-goal: `df_step_dlg_key` / `df_step_hint_key` then prefer `<P>_<PHASE>_HINT_n` keys (every rung of the
+  phase before any plain one) and a phase CHANGE restarts the clock like a touch. Phases in use: step3 BUILD, r1
+  CARD / WAKE / HUNT / BATTERY, r2 PUNCH, m1 DOOR / LANTERN, m2 LIT, step6 ROCK / FULL. `df_set_side` is final: a different side once one is locked is refused
   (returns 0).
 - `df_dialogue.gsc` - the dialogue sheet, data only. Speakers `maxis` (shown to everyone) and `rich` (shown to
   the Stuhlinger player only, as in vanilla: no Stuhlinger in the game means no Richtofen line; the broadcast tag is kept as data and no longer widens the audience). Key families `<P>_START`, `<P>_HINT_1`,
-  `<P>_HINT_2` and event keys per step; `_RICH` / `_MAXIS` variants for the shared acts. Writing rules are in its
+  `<P>_HINT_2`, `<P>_HINT_3`, the phase rungs `<P>_<PHASE>_HINT_n` and event keys per step (owner rule 2026-09-25:
+  START = the goal, HINT_1 points, HINT_2 nudges harder but never gives the recipe, only HINT_3 may be explicit;
+  an event line never solves its step; every Richtofen step has ONE Maxis line in its START key so the players who
+  are not Stuhlinger hear the idea); `_RICH` / `_MAXIS` variants for the shared acts. Writing rules are in its
   header (see "Rules" below). Event keys added 2026-09-23: `S4_CHOOSE` (first lift of the relay), `R1_RICH_NOSTORM`
   (no Avogadro entity), `R2_POWER_RICH` (power-OFF penalty), `A2_JETGUN_RICH` / `_MAXIS` (Act 2 done, nobody has
   a Jet Gun; `S6_NOJETGUN_*` stays for the Step 6 pickup), `M2_GRAVE_COLD`, `S6_CARD_RICH`,
@@ -179,7 +186,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   humming lamp still prints its weapon and mod to the console first, so a refused kill can be read. Put out, a lamp
   goes back to state "vanilla" - exactly the map's own light, nothing of ours left on it - with his stolen power
   snapping off as a blue spark and flying to the tower top (`df_soul_fly`); any other kill in range does nothing
-  to the lamp and says LO_NOTHAND_MAXIS once for the game. THREE dark lamps win (`level.df_s5_need`; fewer only with a smaller set; with a
+  to the lamp; the fifth such kill says LO_NOTHAND_MAXIS, once for the game. THREE dark lamps win (`level.df_s5_need`; fewer only with a smaller set; with a
   full lobby all four set lamps hum and the fourth goes out with the win, owner 2026-09-25).
   At every end of round with a lamp still humming, Richtofen relights one dark lamp at random
   (`df_s5_relight_loop`, LO_RELIGHT) - the mirror of Blackout's knock. No timer, no countdown, no soul penalty.
@@ -322,7 +329,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | `!df power on` / `!df power off` | flip TranZit power (fires the real switch if built, else the flags) |
 | `!df stat rich` / `!df stat maxis` / `!df stat none` | WRITES the completion stat (globe glow) for that side, or clears it |
 | `!df hints on` / `!df hints off` | show / hide the on-screen puzzle prompts only (the Simon boxes, Jet Gun hints, the cold-room "Take the lantern before the cold closes"); default off. Mechanic prompts (take / place / build / hold) always stay; the Step 1 pipes never show one |
-| `!df texthints on` / `!df texthints off` | the spoken hint ladder (HINT_1 at 4 min, HINT_2 at 10 min then every 6 min, event hints); default on. START / FAIL / DONE lines always play |
+| `!df texthints on` / `!df texthints off` | the spoken hint ladder (HINT_1 at 4 min, HINT_2 at 10 / 16 min, HINT_3 at 20 min, puzzle steps 6 / 15 / 20; event hints); default on. START / FAIL / DONE lines always play |
 | `!df cue avail|tick|subgoal|fail|deny|trail|done` | plays one row of the cue grammar where you stand (step available, progress tick, sub-goal chime + flash + trail to the tower, fail thump, deny buzz, the trail alone, step done) |
 | `!df vox <alias>` | plays a vanilla patron voice line (`vox_maxi_*` 3D at your feet, anything else 2D to Samuel); silence = unknown alias |
 | `!df jet` / `!df jet watch` | Jet Gun heat diagnostic (df_audition.gsc): one console line per player with every value the heat path reads (vanilla heatval / overheating, engine heat, TranZit Enhanced `jgx_*`, trigger); starts the vanilla heat watcher on a gun given outside the equipment path. `watch` samples every 0.5 s for 8 s so the trigger can be held |
@@ -357,7 +364,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | Misc | `scav` / `scav_slot` (Scavenger-style notice and TAB square demo), `table_demo` (table + slots preview: relay + coil box + mast on slot 0, card on slot 1, rock on slot 2), `beam_test` (20 s beam to the nearest lamp; `set df_beam_fx <alias>`, `set df_beam_flip 1`), `compat` (vanilla-EE state + disk stats dump), `busparts` (re-run the ladder / hatch pin and print the part pools) |
 
 Event hints: a step file may speak a hint the moment something happens (console `DF: event hint <KEY> (<step>)`);
-the 4 min stall ladder then skips that rung once. Every touch (`df_touch`) restarts the ladder at HINT_1 from that
+the stall ladder then skips that rung once (HINT_3 is never an event rung). Every touch or phase change (`df_touch`) restarts the ladder at HINT_1 from that
 touch. `!df texthints off` silences the ladder (prompts have their own switch).
 
 ### Dvars (console, set BEFORE loading the map)
@@ -480,8 +487,9 @@ electric spark, a blue glow, his hum - Richtofen's power in the lamp), vanilla (
 2026-09-25, renamed from `dark`: exactly the map's own light, nothing of ours left on it - his stolen power snaps
 off as a blue spark and flies to the tower top as it goes), charged, drained, final (steady side colour after the
 finale, all 8 lamps).
-Stall hints: a step untouched 4 min gets a hint line, then at 10 min and every 6 min (never once the finale is
-reachable); every touch starts the ladder over from that touch; an event hint spoken earlier skips the 4 min rung once. Vanilla EE: fully off (both quests, their dialogue,
+Stall hints: a step untouched 4 min gets a hint line (6 min on a puzzle step), then HINT_2 at 10 and 16 min (15 on a
+puzzle step), HINT_3 once at 20 min, then nothing (never once the finale is reachable); every touch or phase change
+starts the ladder over from that moment; an event hint spoken earlier skips its rung once. Vanilla EE: fully off (both quests, their dialogue,
 the tower relight for returning players); the NavCard table and its stats keep working. `!df fire compat` dumps it.
 
 ## Sounds

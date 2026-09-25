@@ -54,7 +54,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   lighting, lantern arc, lamp/switch steps).
 - Scavenger's TAB square now uses a plain dark frame instead of Scavenger's radio-picture border.
 
-- Hint ladders reveal step by step: HINT_1 points at the place, HINT_2 at the method.
+- Hint ladders make the players search: START tells the goal, HINT_1 points at the place or the
+  idea, HINT_2 is a sharper nudge but never the recipe, and a new one-time HINT_3 at 20 minutes
+  is the plain last resort (the old explicit texts); after it the patrons stay quiet until you
+  make progress. HINT_2 plays at most twice. Puzzle steps (Dead Air, R1, M1, R3 / M3) wait
+  longer: 6 and 15 minutes instead of 4 and 10.
+- Hints follow the current sub-goal: R1 (key card, Avogadro asleep, the hunt, the battery), R2
+  (a full lamp waiting for its punch), M1 (the open hole, the lantern), M2 (after the first lit
+  grave), Step 3 (build, then ride) and Step 6 (rock not found, empty, full) each have their own
+  rungs, and moving to a new sub-goal restarts the hint clock.
+- Event lines no longer solve their step: the first denizen ride, the first stray kill at a
+  Lights Out lamp (now after five such kills, no claymore named), the first full R2 lamp (no
+  Galvaknuckles named) and the Step 6 pickup only point the way.
+- Players who are not Stuhlinger on Richtofen's side now hear one cold Maxis line at the start of
+  R1, R2 and the finale (R3, Step 6 and Step 7 already had one) that gives away the idea of the
+  step; R3's Maxis line no longer tells them to keep the switches dark.
+- Step 6 release lines only say "look up", the landing spots are named by the first hint, and no
+  opening line names the node any more. Blackout, Lights Out, Step 3 and R2 lines match the new
+  mechanics (every lit switch falls at the round end, any number of humming lamps, the flying
+  spool, the build-and-ride step; the build line and the ride line are one exchange now).
 - R1 fuse boxes moved to new spots in the Farm barn.
 - Maxis Step 7: no denizens at the tower while the relay holds.
 

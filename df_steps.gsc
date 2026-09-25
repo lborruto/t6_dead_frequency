@@ -6,7 +6,8 @@
 // df_step_focus, level.df_side, level.df_done, notifies "df_<key>_done", "df_step_done",
 // "df_step_available", "df_skip_<key>", "df_side_locked".
 // Dialogue (owner 2026-09-08): the runner speaks <P>_START when a step becomes available and the stall
-// ladder <P>_HINT_1 / <P>_HINT_2 (level.df_step_dlg, df_step_dlg_key picks the _RICH / _MAXIS variant);
+// ladder <P>_HINT_1 / <P>_HINT_2 / <P>_HINT_3 (level.df_step_dlg, df_step_dlg_key picks the _RICH / _MAXIS
+// variant, and the <P>_<PHASE>_ keys while a step file has set a sub-goal with df_step_phase);
 // a step file may fire a rung early on an event with df_hint_now (audit 2026-09-08 section 4). The ladder
 // and the event hints obey level.df_text_hints (df_systems df_text_hints_on, default on), NOT the puzzle
 // prompt switch level.df_hints (dialogue audit v2 2026-09-09 section 1.0: the old shared gate muted the
@@ -162,7 +163,7 @@ df_init_steps()
     level.df_step_side["m2"] = "maxis";
 
     // Dialogue per step (owner 2026-09-08, df_dialogue.gsc): <P>_START when the step becomes available
-    // (df_step_intro), then the stall ladder <P>_HINT_1 / <P>_HINT_2 (df_step_stall_watcher). Act 3 and
+    // (df_step_intro), then the stall ladder <P>_HINT_1 / _2 / _3 (df_step_stall_watcher). Act 3 and
     // the finale are shared, so their keys exist as <KEY>_RICH / <KEY>_MAXIS; df_step_dlg_key picks the
     // variant of the locked side and falls back to the plain key.
     level.df_step_dlg = [];
@@ -178,11 +179,24 @@ df_init_steps()
     level.df_step_dlg["step7"] = "S7";
     level.df_step_dlg["finale"] = "FIN";
 
-    // Ladder timing (seconds from step availability, owner 2026-09-08): HINT_1 at 4 min untouched, HINT_2
-    // at 10 min, then HINT_2 again every 6 min. The intro waits 2 s so it queues behind the DONE line.
+    // Ladder timing (seconds from step availability or the last touch; owner 2026-09-08, reworked 2026-09-25 by
+    // design audit 5.3 / 5.5): HINT_1 at 4 min untouched, HINT_2 at 10 min and again 6 min later (df_hint_second_max
+    // plays at most, and only before HINT_3), HINT_3 (the explicit last resort) once at 20 min, then silence until
+    // the next touch. The puzzle steps (df_hint_puzzle) wait longer, 6 min / 15 min, while they have no phase: the
+    // players must search; a phase (df_step_phase) is a courier sub-goal and uses the normal timing. The intro
+    // waits 2 s so it queues behind the DONE line.
     level.df_hint_first_s = 240;
     level.df_hint_second_s = 600;
     level.df_hint_repeat_s = 360;
+    level.df_hint_second_max = 2;
+    level.df_hint_third_s = 1200;
+    level.df_hint_puzzle_first_s = 360;
+    level.df_hint_puzzle_second_s = 900;
+    level.df_hint_puzzle = [];
+    level.df_hint_puzzle["step1"] = 1;
+    level.df_hint_puzzle["r1"] = 1;
+    level.df_hint_puzzle["m1"] = 1;
+    level.df_hint_puzzle["step5"] = 1;
     level.df_intro_delay_s = 2;
 
     level.df_done = [];
@@ -502,15 +516,16 @@ df_step_wait_dialogue_idle( cap )
     }
 }
 
-// Stall hint ladder for one step (owner 2026-09-08): <P>_HINT_1 df_hint_first_s after the step became
-// available (cryptic), <P>_HINT_2 at df_hint_second_s (almost explicit), then HINT_2 every
-// df_hint_repeat_s, until the step completes or is skipped. A touch (df_touch) restarts the clock: the
-// ladder starts over at HINT_1 df_hint_first_s after the last touch (owner 2026-09-23, audit B11; it used to end).
-// level.df_text_hints == 0 (`!df texthints off`, df_systems df_text_hints_on) mutes a rung but the clock
-// keeps running so hints resume when re-enabled; the puzzle prompt switch (level.df_hints, off by default)
-// has no say here any more. Nothing is said once the finale is reachable (df_step_finale_reached). A
-// missing rung falls back to the other one; a step with neither rung is reported once and gets no stall
-// hints. A rung already spoken by an event (df_hint_now) is skipped once.
+// Stall hint ladder for one step (owner 2026-09-08; reworked 2026-09-25, design audit 5.3 / 5.5). The clock runs
+// from the step's availability or its LAST df_touch (a phase change counts as one, df_step_phase): HINT_1 at
+// df_step_hint_first_s (it points), HINT_2 at df_step_hint_second_s (a sharper nudge, never a recipe) and again
+// every df_hint_repeat_s, df_hint_second_max plays at most and only before df_hint_third_s, then HINT_3 (the
+// explicit last resort) once at df_hint_third_s, then silence until the next touch. A touch starts the ladder
+// over at HINT_1 (owner 2026-09-23, audit B11). level.df_text_hints == 0 (`!df texthints off`, df_systems
+// df_text_hints_on) mutes a rung but the clock keeps running; the puzzle prompt switch (level.df_hints, off by
+// default) has no say here. Nothing is said once the finale is reachable (df_step_finale_reached). A missing
+// rung falls back (df_step_hint_key); a step with no rung at all is reported once and gets no stall hints. A
+// rung 1 / 2 already spoken by an event (df_hint_now) is skipped once.
 df_step_stall_watcher( key )
 {
     level endon( "end_game" );
@@ -528,59 +543,129 @@ df_step_stall_watcher( key )
         return;
     }
 
-    rung = 1;
-    delay = level.df_hint_first_s;
-    skipped = 0; // highest rung this clock already skipped because an event hint said it
+    skipped = 0; // highest rung this thread already skipped because an event hint said it
     clock = df_step_last_touch( key ); // owner 2026-09-23 (audit B11): the touch this clock runs from
+    base = df_step_clock_base( key );
+    first = 0; // HINT_1 spoken on this clock
+    second = 0; // HINT_2 plays on this clock
+    third = 0; // HINT_3 spoken on this clock
 
     while ( true )
     {
+        rung = 0;
+        due = 0;
+        second_due = df_step_hint_second_s( key ) + second * level.df_hint_repeat_s;
+
+        if ( !first )
+        {
+            rung = 1;
+            due = df_step_hint_first_s( key );
+        }
+        else if ( second < level.df_hint_second_max && second_due < level.df_hint_third_s )
+        {
+            rung = 2;
+            due = second_due;
+        }
+        else if ( !third )
+        {
+            rung = 3;
+            due = level.df_hint_third_s;
+        }
+
+        delay = 5; // ladder spent: only watch for the next touch
+
+        if ( rung > 0 )
+            delay = ( base + due * 1000 - gettime() ) / 1000;
+
+        if ( delay < 0.05 )
+            delay = 0.05;
+
         wait( delay );
 
         if ( df_step_finale_reached() )
             return;
 
-        // owner 2026-09-23 (audit B11): touched during the wait = start over at HINT_1, df_hint_first_s after it
+        // touched (or a new phase) during the wait = start over at HINT_1 from that touch
         last = df_step_last_touch( key );
 
         if ( last != clock )
         {
             clock = last;
-            rung = 1;
-            delay = level.df_hint_first_s - ( gettime() - last ) / 1000;
-
-            if ( delay < 1 )
-                delay = 1;
-
+            base = df_step_clock_base( key );
+            first = 0;
+            second = 0;
+            third = 0;
             continue;
         }
 
-        hint = df_step_hint_key( key, rung );
-        due = rung;
+        if ( rung == 0 )
+            continue;
 
         if ( rung == 1 )
-        {
-            delay = level.df_hint_second_s - level.df_hint_first_s;
-            rung = 2;
-        }
+            first = 1;
+        else if ( rung == 2 )
+            second++;
         else
-            delay = level.df_hint_repeat_s;
+            third = 1;
 
-        if ( delay < 1 )
-            delay = 1;
-
-        if ( due <= df_step_hint_said( key ) && due > skipped )
+        if ( rung < 3 && rung <= df_step_hint_said( key ) && rung > skipped )
         {
-            skipped = due;
+            skipped = rung;
             continue;
         }
 
         if ( !df_text_hints_on() )
             continue;
 
-        df_debug_print( "DF: stall hint " + hint + " (" + key + " untouched)" );
+        hint = df_step_hint_key( key, rung );
+
+        if ( !isdefined( hint ) )
+            continue;
+
+        df_debug_print( "DF: stall hint " + hint + " (" + key + " untouched, rung " + rung + ")" );
         df_say( hint );
     }
+}
+
+// gettime() the stall clock of a step runs from: its last touch, else its availability.
+df_step_clock_base( key )
+{
+    last = df_step_last_touch( key );
+
+    if ( last > 0 )
+        return last;
+
+    if ( isdefined( level.df_step_avail_ms ) && isdefined( level.df_step_avail_ms[key] ) )
+        return level.df_step_avail_ms[key];
+
+    return gettime();
+}
+
+// True for a puzzle step (level.df_hint_puzzle) that has no phase: its ladder waits longer (owner 2026-09-25).
+df_step_hint_is_puzzle( key )
+{
+    if ( !isdefined( level.df_hint_puzzle ) || !isdefined( level.df_hint_puzzle[key] ) )
+        return false;
+
+    return !isdefined( df_step_phase_of( key ) );
+}
+
+// Seconds after the clock base when HINT_1 is due.
+df_step_hint_first_s( key )
+{
+    if ( df_step_hint_is_puzzle( key ) )
+        return level.df_hint_puzzle_first_s;
+
+    return level.df_hint_first_s;
+}
+
+// Seconds after the clock base when the first HINT_2 is due.
+df_step_hint_second_s( key )
+{
+    if ( df_step_hint_is_puzzle( key ) )
+        return level.df_hint_puzzle_second_s;
+
+    return level.df_hint_second_s;
 }
 
 // owner 2026-09-23 (audit B11): gettime() of the step's last df_touch, 0 = never touched.
@@ -593,9 +678,9 @@ df_step_last_touch( key )
 }
 
 // Event hint (audit 2026-09-08 section 4): a step file fires rung 1 or 2 of a step's ladder NOW, when a
-// player is visibly doing the wrong thing (first denizen latch in M1, "signal lost" in S5, orb taken with
-// no Jet Gun in S6), instead of waiting for the clock. Same key choice as the clock (df_step_hint_key:
-// side variant, other rung as fallback). Silent while `!df texthints off` (level.df_text_hints, not the
+// player reaches the moment the rung is about (today: the relay carried near the table in S4, the first lit
+// grave in M2), instead of waiting for the clock. Same key choice as the clock (df_step_hint_key: phase and
+// side variant, other rung as fallback; HINT_3 is never an event rung). Silent while `!df texthints off` (level.df_text_hints, not the
 // puzzle prompt switch), once the finale is reachable, for a done or not yet available step, and for a
 // repeat of the same rung inside df_hint_repeat_s (callers may fire it on every event). Marks the rung as
 // spoken so df_step_stall_watcher skips it once. Returns 1 when a line was queued.
@@ -641,35 +726,89 @@ df_step_hint_said( key )
     return 0;
 }
 
-// Key of one ladder rung (1 or 2) for a step, side variant preferred; the other rung when this one has
-// no line; undefined when the step has no ladder at all.
+// Key of one ladder rung (1, 2 or 3) for a step, side variant preferred. While the step has a phase
+// (df_step_phase) the phase keys "<P>_<PHASE>_HINT_n" come first, every rung of them, before the plain ones, so a
+// phase never borrows a plain rung about another sub-goal while it has lines of its own. Fallbacks: rung 1 ->
+// HINT_2, rung 2 -> HINT_1, rung 3 -> HINT_2 then HINT_1. Undefined when the step has no ladder at all.
 df_step_hint_key( key, rung )
 {
-    kind = "HINT_1";
-    other = "HINT_2";
+    if ( !isdefined( level.df_step_dlg[key] ) )
+        return undefined;
 
-    if ( rung == 2 )
+    df_dialogue_init();
+    kinds = [];
+
+    if ( rung == 3 )
     {
-        kind = "HINT_2";
-        other = "HINT_1";
+        kinds[0] = "HINT_3";
+        kinds[1] = "HINT_2";
+        kinds[2] = "HINT_1";
+    }
+    else if ( rung == 2 )
+    {
+        kinds[0] = "HINT_2";
+        kinds[1] = "HINT_1";
+    }
+    else
+    {
+        kinds[0] = "HINT_1";
+        kinds[1] = "HINT_2";
     }
 
-    hint = df_step_dlg_key( key, kind );
+    phase = df_step_phase_of( key );
 
-    if ( !isdefined( hint ) )
-        hint = df_step_dlg_key( key, other );
+    if ( isdefined( phase ) )
+    {
+        foreach ( kind in kinds )
+        {
+            hint = df_step_dlg_lookup( level.df_step_dlg[key] + "_" + phase + "_" + kind );
 
-    return hint;
+            if ( isdefined( hint ) )
+                return hint;
+        }
+    }
+
+    foreach ( kind in kinds )
+    {
+        hint = df_step_dlg_lookup( level.df_step_dlg[key] + "_" + kind );
+
+        if ( isdefined( hint ) )
+            return hint;
+    }
+
+    return undefined;
 }
 
 // owner 2026-09-25 (design audit 5.2): a step's current sub-goal, e.g. df_step_phase( "step3", "BUILD" ) while
-// the relay is not built yet; undefined clears it. df_step_dlg_key then prefers "<P>_<PHASE>_<kind>" keys.
+// the relay is not built yet; undefined clears it. df_step_dlg_key / df_step_hint_key then prefer
+// "<P>_<PHASE>_<kind>" keys. A CHANGE of phase on an available step restarts its stall clock like a df_touch (the
+// new sub-goal gets its own ladder from HINT_1) without removing the AVAILABLE glint.
 df_step_phase( key, phase )
 {
     if ( !isdefined( level.df_step_phase ) )
         level.df_step_phase = [];
 
+    old = level.df_step_phase[key];
     level.df_step_phase[key] = phase;
+    changed = isdefined( old ) != isdefined( phase );
+
+    if ( !changed && isdefined( phase ) && old != phase )
+        changed = 1;
+
+    if ( !changed || df_is_done( key ) )
+        return;
+
+    if ( isdefined( level.df_step_avail_ms ) && isdefined( level.df_step_avail_ms[key] ) && isdefined( level.df_step_touch_ms ) )
+        level.df_step_touch_ms[key] = gettime();
+}
+
+// The step's current phase (df_step_phase), undefined for none.
+df_step_phase_of( key )
+{
+    if ( !isdefined( level.df_step_phase ) )
+        return undefined;
+
+    return level.df_step_phase[key];
 }
 
 // "<P>_<kind>_<SIDE>" when the side is locked and df_dialogue.gsc has that key, else "<P>_<kind>" when it
@@ -682,20 +821,23 @@ df_step_dlg_key( key, kind )
         return undefined;
 
     df_dialogue_init();
-    suffix = df_step_side_suffix();
+    phase = df_step_phase_of( key );
 
-    if ( isdefined( level.df_step_phase ) && isdefined( level.df_step_phase[key] ) )
+    if ( isdefined( phase ) )
     {
-        base = level.df_step_dlg[key] + "_" + level.df_step_phase[key] + "_" + kind;
+        hint = df_step_dlg_lookup( level.df_step_dlg[key] + "_" + phase + "_" + kind );
 
-        if ( isdefined( suffix ) && isdefined( level.df_lines[base + "_" + suffix] ) )
-            return base + "_" + suffix;
-
-        if ( isdefined( level.df_lines[base] ) )
-            return base;
+        if ( isdefined( hint ) )
+            return hint;
     }
 
-    base = level.df_step_dlg[key] + "_" + kind;
+    return df_step_dlg_lookup( level.df_step_dlg[key] + "_" + kind );
+}
+
+// base + "_" + SIDE when the side is locked and the sheet has it, else base when the sheet has it, else undefined.
+df_step_dlg_lookup( base )
+{
+    suffix = df_step_side_suffix();
 
     if ( isdefined( suffix ) && isdefined( level.df_lines[base + "_" + suffix] ) )
         return base + "_" + suffix;

@@ -260,6 +260,7 @@ df_r1_run()
             df_rich_spark_set( fuse, fuse.led_origin, 1 );
 
         // owner design: a key card appears between the boxes; inserting it at the tower calls him down
+        df_step_phase( "r1", "CARD" ); // owner 2026-09-25: the ladder speaks the card rungs (R1_CARD_HINT_n)
         df_r1_card_spawn();
         inserter = df_r1_wait_card_inserted();
         // owner 2026-09-23 (B8): no Avogadro entity to call down = nothing to fight: df_r1_summon says
@@ -1089,11 +1090,13 @@ df_r1_summon( inserter )
     if ( level.avogadro.state == "chamber" || level.avogadro.state == "wait_for_player" )
     {
         level.df_r1_in_chamber = 1;
+        df_step_phase( "r1", "WAKE" ); // owner 2026-09-25: R1_WAKE_HINT_n while he sleeps in the chamber
         df_say( "R1_RICH_CHAMBER" );
         level thread df_r1_wait_chamber( inserter );
         return 1;
     }
 
+    df_step_phase( "r1", "HUNT" ); // owner 2026-09-25: R1_HUNT_HINT_n while he is called to the tower
     df_say( "R1_RICH_SUMMON" );
 
     if ( level.avogadro.state == "cloud" )
@@ -1122,6 +1125,7 @@ df_r1_wait_chamber( inserter )
         return;
 
     df_debug_print( "DF: avogadro released, state " + level.avogadro.state );
+    df_step_phase( "r1", "HUNT" );
     df_say( "R1_RICH_SUMMON" );
 
     if ( level.avogadro.state == "cloud" )
@@ -1447,6 +1451,7 @@ df_r1_lock_until_refilled()
         df_r1_fuse_charged_look( fuse, 0 ); // locked boxes go dark (audit art R1.5)
     }
 
+    df_step_phase( "r1", "BATTERY" ); // owner 2026-09-25: R1_BATTERY_HINT_n while the boxes are locked
     df_debug_print( "DF: r1 locked, one battery from the bus charges the four boxes" );
     df_r1_battery_spawn_on_bus();
     df_say( "ITEM_BATTERY_RICH" ); // audit dialogue 1.4 #4: the battery line had no caller
@@ -1844,6 +1849,7 @@ df_r1_power_penalty()
             {
                 lamp.filled = 0;
                 lamp.spool_ready = 0; // B17: a hungry lamp is not punchable; df_r2_fill re-arms it when refilled
+                df_r2_punch_phase_update();
                 df_lamp_state_set( lamp, "souls" );
                 df_r2_beam_set( lamp, 1 );
             }
@@ -2144,6 +2150,7 @@ df_r2_fill( lamp )
     if ( !is_true( lamp.spool_dropped ) )
     {
         lamp.spool_ready = 1;
+        df_step_phase( "r2", "PUNCH" ); // owner 2026-09-25: R2_PUNCH_HINT_n while a full lamp waits for its punch
 
         if ( !is_true( level.df_r2_full_said ) )
         {
@@ -2339,7 +2346,23 @@ df_r2_punch_release( lamp, who )
     lamp.spool_dropped = 1;
     df_punch_fx( lamp.origin, df_lamp_bulb_pos( lamp ) );
     level thread df_r2_spool_fly( lamp );
+    df_r2_punch_phase_update();
     df_debug_print( "DF: r2 lamp " + lamp.name + " punched by " + who + ", the spool flies to the table" );
+}
+
+// owner 2026-09-25: the PUNCH phase (R2_PUNCH_HINT_n) lasts while some full lamp still holds its spool.
+df_r2_punch_phase_update()
+{
+    if ( !isdefined( level.df_r2_lamps ) )
+        return;
+
+    foreach ( lamp in level.df_r2_lamps )
+    {
+        if ( is_true( lamp.spool_ready ) && !is_true( lamp.spool_dropped ) )
+            return;
+    }
+
+    df_step_phase( "r2", undefined );
 }
 
 df_r2_punch_debug()
