@@ -184,19 +184,21 @@ table to place it (a clink): it lies on the table, cold and still. That complete
 
 
 The hand M1 left on the table stays right there for this whole step - you never pick it up. Four graves stand
-OUTSIDE the map, one to each side of Town: you cannot walk up to one, only shoot it.
+OUTSIDE the map, one to each side of Town, showing nothing until you act on them: you cannot walk up to one,
+only shoot it.
 
-SHOOT a grave (any weapon) to light it: it starts to crackle, and a kill zone opens on the ground where YOU
-were standing when you fired it - a circle 400 units across, marked by a lava glow and a small flame. Lighting
-a grave starts a wave of sprinting zombies at that zone. Kill 5 zombies inside the zone (5 / 5 / 6 / 7, fixed
-when M2 opens), burning or not (a Galvaknuckle kill does not count): every counted kill bursts, and its fire
-flies off toward the hand on the table. Full: the grave goes quiet, its zone fades, and it stands spent. A lit
-grave has 90 seconds to be filled (you hear the clock, dry ticks at the end): if not, it goes cold (the thump
-and Maxis tell you) and its zone disappears - shoot the same grave again to open a fresh zone and fill it from
-zero. A kill outside a lit zone, or at a grave that has not been shot, does not count (a buzz tells you).
-Denizens leave you alone inside the kill zone of a lit grave while M2 runs.
+SHOOT a grave (any weapon) to light it: a large fire catches on it, easily seen from Town, and a kill zone opens
+on the ground where YOU were standing when you fired - a circle 400 units across, marked by a lava glow and its
+own small flame. Lighting a grave starts a wave of sprinting zombies at that zone. Kill 5 zombies inside the
+zone (5 / 5 / 6 / 7, fixed when M2 opens), burning or not (a Galvaknuckle kill does not count): every counted
+kill sends a red trail and rising embers off the body, flying to the burning grave itself. Full: the grave
+bursts into fire and ash and a small tremor, then is simply gone - nothing left standing. A lit grave has 90
+seconds to be filled (you hear the clock, dry ticks at the end): if not, its fire goes out and its zone
+disappears, though the grave itself still stands - shoot it again to open a fresh zone and fill it from zero.
+A kill outside a lit zone, or at a grave that has not been shot, does not count (a buzz tells you). Denizens
+leave you alone inside the kill zone of a lit grave while M2 runs.
 
-All four spent: chime, and the hand waiting on the table becomes the FIRE HAND by itself, burning where it lies
+All four gone: chime, and the hand waiting on the table becomes the FIRE HAND by itself, burning where it lies
 - nothing to carry back to the table. That completes M2 and the Act 2 reward drops at once. If nobody in the
 team carries a Jet Gun, Maxis says you will need one before the end.
 

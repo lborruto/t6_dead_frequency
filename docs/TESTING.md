@@ -277,28 +277,36 @@ returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
   glint, no prompt over it - nobody ever picks it up this step.
 - `!df tp DF_BRAZIER_1..4`: the four graves stand OUTSIDE the map, one to each side of Town; you cannot walk up
   to one. Each carries a `trigger_damage`: ANY bullet on an unlit grave (while M2 is armed) is what lights it.
+  An unlit grave shows NOTHING - no flame, no crackle - until it is shot.
 - Shoot an unlit grave: fire whoosh, console `m2 brazier_n lit by <you> (1/4 lit, 3 to go, you keep the fire
   hand)` (the "you keep the fire hand" tail is a leftover string from the old carry rule - ignore it, nothing is
-  in your hand), then `m2 brazier_n shot by <you>, kill zone at X Y (400)`. A lava glow + a small flame mark the
-  KILL ZONE on the ground where YOU stood when you fired, not at the grave itself (`set df_m2_zone_radius <n>`
-  before loading changes the 400). Shooting an already-lit grave does nothing. Console `m2 brazier_n: N spawn
-  structs for its waves`.
+  in your hand), then `m2 brazier_n shot by <you>, kill zone at X Y (400)`. A LARGE fire catches on the grave
+  itself (`df_m2_fire_fx`, default `fx_zmb_tranzit_fire_lrg`) plus a medium fire at its rim (`fx_zmb_tranzit_fire_med`,
+  fixed) and it starts to crackle - visible from Town, since the grave stands outside the map now. Separately, a
+  lava glow + its own small flame (`character_fire_death_sm`, fixed) mark the KILL ZONE on the ground where YOU
+  stood when you fired, not at the grave (`set df_m2_zone_radius <n>` before loading changes the 400). Shooting
+  an already-lit grave does nothing. Console `m2 brazier_n: N spawn structs for its waves`.
 - The wave rises at the ZONE (`m2 wave ON at brazier_n`): two sprinting zombies every 2 s from the Town spawn
   structs within 1200 of the zone (N above must not be 0), up to 8 per grave (+3 per extra player). Kill one
-  INSIDE the zone, burning or not, any gun: EVERY counted kill = a fire burst at the body with the swipe sound
-  there, a fire trail into the grave, then the clink at the grave, `m2 brazier_n 1/5`. A kill outside the zone,
-  or at a grave never shot, does not count (deny buzz to the killer, console silent); a Galvaknuckle kill inside
-  a zone does not count either (deny buzz). At 5: `m2 brazier_n spent (the grave stays, its flame is out)
-  (k/4)`: a small burst, the zone fx clear, the grave (still outside the map) keeps its clips with a scorched
-  lava glow marking the spot, and its fire flies off toward the hand on the table (a trail from the grave's rim
-  to the hand).
+  INSIDE the zone, burning or not, any gun: EVERY counted kill = the swipe sound (`evt_player_swiped`) at the
+  body, a burst of red rising embers there (`fx_zmb_ash_rising_md`, 3 s - the M1 look), then a red trail flying
+  from the body to the BURNING GRAVE ITSELF (not the zone; `df_m2_ash_pos`, the "brazier_ash" attach point,
+  turned with the grave's yaw), a tick clink at the grave, `m2 brazier_n 1/5`. A kill outside the zone, or at a
+  grave never shot, does not count (deny buzz to the killer, console silent); a Galvaknuckle kill inside a zone
+  does not count either (deny buzz). At 5: a SEPARATE trail flies from the grave's rim to the hand on the table
+  (`df_act2_maxis_trail`, its fire heading home), then console `m2 brazier_n spent (the grave stays, its flame
+  is out) (k/4)` - this console text is a LEFTOVER from before 2026-09-25 and is now WRONG: the grave actually
+  EXPLODES (`zmb_explo_sweet` + a `fx_zmb_tranzit_fire_lrg` burst + a `fx_zmb_ash_rising_md` burst + a small
+  0.2/0.6 tremor within 900) and is DELETED entirely - trigger, model, both clips - nothing left standing, no
+  scorched glow. Its zone fx also clear at the same moment.
 - Cold timer: a lit grave not filled within 90 s (`set df_m2_grave_time <s>` before loading) goes cold: the
   tick-tock runs for the grave that cools first (dry ticks in its last 30 s), then EMP thump at the grave,
   M2_GRAVE_COLD ("Too slow. That grave went cold. Light it again and feed it from the start."), console `m2
-  brazier_n went cold (not filled within 90 s): light it again and fill it from 0`, the crackle stops, `m2 wave
-  OFF at brazier_n`, and its zone fx clear (the zone itself is gone): shoot the SAME grave again to open a fresh
-  zone wherever you are standing then, and fill it from zero.
-- All four spent: M2_MAXIS_BRAZIER ("Good. That grave is spent. Its fire runs to the hand.") on the fourth, then
+  brazier_n went cold (not filled within 90 s): light it again and fill it from 0`, the fire and crackle stop
+  (the grave itself is UNCHANGED otherwise, still standing - only a full grave explodes and disappears) and its
+  zone fx clear (the zone itself is gone): shoot the SAME grave again to open a fresh zone wherever you are
+  standing then, and fill it from zero.
+- All four gone: M2_MAXIS_BRAZIER ("Good. That grave is spent. Its fire runs to the hand.") on the fourth, then
   at once (the hand was on the table the whole time) console `m2 the charged fire hand is back in the table`, a
   clink (`zmb_buildable_complete`) and the table-place cue (no fire burst, no ash) at the hand's spot: it is now
   the FIRE HAND, burning where it has lain the whole step. `step complete m2`, M2_DONE ("The ash carries the
@@ -514,10 +522,12 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 ## 7. Skips and cleanliness
 - `!df goto <step>` at any point: the skipped steps leave nothing behind (no lights, sparks, prompts, hums) BUT the boot
   props stay: pipes (dark), table, boxes, graves (outside the map around Town), the three DF_BLACKOUT switches (each at
-  its own owner spot), lamps. Boxes and graves are NEVER removed by the side lock any more (owner 2026-09-25): only
-  their look (glow / flame) follows the locked side, both stay standing for the rest of the game. No AVAILABLE / DONE
-  sounds during the jump, the target step plays its own once it opens. `!df goto step3`: no parts anywhere, relay on
-  the roof. `!df goto step2`: coil at DF_COIL_DROP, two parts in the fog, 3 needed.
+  its own owner spot), lamps. Boxes are NEVER removed by the side lock any more (owner 2026-09-25): only their look
+  (glow) follows the locked side, staying standing for the rest of the game. The four graves stay standing the same
+  way UNTIL M2 completes (normally or by goto past it) - a completed M2 deletes all four (see 4M / M2), so a goto
+  straight to `m2` or earlier still shows four standing, unlit graves, but `m3` / `step6` and later show none. No
+  AVAILABLE / DONE sounds during the jump, the target step plays its own once it opens. `!df goto step3`: no parts
+  anywhere, relay on the roof. `!df goto step2`: coil at DF_COIL_DROP, two parts in the fog, 3 needed.
 - The goto only moves FORWARD and never crosses the lock: `<step> is already done, goto only moves forward`, `<step> is
   not ahead of the current step <key>, goto only moves forward`, `<step> belongs to the <side> side but <side> is locked
   in this game (start a fresh game)`. A jump that hangs is aborted after 20 s: `goto <step> did not finish in 20 s,
@@ -528,8 +538,9 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - `!df goto m3` (Maxis) / `!df goto r3` (Richtofen) RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
   (steady glow, no sparks), six step glows on the relay mast, `act 2 reward given silently (goto)` (no Max Ammo, no
   line). MAXIS: the hand still lies where M1 left it, now the charged fire hand, burning there (no prompt, nothing
-  swapped in or out - it was never picked up); four graves (outside the map, unreachable) STILL STANDING, spent,
-  each with a scorched glow and no kill zone (owner 2026-09-25: no longer deleted; cosmetic, not Step 6 nodes).
+  swapped in or out - it was never picked up); all four graves (outside the map, unreachable anyway) are GONE -
+  `df_m2_fill` deletes each one quietly on a skip too (model, clips, trigger), same as a real fourth kill, just
+  without the burst/sound/quake; nothing to see at `!df tp DF_BRAZIER_n` past this point.
   `!df goto step7` / `finale`: the rock rests on the right slot (no "Rock" notice), the fire hand is gone, tracker
   runners on.
 - Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched)` + one line, then at 10 min and every
@@ -558,9 +569,11 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   step5` on Maxis); the M1 one must not spin. Sunk, floating, inside the relay? Say so. Rock rest height: 3 above slot 2 / the ground (`!df fire
   table_demo`, `!df tp DF_ORB_SPOT_n`).
 - Fuse box wall offset: the boxes are 6 off the wall at mid height. In the wall, or a visible gap? Say which box (`!df tp DF_FUSE_n`).
-- Grave flame: the small flame sits at the top of every standing tombstone, now outside the map (`set
-  df_m2_fire_fx <fx>` swaps it). The fire hand on the table has its own, smaller flame (`dog_trail_fire`; `set
-  df_m2_hand_fx <fx>` swaps it at the next spawn, `character_fire_death_sm` = the old one). Buried or floating? Say so.
+- Grave flame: a LIT grave carries a large fire at its rim (`set df_m2_fire_fx <fx>` swaps it, default
+  `fx_zmb_tranzit_fire_lrg`) plus a fixed medium fire, meant to be seen from Town now the grave stands outside
+  the map - is it actually visible at that distance, and does it read as "on fire" rather than just glowing? An
+  UNLIT grave shows nothing at all. The fire hand on the table has its own, smaller flame (`dog_trail_fire`;
+  `set df_m2_hand_fx <fx>` swaps it at the next spawn, `character_fire_death_sm` = the old one). Say so.
 - Grave line of sight: is each DF_BRAZIER_n actually visible and hittable (`trigger_damage`) from somewhere a
   player would naturally stand near Town, or does the map geometry block the shot? Is the kill zone's lava glow
   + small flame (400 around the shooter's spot) easy to read as "stand here"? `!df tp DF_BRAZIER_n` then look
