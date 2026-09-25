@@ -3,7 +3,7 @@
 All notable changes to Dead Frequency are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.1.0] - unreleased
+## [1.1.0] - 2026-09-25
 
 ### Added
 - Step 5 splits by side: Maxis "Lights Out" (M3) and Richtofen "Blackout" (R3).
