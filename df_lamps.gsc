@@ -636,13 +636,6 @@ df_lamp_fx_delete_later()
         self delete();
 }
 
-// Puts every set lamp in `state` (unpicked set: picks it).
-df_lamp_set_all( state )
-{
-    foreach ( lamp in df_lamp_set_get() )
-        df_lamp_state_set( lamp, state );
-}
-
 // Loop sound on a script_origin at the bulb (vanilla pattern, zm_transit.gsc:3349); alias undefined = silence.
 df_lamp_hum_set( lamp, alias, volume )
 {

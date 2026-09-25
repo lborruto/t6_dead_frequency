@@ -356,7 +356,7 @@ df_tv_press( tv, who )
     level endon( "df_step1_cleanup" );
     level endon( "df_skip_step1" );
 
-    if ( tv.on || is_true( level.df_tv_lockout ) )
+    if ( tv.on || is_true( level.df_tv_lockout ) || level.df_tv_progress >= 4 ) // solved: no df_tv_order[4]
         return;
 
     // no tone since 2026-09-11 (blinks): the pipe's own light burst is the tap feedback
@@ -1600,25 +1600,6 @@ df_a1_table_clips_delete()
     level.df_socket_clips = undefined;
 }
 
-// Table light in the locked side's colour, over the middle of the table (lamp fx aliases
-// zm_transit_fx.gsc:114/115). Used by the Step 4 preview only: the plug removes it.
-// owner 2026-09-23 (audit P5): both branches used the colourless glow_xsm, so the preview showed no side;
-// Richtofen = the blue safety light, Maxis = the orange one.
-df_step4_socket_light( side )
-{
-    df_fx_stop( level.df_socket_fx );
-    fxname = "fx_zmb_tranzit_light_safety_max";
-
-    if ( side == "rich" )
-        fxname = "fx_zmb_tranzit_light_safety_ric";
-
-    // owner 2026-09-25: no light on the table under the tower (owner); the fork is said by S4_CHOOSE and the S4 hints
-    if ( 1 )
-        return;
-
-    level.df_socket_fx = df_fx_loop( fxname, level.df_socket.origin + df_fx_point( "socket_glow" ) );
-}
-
 // The plugged relay: the antenna stands ON THE TABLE, slot 0 (the left one seen from the front), for the
 // rest of the game (level.df_socket_relay), lit only while the power is on (same idle look as on the
 // roof). df_table_slot returns the point on the table top and the relay's own pivot is at its base
@@ -1721,7 +1702,7 @@ df_relay_release( drop_at )
     df_relay_drop_at( drop_at, self.angles[1] );
 
     // downed while riding: the relay rides along instead of being left behind on the road
-    if ( isdefined( level.df_relay ) && isdefined( level.the_bus ) && ( is_true( self.isonbus ) || ( isdefined( level.roof_trig ) && self istouching( level.roof_trig ) ) ) )
+    if ( isdefined( level.df_relay ) && df_player_on_bus( self ) )
     {
         level.df_relay linkto( level.the_bus );
         df_debug_print( "DF: dropped relay linked to the bus" );
@@ -1925,23 +1906,15 @@ df_step4_socket()
     }
 }
 
-// Our key glint over the table (+40, zm_transit_fx.gsc:105) from the relay pickup to the plug; idempotent.
+// owner 2026-09-25: no marker glint on the table any more (the prompt and the lines lead the carrier): on = 1
+// does nothing, on = 0 still clears a marker left by an older path.
 df_a1_socket_marker_set( on )
 {
-    if ( !on )
-    {
-        df_fx_stop( level.df_socket_marker );
-        level.df_socket_marker = undefined;
-        return;
-    }
-
-    if ( isdefined( level.df_socket_marker ) || !isdefined( level.df_socket ) || is_true( level.df_relay_plugged ) )
+    if ( on )
         return;
 
-    c = df_coord( "DF_SOCKET" );
-    // owner 2026-09-25: no marker glint on the table (owner); the prompt and the lines lead the carrier
-    if ( !isdefined( c ) )
-        return;
+    df_fx_stop( level.df_socket_marker );
+    level.df_socket_marker = undefined;
 }
 
 // The side the power switch would lock right now: on = Richtofen, off = Maxis (Step 4 rule).
@@ -1954,8 +1927,8 @@ df_a1_side_of_power()
 }
 
 // Side preview on the table (audit section 4): `side` = "rich" (blue), "maxis" (orange) or undefined (off).
-// Same lamp fx as the final light, kept in level.df_socket_fx so df_step4_socket_light simply replaces it
-// on the plug. Only acts when the state changes (called every poll tick).
+// No light on the table any more (owner 2026-09-25): the preview only speaks the fork once. Only acts when
+// the state changes (called every poll tick).
 df_a1_table_preview( side )
 {
     if ( isdefined( side ) && isdefined( level.df_a1_preview ) && level.df_a1_preview == side )
@@ -1974,7 +1947,6 @@ df_a1_table_preview( side )
         return;
     }
 
-    df_step4_socket_light( side );
     df_debug_print( "DF: table preview " + side + " (carrier within 400, power " + flag( "power_on" ) + ")" );
 
     // audit v3 #1: the fork is irreversible and Step 3 forced the power ON, so the choice is spoken the first time
@@ -2532,6 +2504,9 @@ df_a1_hook_tv()
         return;
     }
 
+    if ( level.df_tv_progress >= 4 )
+        return;
+
     expected = level.df_tv_order[level.df_tv_progress];
     df_debug_print( "DF: a1_tv: pressing screen " + ( expected + 1 ) );
     level thread df_tv_press( level.df_tvs[expected], undefined );
@@ -2577,7 +2552,7 @@ df_a1_hook_relay()
 // is lost). The caller already removed the portal from level.portals, so it is put back for everyone else.
 df_portal_use( player )
 {
-    if ( is_true( player.df_carrying_relay ) || isdefined( player.df_orb ) || is_true( player.df_ember ) || is_true( player.df_skull ) )
+    if ( is_true( player.df_carrying_relay ) || isdefined( player.df_orb ) || is_true( player.df_skull ) )
     {
         level.portals[level.portals.size] = self;
         df_cue_deny( player );

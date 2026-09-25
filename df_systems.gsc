@@ -1291,6 +1291,46 @@ df_item_arrival( pos )
     earthquake( 0.3, 0.6, pos, 800 );
 }
 
+// ---- dropped items (owner 2026-09-25) ----
+// A carrier who goes down on the bus (inside, player.isonbus, or on the roof trigger: the relay's test) drops the
+// item ON the bus: the caller links it (df_drop_link_bus) instead of leaving it over the road.
+df_player_on_bus( player )
+{
+    if ( !isdefined( player ) || !isplayer( player ) || !isdefined( level.the_bus ) )
+        return 0;
+
+    if ( is_true( player.isonbus ) )
+        return 1;
+
+    return isdefined( level.roof_trig ) && player istouching( level.roof_trig );
+}
+
+// Links every defined entity of `ents` to the bus.
+df_drop_link_bus( ents )
+{
+    if ( !isdefined( level.the_bus ) )
+        return;
+
+    foreach ( e in ents )
+    {
+        if ( isdefined( e ) )
+            e linkto( level.the_bus );
+    }
+}
+
+// Blocks 60 s; true when the dropped model `ent` still exists (a take, a new drop or a skip deletes it). The
+// caller then sends the item home with the soul trail (df_soul_fly), like the Step 6 rock (df_s6_drop_timer).
+df_drop_wait_home( ent )
+{
+    level endon( "end_game" );
+
+    if ( !isdefined( ent ) )
+        return 0;
+
+    wait 60;
+    return isdefined( ent );
+}
+
 // --------------------------------------------------------- zombie deaths ----
 // One vanilla death callback (self = the dying zombie) fans out to whoever is listening.
 

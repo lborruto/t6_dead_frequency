@@ -147,11 +147,12 @@ df_debug_command( sub, arg, args )
 df_debug_help()
 {
     self df_out( "!df commands (chat, needs `set df_debug 1`; every answer is also a [DF] console line):" );
-    self df_out( "  status | scale | help" );
-    self df_out( "  goto <step1|step2|step3|step4|r1|r2|m1|m2|step5|step6|step7|finale> | side rich|maxis" );
+    self df_out( "  status | who | scale | help | side rich|maxis" );
+    self df_out( "  goto <step1..step4|r1|r2|r3|m1|m2|m3|step5|step6|step7|finale>" );
     self df_out( "  say <LINE_KEY> | hints on|off (prompts) | texthints on|off (spoken ladder) | fire <name> | simon | souls | stat rich|maxis|none" );
     self df_out( "  power on|off | side_fx [stop] | avogadro | cue avail|tick|subgoal|fail|deny|trail|done | vox <alias>" );
     self df_out( "  show [KEY] | hide | tp <KEY> | dump | pos | aim [KEY] | lift <KEY> <up> | move <KEY> <fwd> <right> <up> | ang <KEY> <pitch> <yaw> <roll>" );
+    self df_out( "  setpos <KEY> <x> <y> <z> [yaw]" );
     self df_out( "  grab <KEY> (prop follows your crosshair) | drop | cancel | rot <deg> | up <units>" );
     self df_out( "  model [<kind> <name>] | orb <name> | catalog <keyword|all|extra> [page] | catalog pick <n> <kind> | catalog clear | sizes <keyword|all> [page]" );
     self df_out( "  catalog <keyword|all> [page] | catalog pick <n> <kind> | catalog clear   (models side by side in front of you)" );
@@ -491,16 +492,20 @@ df_debug_cmd_coords( sub, arg, args )
             }
 
             key = args[2]; // anchor keys are upper case (DF_BLACKOUT_1, DF_BRAZIER_2, ...)
-            yaw = 0;
             c = df_coord( key );
 
-            if ( isdefined( c ) )
-                yaw = c.angles[1];
+            if ( !isdefined( c ) )
+            {
+                self df_out( "DF: unknown anchor " + key + " (!df dump lists them)" );
+                return 1;
+            }
+
+            yaw = c.angles[1]; // pitch / roll stay, only the yaw can change
 
             if ( args.size >= 7 )
                 yaw = float( args[6] );
 
-            df_coord_override( key, ( float( args[3] ), float( args[4] ), float( args[5] ) ), ( 0, yaw, 0 ) );
+            df_coord_override( key, ( float( args[3] ), float( args[4] ), float( args[5] ) ), ( c.angles[0], yaw, c.angles[2] ) );
             df_coord_tune_done( key );
             self df_out( "DF: " + key + " set to " + args[3] + " " + args[4] + " " + args[5] + " yaw " + yaw );
             return 1;
@@ -676,6 +681,7 @@ df_debug_aim( args )
     }
 
     df_coord_override( key, origin, ( 0, face, 0 ) );
+    df_coord_tune_done( key ); // owner 2026-09-25: switches / graves follow the new spot (as !df setpos)
     self df_out( "DF: " + key + " snapped to your aim point (" + surface + "). !df show to look; !df ang " + key + " <pitch> " + face + " <roll> for the model pose" );
 }
 
@@ -1222,7 +1228,7 @@ df_debug_avogadro()
 df_debug_who()
 {
     self df_out( "DF who: is_drinking " + df_who_v( self.is_drinking ) + " | screecher " + isdefined( self.screecher ) + " | laststand " + self maps\mp\zombies\_zm_laststand::player_is_in_laststand() + " | weapon " + self getcurrentweapon() );
-    self df_out( "DF who: relay " + df_who_v( self.df_carrying_relay ) + " | orb " + df_who_v( self.df_orb ) + " | hand " + df_who_v( self.df_skull ) + " | fire hand " + df_who_v( self.df_ember ) + " | battery " + df_who_v( self.df_carrying_bat ) + " | building " + df_who_v( self.df_a1_building ) );
+    self df_out( "DF who: relay " + df_who_v( self.df_carrying_relay ) + " | orb " + df_who_v( self.df_orb ) + " | lantern " + df_who_v( self.df_skull ) + " | battery " + df_who_v( self.df_carrying_bat ) + " | building " + df_who_v( self.df_a1_building ) );
     n = 0;
 
     foreach ( trig in getentarray( "trigger_radius_use", "classname" ) )

@@ -59,7 +59,7 @@
 // press with a 0.3 s re-press guard), df_prompt (mechanic prompts), df_prompt_puzzle (hints, hidden when
 // df_hints is 0), df_fx_loop / df_fx_once / df_fx_stop, df_soul_fly, df_beam_start / df_beam_stop, df_model /
 // df_model_angles, df_coord, df_ground, df_table_front / df_table_slot / df_table_yaw, df_scaled, df_touch,
-// df_complete, df_say, df_debug_print, df_lamp_find / df_lamp_bulb_pos / df_lamp_state_set / df_lamp_set_all,
+// df_complete, df_say, df_debug_print, df_lamp_find / df_lamp_bulb_pos / df_lamp_state_set / df_lamp_set_get,
 // df_model_rest_z (world agent 2026-09-09), and the 2026-09-09 core additions df_step_focus, df_cue_tick,
 // df_cue_subgoal, df_cue_deny, df_cue_side_flash, df_fx_burst, df_vox_once (tools/audit_V2core.md).
 #include common_scripts\utility;
@@ -843,8 +843,15 @@ df_s6_build_nodes()
         df_debug_print( "DF: s6 node " + i + " " + node.kind + " " + node.name );
     }
 
+    // owner 2026-09-25: a lamp Maxis M3 put out (state "vanilla") stays out
     if ( lamps_used == 0 && isdefined( level.df_lamps ) )
-        df_lamp_set_all( "off" );
+    {
+        foreach ( lamp in df_lamp_set_get() )
+        {
+            if ( !isdefined( lamp.state ) || lamp.state != "vanilla" )
+                df_lamp_state_set( lamp, "off" );
+        }
+    }
 }
 
 // ------------------------------------------------------------------- beam ----
@@ -1766,6 +1773,7 @@ df_s6_cleanup()
         player df_s6_prompt_clear( undefined );
         player df_s6_bar_sync( undefined );
         player.df_s6_deny_node = undefined;
+        player.df_s6_heat_watch = 0; // owner 2026-09-25: the watch dies on df_s6_stop / skip before it resets this
 
         if ( isdefined( player.df_orb ) )
             player df_s6_carry_release();
@@ -1948,8 +1956,6 @@ df_s6_aim_debug( range2 )
 // include): its tiny flame and the model.
 df_s6_hand_remove()
 {
-    level.df_m2_ember_on_table = 0;
-
     if ( isdefined( level.df_m2_ember_table_fx ) )
     {
         foreach ( fx in level.df_m2_ember_table_fx )

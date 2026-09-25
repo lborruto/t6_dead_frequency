@@ -1806,11 +1806,6 @@ df_s7_avogadro_watch()
     }
 }
 
-// owner 2026-09-25: df_s7_denizens (the Maxis denizen-lever restore, on = 1 release branch already gone)
-// removed along with its lone call site in df_s7_teardown - Maxis no longer lets denizens loose on the
-// tower (a latching denizen made guarding the rock unfair, df_s7_side_pressure), nothing set
-// level.df_s7_denizens_on true any more, and nothing else called it.
-
 // on = 0: rebuild level.safety_volumes without the tower box and forget cached hits;
 // on = 1: drop the cache so vanilla re-reads the full list on the next check (zm_transit.gsc:956
 // player_entered_safety_zone rebuilds level.safety_volumes when it is undefined).
@@ -1974,7 +1969,7 @@ df_s7_debug_strike_watch()
 // The Easter Egg song (mus_zmb_secret_song, 256 s, cannot be stopped once streaming) keeps playing after the hold.
 // While it plays: a regular zombie every df_s7_period() s near a random living player (zone spawn structs within
 // 900 of him, else the six nearest), while fewer than df_s7_cap() zombies live within 1500 of him. They hunt
-// normally, wherever the players go. Ends with the song, a new wave (a retry), or a skip (owner 2026-09-23: the
+// normally, wherever the players go. Ends with the song, a new wave (a retry), the finale start, or a skip (owner 2026-09-23: the
 // skip teardown starts this thread after "df_skip_step7", so df_s7_skipped / "df_s7_afterwave_stop" end it too).
 df_s7_afterwave()
 {
@@ -1982,8 +1977,9 @@ df_s7_afterwave()
     level endon( "df_skip_step7" );
     level endon( "df_skip_finale" );
     level endon( "df_s7_afterwave_stop" );
+    level endon( "df_fin_started" ); // owner 2026-09-25: the finale (df_fin_sequence) ends them too
 
-    if ( !isdefined( level.df_s7_song_ms ) || is_true( level.df_s7_afterwave_on ) || is_true( level.df_s7_skipped ) )
+    if ( !isdefined( level.df_s7_song_ms ) || is_true( level.df_s7_afterwave_on ) || is_true( level.df_s7_skipped ) || is_true( level.df_fin_started ) )
         return;
 
     end_ms = level.df_s7_song_ms + df_s7_song_seconds() * 1000;

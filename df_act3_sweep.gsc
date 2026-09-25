@@ -203,39 +203,108 @@ df_s5_lit_near( pos )
 }
 
 // owner 2026-09-25: the game reports a claymore kill as weapon "none", MOD_GRENADE_SPLASH (owner's console), the same as a
-// thrown grenade. So the step watches the planted claymores (player.claymores, _zm_weap_claymore.gsc): a lamp
-// remembers the last moment a claymore stood within the kill radius of it; a splash kill there within 1.5 s of
-// that claymore disappearing (it exploded) is the claymore's.
+// thrown grenade. So the step tracks the planted claymores (player.claymores, _zm_weap_claymore.gsc) standing within the
+// kill radius of a humming lamp; when a tracked one disappears (it exploded) the lamp stamps df_s5_clay_gone_ms. A splash
+// kill there within 1.5 s of that stamp is the claymore's, either order: a kill seen before the watch noticed the
+// claymore gone waits as df_s5_splash_ms and is credited at the stamp (df_s5_claymore_gone). A merely planted claymore
+// no longer lets a grenade count.
 df_s5_claymore_watch()
 {
     level endon( "end_game" );
     level endon( "df_skip_step5" );
     level endon( "df_s5_stop" );
 
-    r2 = level.df_s5_kill_radius * level.df_s5_kill_radius;
+    level.df_s5_clays = [];
 
     while ( true )
     {
-        wait 0.1;
+        wait 0.05;
+        df_s5_claymore_sweep();
+    }
+}
 
-        foreach ( player in getplayers() )
+// One pass: stamps the lamps whose tracked claymore is gone, then tracks every new claymore near a humming lamp.
+df_s5_claymore_sweep()
+{
+    if ( !isdefined( level.df_s5_clays ) )
+        return;
+
+    r2 = level.df_s5_kill_radius * level.df_s5_kill_radius;
+    kept = [];
+
+    foreach ( t in level.df_s5_clays )
+    {
+        if ( isdefined( t.ent ) )
+            kept[kept.size] = t;
+        else
+            df_s5_claymore_gone( t.lamp );
+    }
+
+    level.df_s5_clays = kept;
+
+    foreach ( player in getplayers() )
+    {
+        if ( !isdefined( player.claymores ) )
+            continue;
+
+        foreach ( clay in player.claymores )
         {
-            if ( !isdefined( player.claymores ) )
+            if ( !isdefined( clay ) || df_s5_claymore_tracked( clay ) )
                 continue;
 
-            foreach ( clay in player.claymores )
+            foreach ( lamp in level.df_s5_lamps )
             {
-                if ( !isdefined( clay ) )
+                if ( is_true( lamp.df_s5_dark ) || distance2dsquared( clay.origin, lamp.origin ) >= r2 )
                     continue;
 
-                foreach ( lamp in level.df_s5_lamps )
-                {
-                    if ( !is_true( lamp.df_s5_dark ) && distance2dsquared( clay.origin, lamp.origin ) < r2 )
-                        lamp.df_s5_clay_ms = gettime();
-                }
+                t = spawnstruct();
+                t.ent = clay;
+                t.lamp = lamp;
+                level.df_s5_clays[level.df_s5_clays.size] = t;
+                break;
             }
         }
     }
+}
+
+df_s5_claymore_tracked( clay )
+{
+    foreach ( t in level.df_s5_clays )
+    {
+        if ( isdefined( t.ent ) && t.ent == clay )
+            return true;
+    }
+
+    return false;
+}
+
+// True while a tracked claymore still stands by `lamp`.
+df_s5_claymore_at( lamp )
+{
+    if ( !isdefined( level.df_s5_clays ) )
+        return false;
+
+    foreach ( t in level.df_s5_clays )
+    {
+        if ( isdefined( t.ent ) && t.lamp == lamp )
+            return true;
+    }
+
+    return false;
+}
+
+// A tracked claymore by `lamp` just went off: stamp it, and credit a splash kill seen there in the last 1.5 s.
+df_s5_claymore_gone( lamp )
+{
+    lamp.df_s5_clay_gone_ms = gettime();
+
+    if ( !isdefined( lamp.df_s5_splash_ms ) || gettime() - lamp.df_s5_splash_ms >= 1500 )
+        return;
+
+    lamp.df_s5_splash_ms = undefined;
+
+    if ( !is_true( lamp.df_s5_dark ) )
+        df_s5_lamp_out( lamp );
 }
 
 df_s5_claymore_blast( lamp, mod )
@@ -243,7 +312,8 @@ df_s5_claymore_blast( lamp, mod )
     if ( mod != "MOD_GRENADE_SPLASH" && mod != "MOD_EXPLOSIVE" )
         return false;
 
-    return isdefined( lamp.df_s5_clay_ms ) && gettime() - lamp.df_s5_clay_ms < 1500;
+    df_s5_claymore_sweep(); // a claymore gone this frame stamps its lamp now
+    return isdefined( lamp.df_s5_clay_gone_ms ) && gettime() - lamp.df_s5_clay_gone_ms < 1500;
 }
 
 // Only a claymore puts a lamp out: the dead set it off, not the player's hand (LO_NOTHAND_MAXIS once otherwise).
@@ -269,6 +339,13 @@ df_s5_on_zombie_death( zombie )
 
     if ( !issubstr( weapon, "claymore" ) && !df_s5_claymore_blast( lamp, mod ) )
     {
+        // a splash kill by a claymore still standing: it may be that claymore's blast, credited once it is seen gone
+        if ( ( mod == "MOD_GRENADE_SPLASH" || mod == "MOD_EXPLOSIVE" ) && df_s5_claymore_at( lamp ) )
+        {
+            lamp.df_s5_splash_ms = gettime();
+            return;
+        }
+
         if ( !is_true( level.df_s5_nothand_said ) )
         {
             level.df_s5_nothand_said = 1;
@@ -278,6 +355,12 @@ df_s5_on_zombie_death( zombie )
         return;
     }
 
+    df_s5_lamp_out( lamp );
+}
+
+// The lamp goes dark by a claymore: progress tick, the count line, the step check.
+df_s5_lamp_out( lamp )
+{
     df_touch( "step5" );
     df_s5_lamp_set( lamp, 1 );
     df_cue_tick( df_lamp_bulb_pos( lamp ), 0 );

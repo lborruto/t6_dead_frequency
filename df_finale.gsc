@@ -1,6 +1,6 @@
 // Dead Frequency - Finale (spec section 5 "Finale", forked by level.df_side) + the quest's tracker and
 // mid-quest reward (design audit 2026-09-08, items #7, #8, section 3, 8d.1).
-//   Trigger: hold use 5 s at the table under the tower (DF_SOCKET resolves to DF_TABLE) with the right
+//   Trigger: hold use 2.5 s at the table under the tower (DF_SOCKET resolves to DF_TABLE) with the right
 //   power state (Richtofen: power on; Maxis: power off NOW or at the start of this round, df_fin_power_ok).
 //   Sequence: every perk first (never lost), a 6 s build-up at the tower in the SIDE'S ELEMENT (art audit
 //   2026-09-09 section 3 Finale / #9: Richtofen = electric trap hum, blue sparks and arcs over the table, the
@@ -115,7 +115,7 @@ df_fin_round_power_watch()
     }
 }
 
-// Players near the table under the tower get the prompt; a hold of 5 s with the right power state starts
+// Players near the table under the tower get the prompt; a hold of 2.5 s with the right power state starts
 // the finale. DF_SOCKET is the table (df_coords, owner 2026-09-08), so the radius and the marker sit on
 // it: marker fx fx_zmb_tranzit_light_glow at df_fx_point "socket_glow" over the table, the same glow
 // Step 4 uses. The shared STEP AVAILABLE sting (zmb_screecher_portal_arrive, df_steps df_step_available_cue) plays by
@@ -993,7 +993,12 @@ df_fin_jetgun_cool_loop()
     {
         foreach ( player in getplayers() )
         {
-            if ( !is_player_valid( player ) || player getcurrentweapon() != "jetgun_zm" )
+            if ( !is_player_valid( player ) )
+                continue;
+
+            w = player getcurrentweapon(); // owner 2026-09-25: the upgraded gun too
+
+            if ( w != "jetgun_zm" && w != "jetgun_upgraded_zm" )
                 continue;
 
             player setweaponoverheating( 0, 0 );

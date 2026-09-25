@@ -344,7 +344,12 @@ df_apply_overrides()
     // owner anchor map 2026-09-22: they were four points 40 apart around one spot, now spread over the room;
     // owner 2026-09-23: moved again to these four spots.
     // owner 2026-09-25: the cold room moved from the Nacht bunker to the woods behind the hunter's cabin (owner spots)
-    // owner 2026-09-25: the three R3 Blackout power switches, placed by the owner (!df grab)
+    // owner 2026-09-25: the four R1 fuse boxes in the Farm barn, placed by the owner (!df grab)
+    df_coord_override( "DF_FUSE_1", ( 8825, -5744, 105 ), ( 0, 270, 0 ) );
+    df_coord_override( "DF_FUSE_2", ( 8801, -5889, 106 ), ( 0, 180, 0 ) );
+    df_coord_override( "DF_FUSE_3", ( 8526, -5889, 105 ), ( 0, 180, 0 ) );
+    df_coord_override( "DF_FUSE_4", ( 8518, -5582, 106 ), ( 0, 360, 0 ) );
+    // owner 2026-09-25: the three R3 Blackout power switches, placed by the owner (!df grab): Nacht, Town, the plant
     df_coord_override( "DF_BLACKOUT_1", ( 13810, -196, -188 ), ( 0, 359, 0 ) );
     df_coord_override( "DF_BLACKOUT_2", ( 829, -1482, -44 ), ( 0, 90, 0 ) );
     df_coord_override( "DF_BLACKOUT_3", ( 11668, 8524, -575 ), ( 0, 90, 0 ) );

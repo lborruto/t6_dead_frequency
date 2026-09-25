@@ -331,7 +331,10 @@ df_r1_spawn_fuses()
 df_rich_side_watch()
 {
     level endon( "end_game" );
-    level waittill( "df_side_locked", side );
+    side = level.df_side; // owner 2026-09-25: a side locked before the boxes spawned (goto, !df side) was missed
+
+    if ( !isdefined( side ) )
+        level waittill( "df_side_locked", side );
 
     if ( side == "rich" )
     {
@@ -549,7 +552,6 @@ df_r1_skip_cleanup()
     level.df_card = undefined;
     level.df_card_carrier = undefined;
     level.df_card_held = 0;
-    level.df_r1_armed = 0;
     level.df_r1_in_chamber = 0;
 
     foreach ( player in getplayers() )
@@ -566,8 +568,6 @@ df_r1_skip_cleanup()
 // they are live; otherwise (boot, solved, locked) the faint one.
 df_r1_arm( on )
 {
-    level.df_r1_armed = on;
-
     foreach ( fuse in level.df_fuses )
     {
         if ( on )
@@ -824,13 +824,20 @@ df_r1_card_spawn()
 // The card model (df_model "card" = p6_zm_keycard: vanilla spawns it as a plain script_model too,
 // _zm_utility.gsc:4609 place_navcard), its glint (fx_zmb_tranzit_light_glow at "card_barn_glint") and
 // the slow float unless level.df_card_float is 0 (owner test switch). Used by the first spawn and drops.
-df_r1_card_place( pos )
+// on_bus = 1 (dropped on the bus): card and glint ride the bus, no float.
+df_r1_card_place( pos, on_bus )
 {
     level.df_card = spawn( "script_model", pos );
     level.df_card setmodel( df_model( "card_barn" ) );
     level.df_card.angles = df_model_angles( "card_barn", randomint( 360 ) ); // pitch / roll / extra yaw from the registry
     level.df_card_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", pos + df_fx_point_at( "card_barn_glint", level.df_card.angles[1] ) ); // the point has a horizontal part: turned with the card the glint hangs on
     level.df_card_carrier = undefined;
+
+    if ( is_true( on_bus ) )
+    {
+        df_drop_link_bus( array( level.df_card, level.df_card_fx ) );
+        return;
+    }
 
     if ( !isdefined( level.df_card_float ) || level.df_card_float != 0 )
         level thread df_r1_card_float( level.df_card, pos );
@@ -1010,13 +1017,39 @@ df_r1_card_drop( pos, player )
 {
     level.df_card_held = 0;
 
+    on_bus = df_player_on_bus( player );
+
     if ( isdefined( player ) )
         df_r1_card_release( player );
     else
+    {
         level.df_card_carrier = undefined;
+        df_scav_carry_clear( "card" ); // owner 2026-09-25: a carrier who left kept the TAB notice up
+    }
 
-    df_r1_card_place( df_ground( pos ) + ( 0, 0, 10 ) );
+    df_r1_card_place( df_ground( pos ) + ( 0, 0, 10 ), on_bus );
+    level thread df_r1_card_home_timer( level.df_card );
     df_debug_print( "DF: key card dropped" );
+}
+
+// owner 2026-09-25: a dropped card nobody takes in 60 s flies back to its barn spawn (df_r1_card_pos).
+df_r1_card_home_timer( card )
+{
+    level endon( "end_game" );
+    level endon( "df_skip_r1" );
+
+    if ( !df_drop_wait_home( card ) || !isdefined( level.df_card ) || level.df_card != card || is_true( level.df_card_held ) )
+        return;
+
+    from = card.origin;
+    home = df_r1_card_pos();
+    df_fx_stop( level.df_card_fx );
+    level.df_card_fx = undefined;
+    level.df_card delete();
+    level.df_card = undefined;
+    level thread df_soul_fly( from, home );
+    df_r1_card_place( home );
+    df_debug_print( "DF: dropped key card untouched for 60 s, back at the barn" );
 }
 
 // ---- summon ------------------------------------------------------------------------------
@@ -1472,14 +1505,42 @@ df_r1_battery_drop( pos, player )
 {
     b = level.df_r1_bat;
     b.held = 0;
+    link = undefined;
+
+    if ( df_player_on_bus( player ) )
+        link = level.the_bus; // owner 2026-09-25: dropped on the bus, it rides along
 
     if ( isdefined( player ) )
         df_r1_battery_release( player );
+    else
+        df_scav_carry_clear( "battery" );
 
     b.carrier = undefined;
-    b.pick = df_rich_pickup_place( "battery", df_ground( pos ) + ( 0, 0, 6 ), undefined );
+    b.pick = df_rich_pickup_place( "battery", df_ground( pos ) + ( 0, 0, 6 ), link );
     b.model = b.pick.model;
+    level thread df_r1_battery_home_timer( b, b.model );
     df_debug_print( "DF: battery dropped" );
+}
+
+// owner 2026-09-25: a dropped battery nobody takes in 60 s flies back to its bus dashboard spot.
+df_r1_battery_home_timer( b, model )
+{
+    level endon( "end_game" );
+    level endon( "df_r1_refilled" );
+    level endon( "df_skip_r1" );
+
+    if ( !df_drop_wait_home( model ) || !isdefined( level.df_r1_bat ) || level.df_r1_bat != b || is_true( b.held ) )
+        return;
+
+    from = model.origin;
+    df_rich_pickup_remove( b.pick );
+    b.model = undefined;
+    df_r1_battery_spawn_on_bus();
+
+    if ( isdefined( level.df_r1_bat ) && isdefined( level.df_r1_bat.model ) )
+        level thread df_soul_fly( from, level.df_r1_bat.model.origin );
+
+    df_debug_print( "DF: dropped battery untouched for 60 s, back on the bus" );
 }
 
 // Removes the world battery and any carrier state (lock over, skip).
@@ -2102,9 +2163,7 @@ df_r2_fill( lamp )
 // announced (ITEM_SPOOL_RICH, audit dialogue 1.4 #2: the line had no caller).
 df_r2_spool_drop( lamp )
 {
-    dir = df_coord( "DF_SOCKET" ).origin - lamp.origin;
-    dir = vectornormalize( ( dir[0], dir[1], 0 ) );
-    pos = df_ground( lamp.origin + dir * 40 + ( 0, 0, 30 ) ) + ( 0, 0, 6 );
+    pos = df_r2_spool_home_pos( lamp );
     s = spawnstruct();
     s.lamp = lamp;
     s.held = 0;
@@ -2120,6 +2179,14 @@ df_r2_spool_drop( lamp )
     }
 
     df_debug_print( "DF: spool at lamp " + lamp.name );
+}
+
+// Where a lamp's spool lands: 40 units from the pole towards the tower.
+df_r2_spool_home_pos( lamp )
+{
+    dir = df_coord( "DF_SOCKET" ).origin - lamp.origin;
+    dir = vectornormalize( ( dir[0], dir[1], 0 ) );
+    return df_ground( lamp.origin + dir * 40 + ( 0, 0, 30 ) ) + ( 0, 0, 6 );
 }
 
 // Presses and prompts for the spools (0.05 s: df_press_use is edge-triggered) until the step ends.
@@ -2163,15 +2230,42 @@ df_r2_spool_carrier_check( s )
 
 df_r2_spool_drop_at( s, pos, player )
 {
+    link = undefined;
+
+    if ( df_player_on_bus( player ) )
+        link = level.the_bus; // owner 2026-09-25: dropped on the bus, it rides along
+
     s.held = 0;
     s.carrier = undefined;
-    s.pick = df_rich_pickup_place( "spool", df_ground( pos ) + ( 0, 0, 6 ), undefined );
+    s.pick = df_rich_pickup_place( "spool", df_ground( pos ) + ( 0, 0, 6 ), link );
     s.model = s.pick.model;
 
     if ( isdefined( player ) )
         df_r2_spool_notice( player );
+    else
+        df_scav_carry_clear( "spool" );
 
+    level thread df_r2_spool_home_timer( s, s.model );
     df_debug_print( "DF: spool dropped" );
+}
+
+// owner 2026-09-25: a dropped spool nobody takes in 60 s flies back to its lamp's landing spot.
+df_r2_spool_home_timer( s, model )
+{
+    level endon( "end_game" );
+    level endon( "df_r2_done" );
+    level endon( "df_skip_r2" );
+
+    if ( !df_drop_wait_home( model ) || is_true( s.held ) || is_true( s.done ) || !isdefined( s.lamp ) )
+        return;
+
+    from = model.origin;
+    home = df_r2_spool_home_pos( s.lamp );
+    df_rich_pickup_remove( s.pick );
+    level thread df_soul_fly( from, home );
+    s.pick = df_rich_pickup_place( "spool", home, undefined );
+    s.model = s.pick.model;
+    df_debug_print( "DF: dropped spool untouched for 60 s, back at lamp " + s.lamp.name );
 }
 
 // Spools carried by `player` (owner 2026-09-09: they stack, like Scavenger's parts).

@@ -341,12 +341,13 @@ df_bus_piece_move( piece, idx, label )
 // _zm_weap_tazer_knuckles::init (cost = level.tazer_cost, else 6000) into the wall stub (stub.cost, and
 // stub.hint_parm2 for the prompt, _zm_melee_weapon.gsc prepare_stub) and level._melee_weapons; the old write to
 // level.zombie_weapons[...].cost was never read. level.tazer_cost is set at once (in time if the map inits the
-// weapon after us), then every copy of the price is patched as soon as it exists.
+// weapon after us), then every copy of the price is patched as soon as it exists (polled 30 s from round logic start).
 df_knuckles_price()
 {
     level endon( "end_game" );
 
     level.tazer_cost = 3000;
+    flag_wait( "start_zombie_round_logic" ); // owner 2026-09-25: the wall stubs can come after our init; poll from here
 
     for ( tries = 0; tries < 60; tries++ )
     {

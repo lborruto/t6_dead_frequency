@@ -244,8 +244,9 @@ df_place_drop()
     self df_place_end_current( "placed" );
 
     // the held copy is gone, so put the anchors own prop back: without this the model just vanishes on a
-    // place and there is nothing to judge (owner report 2026-09-08)
-    df_preview_refresh( key );
+    // place and there is nothing to judge (owner report 2026-09-08); df_coord_tune_done refreshes it and moves the
+    // live switches / graves / table socket along (as !df setpos does)
+    df_coord_tune_done( key );
 
     // df_out, not df_debug_print: the paste-ready line must reach the console whatever df_debug is set to
     self df_out( "[SPOT] " + key + " | " + int( origin[0] ) + " " + int( origin[1] ) + " " + int( origin[2] ) + " | " + int( angles[0] ) + " " + int( angles[1] ) + " " + int( angles[2] ) + " | " + model );

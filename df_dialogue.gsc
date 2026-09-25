@@ -26,7 +26,7 @@
 //   Event keys added by the audit pass (2026-09-08), listed with their step: R1_RICH_CHAMBER, M1_EVENT,
 //   S6_NOJETGUN_RICH / _MAXIS,
 //   S7_AVOGADRO_RICH, A2_REWARD_RICH / _MAXIS, FIN_WORLD_RICH / _MAXIS, ITEM_RECEIVER, ITEM_BATTERY_RICH,
-//   ITEM_SPOOL_RICH, ITEM_EMBER_MAXIS, ITEM_HAND_MAXIS (tools/audit_A.md says who calls each; renamed from
+//   ITEM_SPOOL_RICH, ITEM_HAND_MAXIS (tools/audit_A.md says who calls each; renamed from
 //   ITEM_SKULL_MAXIS, owner 2026-09-25), and
 //   M2_POWER_MAXIS (dialogue audit v2, 2026-09-09). Dead keys cut by that audit (no caller, string budget):
 //   D0_INTRO_POWEROFF, ITEM_FUSE, S3_HALF (tools/audit_V2dialogue.md); ITEM_KEEPSAKE_RICH / _MAXIS stay.
@@ -137,8 +137,8 @@ df_dialogue_act2_rich()
     // R1 - Summon the Storm
     df_add_line( "R1_START", "rich", "Now we need a storm. Storms live in barns, Samuel. Trust me, I have checked." );
     df_add_line( "R1_HINT_1", "rich", "Four boxes in the Farm barn. They spark in an order. Sparks are a language." );
-    df_add_line( "R1_HINT_2", "rich", "Watch the boxes spark, Samuel. Touch them in that order. It grows. Keep up." );
-    df_add_line( "R1_RICH_CARD", "rich", "A card in the barn wall, Samuel! Put it on the table under the obelisk!" );
+    df_add_line( "R1_HINT_2", "rich", "Watch the boxes spark and touch them in order. Then the card, the table!" );
+    df_add_line( "R1_RICH_CARD", "rich", "A card on the barn wall, Samuel! Put it on the table under the obelisk!" );
     df_add_line( "R1_RICH_SUMMON", "rich", "There he is! Keep him under the obelisk. Knife, Samuel. Bullets only tickle." );
     // R1_RICH_FAIL covers both: defeated away from the tower, or the capture window ran out (df_scaled
     // capture_time, 240 solo / 300 co-op)
@@ -167,51 +167,46 @@ df_dialogue_act2_rich()
 }
 
 // Act 2M (Maxis only; Richtofen heckles once per step). Mechanics (df_act2_maxis.gsc): M1 a denizen
-// riding a player is carried within 300 of the table and opens a hole into the Nacht bunker; the denizen
-// kills (df_scaled cold_room_kills 6/9/12/15 within cold_room_time) leave the hand, the hole waits
-// until someone walks in; M2 the fire hand (the power switch lever's hand) waits on the table, any of the four
-// graves in Town (owner 2026-09-23) lights it, zombies killed within 250 of a lit grave (df_scaled
-// brazier_burns 4/5/6/7, burning or not) make it vanish, all four charge the fire hand.
+// riding a player is carried within 300 of the table and opens the cold room in the woods behind the hunter's
+// cabin; the denizen kills (df_scaled cold_room_kills 6/9/12/15 within cold_room_time) leave the lantern;
+// M2 the lantern waits on the table, four graves stand outside the map around Town, a shot lights one and
+// opens a kill zone where the shooter stood, its kills (df_scaled brazier_burns) make it burst, all four
+// charge the lantern (the burning lantern).
 df_dialogue_act2_maxis()
 {
     // M1 - The Cold Room
     df_add_line( "M1_START", "maxis", "The signal needs a key. The fog is full of small, angry keys." );
-    df_add_line( "M1_HINT_1", "maxis", "The little ones want the relay. Let one cling to you and walk it to the Spire." );
-    df_add_line( "M1_HINT_2", "maxis", "Carry a little one to the table. Clear the hole. Set the lantern on the table." );
+    df_add_line( "M1_HINT_1", "maxis", "The little ones cling to the living. Let one ride you to the Spire." );
+    df_add_line( "M1_HINT_2", "maxis", "Ride one to the table. Kill what rises in the woods. The lantern to the table." );
     // M1_EVENT: the first denizen latches onto a player after M1 opens (event hint, audit #6)
     df_add_line( "M1_EVENT", "maxis", "Do not kill it. Let it ride. Carry it to the table under the Spire. Quickly!" );
     df_add_line( "M1_PORTAL", "maxis", "A door to the woods behind the hunter's cabin. One steps in, all of you go." );
     df_add_line( "M1_PORTAL", "rich", "Do not go in there, Samuel. Actually, do. I could use the laugh." );
     df_add_line( "M1_MAXIS_FAIL", "maxis", "Too slow. The cold does not wait. Bring another one to the table." );
     df_add_line( "M1_DONE", "maxis", "It is keyed. The signal knows us now. The lantern still wants fire." );
-    // ITEM_HAND_MAXIS (renamed from ITEM_SKULL_MAXIS, owner 2026-09-25): the frozen hand (still the
-    // zombie_skull model) appears after the denizen kills; the take cue, called from df_m1_skull_appear
+    // ITEM_HAND_MAXIS (renamed from ITEM_SKULL_MAXIS, owner 2026-09-25): Maxis's lantern (a dead red cage
+    // lamp) appears after the denizen kills; the take cue, called from df_m1_skull_appear
     // instead of the table placement (dialogue audit v2 #8; M1_DONE covers the placement)
     df_add_line( "ITEM_HAND_MAXIS", "maxis", "The cold left a lantern behind. Dead, and red. Set it on the table." );
 
     // M2 - Fire and Ash
-    df_add_line( "M2_START", "maxis", "Four graves stand beyond the edge of Town. Shoot one and it wakes." );
-    df_add_line( "M2_HINT_1", "maxis", "The graves are outside Town. Shoot one, then kill the dead where you stood." );
-    df_add_line( "M2_HINT_2", "maxis", "A woken grave wants the dead killed where you shot it. Be quick, it cools." );
+    df_add_line( "M2_START", "maxis", "Four graves wait beyond the edge of Town. Their fire belongs in the lantern." );
+    df_add_line( "M2_HINT_1", "maxis", "The graves stand past the edge of Town. They wake from afar, not by hand." );
+    df_add_line( "M2_HINT_2", "maxis", "Shoot a grave. Kill the dead inside the glow where you stood, before it cools." );
     df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. Its fire runs to the lantern." );
-    // ITEM_EMBER_MAXIS: the fire hand taken from the table; a grave lights it, then the lit graves want
-    // kills beside them, burning or not (dialogue audit v2, M2: the take touches the ladder, so this line
-    // carries the second half)
-    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "The lantern waits on the table. The graves will feed it." );
     df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. Their fire sleeps in the lantern now." );
-    df_add_line( "M2_EMBER_LOST", "maxis", "The lantern fell with you. It waits on the table again." );
-    df_add_line( "M2_KNUCKLES_MAXIS", "maxis", "Nein! His current will not touch my graves. Any weapon but his fists." );
+    df_add_line( "M2_KNUCKLES_MAXIS", "maxis", "Nein! His current will not feed my graves. Any weapon but his fists." );
     // M2_POWER_MAXIS: the grid was ON at the end of a round and ONE lit grave forgets its kills
     // (df_act2_maxis df_m2_power_penalty; dialogue audit v2 section 3)
     df_add_line( "M2_POWER_MAXIS", "maxis", "The grid is live. A grave forgets its dead while it hums. Cut it." );
     // M2_GRAVE_COLD: a lit grave was not filled in time (df_m2_grave_timer, owner 2026-09-23)
-    df_add_line( "M2_GRAVE_COLD", "maxis", "Too slow. That grave went cold. Light it again and feed it from the start." );
+    df_add_line( "M2_GRAVE_COLD", "maxis", "Too slow. That grave went cold. Shoot it again and feed it from the start." );
     df_add_line( "M2_DONE", "maxis", "The ash carries the message. Now the fog will answer it." );
-    df_add_line( "M2_DONE", "rich", "Bonfires. He has reduced you to bonfires, Samuel." );
+    df_add_line( "M2_DONE", "rich", "Shooting tombstones. He has reduced you to vandalism, Samuel." );
 }
 
 // Act 3 Step 5, by side (owner 2026-09-25; df_act3_sweep.gsc dispatches).
-// RICHTOFEN "Blackout" (df_act3_blackout.gsc): Maxis flips three switches under the obelisk OFF; one F press
+// RICHTOFEN "Blackout" (df_act3_blackout.gsc): Maxis flips three switches (Nacht, Town, the plant) OFF; one F press
 // flips one back ON (refused while the grid is off, BO_NOPOWER_RICH) and sends a wave at it; at each end of
 // round Maxis knocks one ON switch OFF again (BO_OFF_MAXIS). All three ON wins (D5_DONE_RICH).
 // MAXIS "Lights Out" (df_act3_sweep.gsc): three lamps hum with Richtofen's power; a lamp goes dark only when a
@@ -221,7 +216,7 @@ df_dialogue_act2_maxis()
 df_dialogue_act3_sweep()
 {
     // Blackout (Richtofen)
-    df_add_line( "S5_START_RICH", "rich", "Maxis cut three switches under the obelisk, Samuel! Flip them all ON!" );
+    df_add_line( "S5_START_RICH", "rich", "Maxis cut the grid at three switches, Samuel! Find them and flip them ON!" );
     df_add_line( "S5_START_RICH", "rich", "Split up, Samuel. One switch each, and keep the lights burning.", 1 );
     df_add_line( "S5_START_RICH", "maxis", "His switches fall dark. Let them stay dark. Let him feel the fog." );
     // Lights Out (Maxis)
@@ -229,20 +224,20 @@ df_dialogue_act3_sweep()
     df_add_line( "S5_START_MAXIS", "maxis", "You are several. One lamp each, and let the dead do the work.", 1 );
     df_add_line( "S5_START_MAXIS", "rich", "My lamps, Samuel! He wants them dark? Over my... well, over yours." );
     // plain S5_HINT_1 (!df say before the fork): the sided texts word for word, no own string
-    df_add_line( "S5_HINT_1", "maxis", "Claymores are sold at the Farm. Plant one at the foot of a humming lamp." );
-    df_add_line( "S5_HINT_1", "rich", "Three switches under the obelisk, Samuel. One press each, lights on." );
-    df_add_line( "S5_HINT_1_RICH", "rich", "Three switches under the obelisk, Samuel. One press each, lights on." );
-    df_add_line( "S5_HINT_1_MAXIS", "maxis", "Claymores are sold at the Farm. Plant one at the foot of a humming lamp." );
-    df_add_line( "S5_HINT_2_RICH", "rich", "Power ON, then press each dark switch under the obelisk. All three at once!" );
-    df_add_line( "S5_HINT_2_MAXIS", "maxis", "A claymore at the post, then let the dead walk into it. Three lamps dark." );
-    df_add_line( "LO_NOTHAND_MAXIS", "maxis", "Not your hand. His light must fall at the step of the dead. A claymore." );
+    df_add_line( "S5_HINT_1", "maxis", "His light breaks only where the dead step. Give them something to step on." );
+    df_add_line( "S5_HINT_1", "rich", "Three switches, far apart: Town, the plant and Nacht. Lights on!" );
+    df_add_line( "S5_HINT_1_RICH", "rich", "Three switches, far apart: Town, the plant and Nacht. Lights on!" );
+    df_add_line( "S5_HINT_1_MAXIS", "maxis", "His light breaks only where the dead step. Give them something to step on." );
+    df_add_line( "S5_HINT_2_RICH", "rich", "Power ON, then press each dark switch: Town, plant, Nacht. All three ON!" );
+    df_add_line( "S5_HINT_2_MAXIS", "maxis", "Claymores at the Farm. Plant one under a humming lamp. Let the dead trip it." );
+    df_add_line( "LO_NOTHAND_MAXIS", "maxis", "Not your gun. His light must fall at the step of the dead. A claymore." );
     df_add_line( "LO_DARK_MAXIS", "maxis", "One lamp is dark. His voice is thinner already." );
     df_add_line( "LO_RELIGHT", "maxis", "He has relit one of them. Put it out again." );
     df_add_line( "LO_RELIGHT", "rich", "Back ON, my lovely lamp! Try harder, Maxis!" );
     df_add_line( "D5_DONE", "rich", "All three ON! The obelisk drinks, Samuel. Now my card wants to let go!" );
-    df_add_line( "D5_DONE", "maxis", "Three lamps dark. His voice is gone. Something small must carry the charge." );
+    df_add_line( "D5_DONE", "maxis", "Three lamps dark. His voice is gone. Now the lantern must give up its fire." );
     df_add_line( "D5_DONE_RICH", "rich", "All three ON! The obelisk drinks, Samuel. Now my card wants to let go!" );
-    df_add_line( "D5_DONE_MAXIS", "maxis", "Three lamps dark. His voice is gone. Something small must carry the charge." );
+    df_add_line( "D5_DONE_MAXIS", "maxis", "Three lamps dark. His voice is gone. Now the lantern must give up its fire." );
     df_add_line( "BO_OFF_MAXIS", "maxis", "Another of his switches falls. The dark is patient." );
     df_add_line( "BO_OFF_MAXIS", "rich", "One fell again? Maxis sulks every round. Flip it back ON, schnell!" );
     df_add_line( "BO_NOPOWER_RICH", "rich", "Power ON first, Samuel! A switch on a dead grid is a toy." );
@@ -250,8 +245,8 @@ df_dialogue_act3_sweep()
 
 // Act 3 Step 6 "Vacuum" (shared, sided keys). Mechanics (df_act3_vacuum.gsc): the rock lands at one of three
 // random spots (the Diner, Town or the power plant: the HINT_1 lines name all three). Richtofen: the key card on
-// the table discharges and its storm falls as the rock (S6_CARD_RICH); Maxis: the fire hand bursts and its fire
-// falls as the rock (S6_EMBER_MAXIS). A player carries it to the ONE charged node of the side and fires
+// the table discharges and its storm falls as the rock (S6_CARD_RICH); Maxis: the burning lantern bursts and its
+// fire falls as the rock (S6_EMBER_MAXIS). A player carries it to the ONE charged node of the side and fires
 // the Jet Gun into it until the gun overheats: Richtofen the sparking block on the power station bridge, Maxis
 // (owner 2026-09-23) the fireplace of the hunter's cabin in the woods; full, it goes to table slot 2. D6_HINT is
 // the cue on every pickup of a not yet full orb (df_s6_orb_take). S6_NOJETGUN_<SIDE>: R2 / M2 completion and the
@@ -268,8 +263,8 @@ df_dialogue_act3_vacuum()
     df_add_line( "S6_START_MAXIS", "rich", "A ROCK, Samuel! He wants you to carry a rock! Oh, I could not make this up!" );
     df_add_line( "S6_HINT_1_RICH", "rich", "My storm fell as a rock, Samuel. The Diner, Town or the plant. Fetch it!" );
     df_add_line( "S6_HINT_1_MAXIS", "maxis", "The lantern's fire fell as a rock: the Diner, Town or the plant. Find it." );
-    df_add_line( "S6_HINT_2_RICH", "rich", "Take the rock to the sparking block on the plant bridge. Empty a Jet Gun!" );
-    df_add_line( "S6_HINT_2_MAXIS", "maxis", "Carry the rock to the hunter's cabin fireplace. Fire a full Jet Gun into it." );
+    df_add_line( "S6_HINT_2_RICH", "rich", "Plant bridge block, Samuel! Hold the rock and Jet Gun it till it overheats!" );
+    df_add_line( "S6_HINT_2_MAXIS", "maxis", "Carry the rock to the cabin fireplace. Fire the Jet Gun until it overheats." );
     df_add_line( "D6_HINT", "rich", "Someone built a big vacuum cleaner, Samuel. Aim it at the sparking block." );
     df_add_line( "D6_HINT", "maxis", "The rock is empty. Fire a Jet Gun into the fireplace of the hunter's cabin." );
     df_add_line( "D6_HINT_RICH", "rich", "Someone built a big vacuum cleaner, Samuel. Aim it at the sparking block." );
@@ -315,16 +310,16 @@ df_dialogue_act3_hold()
     df_add_line( "S7_AVOGADRO_RICH", "rich", "He is back for my rock! Three good stabs, Samuel, and he leaves you a present." );
     // failure: the charged orb waits in front of the table, pickable (Step 6 contract, df_s6_restart)
     df_add_line( "D7_FAIL", "rich", "NEIN! My rock fell by the table. Pick it up, Samuel, place it again!" );
-    df_add_line( "D7_FAIL", "maxis", "The rock burst. It waits in front of the table. Take it and set it again." );
+    df_add_line( "D7_FAIL", "maxis", "The rock cracked and fell. It waits in front of the table. Set it again." );
     df_add_line( "D7_FAIL_RICH", "rich", "NEIN! My rock fell by the table. Pick it up, Samuel, place it again!" );
-    df_add_line( "D7_FAIL_MAXIS", "maxis", "The rock burst. It waits in front of the table. Take it and set it again." );
+    df_add_line( "D7_FAIL_MAXIS", "maxis", "The rock cracked and fell. It waits in front of the table. Set it again." );
     df_add_line( "D7_DONE", "maxis", "It held. The frequency is ready. It wants silence, and a hand." );
     df_add_line( "D7_DONE", "rich", "It held! Oh, it HELD! Do you feel it, Samuel? The obelisk is about to sing." );
     df_add_line( "D7_DONE_RICH", "rich", "It held! Oh, it HELD! Do you feel it, Samuel? The obelisk is about to sing." );
     df_add_line( "D7_DONE_MAXIS", "maxis", "It held. The frequency is ready. It wants silence, and a hand." );
 }
 
-// Finale (df_finale.gsc): hold the relay 5 s with the side's power state (Richtofen on, Maxis off);
+// Finale (df_finale.gsc): hold the relay 2.5 s with the side's power state (Richtofen on, Maxis off);
 // wrong state once per 20 s; then three lines. FIN_START is the intro when the step becomes available.
 // Co-op: a non-Samuel player at the table gets Maxis and the deny buzz; Richtofen stays Samuel's (vanilla rule).
 df_dialogue_finale()

@@ -179,7 +179,10 @@ df_m1_skip_cleanup()
     level waittill( "df_skip_m1" );
 
     if ( is_true( level.df_m1_phase ) )
+    {
         df_m1_phase_teardown();
+        level thread df_m1_return_players(); // owner 2026-09-25: a goto during the cold room left the players in the woods
+    }
 
     df_m1_zone_end();
     df_m1_portal_remove();
@@ -1356,6 +1359,7 @@ df_m1_skull_drop( ground )
 df_m1_floor_hand_spin()
 {
     self endon( "death" );
+    self endon( "df_spin_stop" ); // linked to the bus (df_m1_skull_monitor)
 
     while ( true )
     {
@@ -1409,7 +1413,7 @@ df_m1_skull_poll()
                 continue;
             }
 
-            busy = is_true( player.df_carrying_relay ) || isdefined( player.df_orb ) || is_true( player.df_ember );
+            busy = is_true( player.df_carrying_relay ) || isdefined( player.df_orb );
 
             if ( busy || !isdefined( level.df_m1_skull ) || distancesquared( player.origin, level.df_m1_skull.origin ) > 100 * 100 )
             {
@@ -1551,13 +1555,37 @@ df_m1_skull_monitor( player )
         if ( player maps\mp\zombies\_zm_laststand::player_is_in_laststand() || !is_player_valid( player ) )
         {
             ground = df_ground( player.origin );
+            on_bus = df_player_on_bus( player );
             df_m1_skull_release( player );
             df_m1_skull_drop( ground );
+
+            // owner 2026-09-25: dropped on the bus it rides along (no spin while linked; its glows ride the model)
+            if ( on_bus && isdefined( level.df_m1_skull ) )
+            {
+                level.df_m1_skull notify( "df_spin_stop" );
+                level.df_m1_skull linkto( level.the_bus );
+            }
+
+            level thread df_m1_skull_home_timer( level.df_m1_skull );
             df_cue_fail( ground );
             df_debug_print( "DF: m1 lantern dropped (" + player.name + " went down), take it again" );
             return;
         }
     }
+}
+
+// owner 2026-09-25: a dropped lantern nobody takes in 60 s comes along to the tower (df_m1_skull_follow_return).
+df_m1_skull_home_timer( skull )
+{
+    level endon( "end_game" );
+    level endon( "df_skip_m1" );
+    level endon( "df_m1_skull_placed" );
+
+    if ( !df_drop_wait_home( skull ) || !isdefined( level.df_m1_skull ) || level.df_m1_skull != skull )
+        return;
+
+    level thread df_soul_fly( skull.origin, df_coord( "DF_TOWER_RETURN" ).origin );
+    df_m1_skull_follow_return();
 }
 
 // The carrier places it: hand emptied, the hand on slot 1 with the full cue.
@@ -1607,17 +1635,6 @@ df_m1_skull_place_table( quiet )
         level thread df_act2_maxis_trail( pos + ( 0, 0, 200 ), pos );
 
     level notify( "df_m1_skull_placed" );
-}
-
-df_m1_skull_spin()
-{
-    level endon( "end_game" );
-
-    while ( isdefined( level.df_m1_skull_table ) )
-    {
-        level.df_m1_skull_table rotateyaw( 360, 12 );
-        level.df_m1_skull_table waittill( "rotatedone" );
-    }
 }
 
 // "!df fire m1_skull": the hand, on the floor or already carried, -> placed on the table (completes M1 once the cold
@@ -1672,7 +1689,6 @@ df_m2_run()
     // owner 2026-09-25: the graves stand outside the map: they are SHOT to light (df_m2_grave_shot_watch); the hand stays on the
     // table and takes the four fires at the end (df_m2_ember_charged), nobody carries it
     level thread df_m2_power_penalty();
-    level thread df_m2_fists_loop(); // owner 2026-09-11 (fists 7): the knuckles are the wrong tool here
     level thread df_m2_grave_spawner(); // owner 2026-09-11: gentle waves near a lit grave
     level thread df_m2_grave_clock(); // owner 2026-09-23: the cold timer ticks (one shared clock)
     level.df_m2_ember_returned = 0;
@@ -1749,7 +1765,7 @@ df_m2_setup()
     level thread df_m2_debug_restage_hook();
 }
 
-// "!df goto" past m2: the braziers stay (they are the world's), the ember and the listeners go.
+// "!df goto" past m2: the graves stay (they are the world's), the lantern and the listeners go.
 df_m2_skip_cleanup()
 {
     level endon( "end_game" );
@@ -1758,19 +1774,10 @@ df_m2_skip_cleanup()
     level.df_m2_armed = 0;
     df_death_listen_remove( "m2" );
     df_m2_ember_table_remove();
-
-    foreach ( player in getplayers() )
-    {
-        if ( is_true( player.df_ember ) )
-            df_m2_ember_release( player );
-
-        df_m2_prompt_clear( player );
-    }
 }
 
-// "!df fire m2_fill" or "!df souls": every brazier completes. "!df fire m2_light": the next unlit brazier
-// lights as if an ember had reached it (an ember still in a hand is consumed once none is left unlit, by the
-// poll). "!df fire m2_ember": the first player holds an ember (from the nearest lit brazier, or brazier 1).
+// "!df fire m2_fill" or "!df souls": every grave completes and the burning lantern rests on the table.
+// "!df fire m2_light": the next unlit grave lights as if it was shot.
 // "!df fire m2_penalty": the power-on stage drop, now. "!df fire m2_column": the 20 s tower smoke column.
 df_m2_debug_hook()
 {
@@ -1780,7 +1787,7 @@ df_m2_debug_hook()
 
     while ( true )
     {
-        what = level waittill_any_return( "df_debug_m2_fill", "df_debug_souls_done", "df_debug_m2_light", "df_debug_m2_ember", "df_debug_m2_penalty", "df_debug_m2_column" );
+        what = level waittill_any_return( "df_debug_m2_fill", "df_debug_souls_done", "df_debug_m2_light", "df_debug_m2_penalty", "df_debug_m2_column" );
 
         if ( what == "df_debug_m2_column" )
         {
@@ -1800,45 +1807,15 @@ df_m2_debug_hook()
             continue;
         }
 
-        if ( what == "df_debug_m2_ember" )
-        {
-            players = getplayers();
-
-            if ( players.size > 0 && !is_true( players[0].df_ember ) )
-                df_m2_ember_take( players[0] );
-
-            continue;
-        }
-
         if ( what == "df_debug_m2_penalty" )
         {
             df_m2_power_drop();
             continue;
         }
 
+        // the fourth fill charges the lantern (df_m2_ember_charged)
         foreach ( b in level.df_m2_braziers )
             df_m2_fill( b );
-
-        // owner 2026-09-23: the hand really goes back (it stayed in the carrier's hand for good): a carrier returns
-        // it, else it rests on the table
-        level.df_m2_ember_charged = 1;
-        carried = 0;
-
-        foreach ( player in getplayers() )
-        {
-            if ( is_true( player.df_ember ) )
-            {
-                carried = 1;
-                df_m2_ember_return( player );
-            }
-        }
-
-        if ( !carried )
-            df_m2_ember_spawn_table( 1 );
-
-        level.df_m2_ember_returned = 1;
-        df_debug_print( "DF: m2 graves spent and burning lantern returned by debug" );
-        level notify( "df_m2_check" );
     }
 }
 
@@ -1910,20 +1887,13 @@ df_m2_place_braziers()
         b.model = spawn( "script_model", b.origin );
         b.model setmodel( model );
         b.model.angles = c.angles;
-        // player collision (owner 2026-09-11: players walked through them), one clip 16 up like the table's
-        b.clip = spawn( "script_model", b.origin + ( 0, 0, 16 ) );
-        b.clip setmodel( df_model( "clip" ) );
-        b.clip.angles = c.angles;
-        // a second block on top (owner 2026-09-23: players stood on the graves): 64 high in all
-        b.clip_top = spawn( "script_model", b.origin + ( 0, 0, 48 ) );
-        b.clip_top setmodel( df_model( "clip" ) );
-        b.clip_top.angles = c.angles;
         df_m2_set_stage( b, 0 );
         // owner 2026-09-25: a damage trigger on the grave (outside the map): a bullet on it lights it
         b.hit = spawn( "trigger_damage", b.origin, 0, 40, 90 );
         b.model setcandamage( 1 ); // owner 2026-09-25: the model takes the bullet too (a second path if the trigger misses)
         level thread df_m2_grave_shot_watch( b, b.hit );
         level thread df_m2_grave_shot_watch( b, b.model );
+        df_m2_grave_shield_spawn( b );
         level.df_m2_braziers[i] = b;
         df_debug_print( "DF: m2 " + b.name + " at " + int( c.origin[0] ) + " " + int( c.origin[1] ) + " " + int( c.origin[2] ) + " (" + model + ")" );
     }
@@ -1933,7 +1903,7 @@ df_m2_place_braziers()
 }
 
 // owner 2026-09-25: a DF_BRAZIER_n anchor moved in game (!df setpos / !df grab / !df move) carries its grave along:
-// model, both clips and the flame / crackle at the new rim. df_coords df_coord_tune_done notifies.
+// model, the damage trigger, the bullet walls and the flame / crackle at the new rim. df_coords df_coord_tune_done notifies.
 df_m2_grave_move_hook()
 {
     level endon( "end_game" );
@@ -1958,22 +1928,11 @@ df_m2_grave_move_hook()
                 b.model.angles = c.angles;
             }
 
-            if ( isdefined( b.clip ) )
-            {
-                b.clip.origin = b.origin + ( 0, 0, 16 );
-                b.clip.angles = c.angles;
-            }
-
-            if ( isdefined( b.clip_top ) )
-            {
-                b.clip_top.origin = b.origin + ( 0, 0, 48 );
-                b.clip_top.angles = c.angles;
-            }
-
             // owner 2026-09-25: the damage trigger follows too (a moved grave kept its trigger at the old spot: shots did nothing)
             if ( isdefined( b.hit ) )
                 b.hit.origin = b.origin;
 
+            df_m2_grave_shield_place( b );
             df_m2_crackle_stop( b );
             stage = b.stage;
             b.stage = -1;
@@ -1993,6 +1952,53 @@ df_m2_zone_radius()
         r = 400;
 
     return r;
+}
+
+// owner 2026-09-25: "add collision to the tombstone for bullet". The grave model stops no
+// bullet, so a shot could fly through the stone and never reach its trigger. Two crossed bullet walls (the
+// map's own collision_wall_64x64x10_standard, precached by zm_transit_ffotd.gsc) stand inside the stone,
+// ghosted like vanilla's, and take damage: a bullet stops on them and lights the grave.
+df_m2_grave_shield_spawn( b )
+{
+    b.shield = [];
+
+    for ( i = 0; i < 2; i++ )
+    {
+        w = spawn( "script_model", b.origin );
+        w setmodel( "collision_wall_64x64x10_standard" );
+        w ghost();
+        w setcandamage( 1 );
+        b.shield[i] = w;
+        level thread df_m2_grave_shot_watch( b, w );
+    }
+
+    df_m2_grave_shield_place( b );
+}
+
+df_m2_grave_shield_place( b )
+{
+    if ( !isdefined( b.shield ) )
+        return;
+
+    for ( i = 0; i < b.shield.size; i++ )
+    {
+        b.shield[i].origin = b.origin + ( 0, 0, 36 );
+        b.shield[i].angles = ( 0, b.angles[1] + 90 * i, 0 );
+    }
+}
+
+df_m2_grave_shield_remove( b )
+{
+    if ( !isdefined( b.shield ) )
+        return;
+
+    foreach ( w in b.shield )
+    {
+        if ( isdefined( w ) )
+            w delete();
+    }
+
+    b.shield = undefined;
 }
 
 // owner 2026-09-25: every grave has its own watchers, so the four can be lit at once (solo or co-op), each with its own 90 s timer.
@@ -2068,7 +2074,10 @@ df_m2_zone_of( pos )
 df_m2_side_watch()
 {
     level endon( "end_game" );
-    level waittill( "df_side_locked", side );
+    side = level.df_side; // owner 2026-09-25: a side locked before this ran was missed (as df_rich_side_watch)
+
+    if ( !isdefined( side ) )
+        level waittill( "df_side_locked", side );
 
     if ( side == "maxis" )
         df_m2_graves_wake();
@@ -2092,7 +2101,7 @@ df_m2_graves_wake()
     df_debug_print( "DF: Maxis side locked, the four graves show their flame" );
 }
 
-// Richtofen locked: the graves stay as scenery (owner 2026-09-25): fx and sound go, models and clips stay.
+// Richtofen locked: the graves stay as scenery (owner 2026-09-25): fx and sound go, models stay.
 df_m2_retire_braziers()
 {
     if ( !isdefined( level.df_m2_braziers ) )
@@ -2282,21 +2291,6 @@ df_m2_nearest( pos, radius, lit )
     return best;
 }
 
-// True when a lit brazier stands within radius of pos (denizen side rule, df_m1_protected).
-df_m2_lit_near( pos, radius )
-{
-    if ( !isdefined( level.df_m2_braziers ) )
-        return false;
-
-    foreach ( b in level.df_m2_braziers )
-    {
-        if ( b.lit && distancesquared( pos, b.origin ) < radius * radius )
-            return true;
-    }
-
-    return false;
-}
-
 df_m2_lit_count()
 {
     n = 0;
@@ -2310,217 +2304,8 @@ df_m2_lit_count()
     return n;
 }
 
-// ---- ember (audit 9, ITEM_EMBER_MAXIS; owner 2026-09-09: one ember lights them all) -----------------
-// Only brazier 1 is lit by M2. A player within 100 of any LIT brazier takes an ember (one press) while an
-// unlit brazier remains; within 100 of an UNLIT brazier the carrier lights it (one press) and KEEPS the ember:
-// it is consumed only when the fourth brazier burns (owner fix: "I could not light the third one"). Carrying
-// burns: lava_burning on the player (zm_transit_fx.gsc:40, replayed like df_act3_vacuum's carry fx), 5 hp
-// per second, no lamp portals (player.df_ember, refused in df_portal_use), lost when downed (take a new one
-// from any lit brazier). Any order: brazier 1 -> 2 -> 3 -> 4 is only the natural walk.
-
-// Prompts and presses for every standing player, 0.05 s (df_press_use consumes the key edge: only polled
-// for players who can act on something). An ember in hand with nothing left to light is consumed here.
-df_m2_ember_poll()
-{
-    level endon( "end_game" );
-    level endon( "df_m2_done" );
-    level endon( "df_skip_m2" );
-
-    while ( true )
-    {
-        wait 0.05;
-
-        foreach ( player in getplayers() )
-        {
-            if ( !is_player_valid( player ) || is_true( player.df_carrying_relay ) || isdefined( player.df_orb ) || is_true( player.df_skull ) )
-            {
-                df_m2_prompt_clear( player );
-                continue;
-            }
-
-            if ( is_true( player.df_ember ) )
-            {
-                // charged: it goes back into the table
-                if ( is_true( level.df_m2_ember_charged ) )
-                {
-                    if ( distancesquared( player.origin, df_coord( "DF_SOCKET" ).origin ) <= 150 * 150 )
-                    {
-                        df_m2_prompt_set( player, "Press [{+activate}] to set the burning lantern on the table" );
-
-                        if ( player df_press_use() )
-                            df_m2_ember_return( player );
-                    }
-                    else
-                        df_m2_prompt_clear( player );
-
-                    continue;
-                }
-
-                b = df_m2_nearest( player.origin, 100, 0 );
-
-                if ( !isdefined( b ) )
-                {
-                    df_m2_prompt_clear( player );
-                    continue;
-                }
-
-                df_m2_prompt_set( player, "Press [{+activate}] to light the lantern" );
-
-                if ( player df_press_use() )
-                    df_m2_light( b, player );
-
-                continue;
-            }
-
-            // the ember waits on the table
-            if ( !is_true( level.df_m2_ember_on_table ) || distancesquared( player.origin, level.df_m2_ember_pos ) > 120 * 120 )
-            {
-                df_m2_prompt_clear( player );
-                continue;
-            }
-
-            df_m2_prompt_set( player, "Press [{+activate}] to take the lantern" );
-
-            if ( player df_press_use() )
-                df_m2_ember_take( player );
-        }
-    }
-}
-
-// Own prompt slot (owner-guarded so another step's df_prompt is never removed by this poll).
-df_m2_prompt_set( player, text )
-{
-    if ( is_true( player.df_m2_prompt ) )
-        return;
-
-    player.df_m2_prompt = 1;
-    player df_prompt( 1, text );
-}
-
-df_m2_prompt_clear( player )
-{
-    if ( !is_true( player.df_m2_prompt ) )
-        return;
-
-    player.df_m2_prompt = 0;
-    player df_prompt( 0, undefined );
-}
-
-// The player takes the fire hand from the table: flag, carry notice (df_scav kind "ember"), burning fx, damage
-// tick, drop watch, first-time line.
-df_m2_ember_take( player )
-{
-    df_m2_ember_table_remove();
-    player.df_ember = 1;
-    df_m2_prompt_clear( player );
-    player playsoundtoplayer( "zmb_buildable_pickup", player );
-    df_snd_loop_burst( "zmb_fire_loop", player.origin + ( 0, 0, 40 ), 1.2 ); // owner pick 2026-09-11: puff = fire loop burst
-    df_scav_carry_set( "ember", 1, 1, player );
-    player thread df_m2_ember_carry();
-    level thread df_m2_ember_monitor( player );
-    df_touch( "m2" );
-    df_debug_print( "DF: m2 lantern taken from the table by " + player.name + " (no burn until the four graves are ash; it stays in hand for the whole step)" );
-
-    if ( is_true( level.df_m2_ember_said ) )
-        return;
-
-    level.df_m2_ember_said = 1;
-    df_say( "ITEM_EMBER_MAXIS" );
-}
-
-// The ember leaves the player (consumed or lost): flag off, notice cleared, fx thread ends.
-df_m2_ember_release( player )
-{
-    player.df_ember = undefined;
-    player notify( "df_m2_ember_end" );
-    df_fx_stop( player.df_m2_ember_fx );
-    player.df_m2_ember_fx = undefined;
-    df_m2_prompt_clear( player );
-    df_scav_carry_clear( "ember" );
-}
-
-// self = carrier. lava_burning is a short burst (POLISH_BRIEF): replayed every second on the spine like
-// df_s6_carry_fx (linkto J_SpineLower, playfxontag tag zm_transit_lava.gsc:186), and 5 hp taken with it
-// (dodamage on a player as zm_transit_lava.gsc:154), never below 15 hp so the ember alone cannot down anyone.
-df_m2_ember_carry()
-{
-    self endon( "disconnect" );
-    self endon( "df_m2_ember_end" );
-    level endon( "end_game" );
-
-    while ( is_true( self.df_ember ) )
-    {
-        df_fx_stop( self.df_m2_ember_fx );
-        self.df_m2_ember_fx = undefined;
-
-        // owner 2026-09-25 (the hand arc): a plain hand does not burn: no fire and no damage until the four graves are ash
-        if ( !is_true( level.df_m2_ember_charged ) )
-        {
-            wait 0.5;
-            continue;
-        }
-
-        fxname = "fx_zmb_tranzit_fire_med"; // charged: the fire hand, a real flame on the carrier
-
-        ent = df_fx_loop( fxname, self.origin + ( 0, 0, 45 ) );
-
-        if ( isdefined( ent ) )
-            ent linkto( self, "J_SpineLower", ( 0, 0, 0 ), ( 0, 0, 0 ) );
-
-        self.df_m2_ember_fx = ent;
-
-        // audit v3 #3: never below half health (the fire side has no Juggernog), and no burn beside a lit grave
-        if ( is_player_valid( self ) && self.health > int( self.maxhealth * 0.5 ) && !df_m2_lit_near( self.origin, 300 ) )
-            self dodamage( 5, self.origin );
-
-        wait 0.8;
-        df_fx_stop( self.df_m2_ember_fx );
-        self.df_m2_ember_fx = undefined;
-        wait 0.2;
-    }
-}
-
-// The ember is lost when the carrier goes down (player_is_in_laststand, _zm_laststand.gsc:56) or leaves:
-// the PROGRESS LOST cue (df_cue_fail: emp thump to all + ash where it went out).
-df_m2_ember_monitor( player )
-{
-    level endon( "end_game" );
-    level endon( "df_skip_m2" );
-
-    fx = undefined;
-
-    while ( isdefined( player ) && is_true( player.df_ember ) )
-    {
-        fx = player.df_m2_ember_fx;
-        wait 0.1;
-
-        // owner 2026-09-23: the carrier left the match: the hand goes back on the table (takeable, charged or not:
-        // level.df_m2_ember_charged stays, so the next carrier just returns it) and the carry notice clears
-        if ( !isdefined( player ) )
-        {
-            df_fx_stop( fx );
-            df_scav_carry_clear( "ember" );
-            df_m2_ember_spawn_table();
-            df_debug_print( "DF: m2 the burning lantern carrier left, it waits on the table again" );
-            level notify( "df_m2_check" );
-            return;
-        }
-
-        if ( player maps\mp\zombies\_zm_laststand::player_is_in_laststand() || !is_player_valid( player ) )
-        {
-            df_m2_ember_release( player );
-            df_cue_fail( player.origin );
-            df_m2_ember_spawn_table();
-            df_say( "M2_EMBER_LOST" );
-            df_debug_print( "DF: m2 burning lantern lost (" + player.name + " went down), it waits on the table again" );
-            return;
-        }
-    }
-}
-
 // Lights brazier b (stage 1, whoosh zmb_firetrap_start _zm_traps.gsc:414 + ignite zm_transit_lava.gsc:275);
-// player (optional) is the carrier: the ember STAYS in the hand while a brazier is still unlit and is consumed
-// with the last one.
+// player (optional) is the shooter.
 df_m2_light( b, player )
 {
     if ( b.lit )
@@ -2539,18 +2324,15 @@ df_m2_light( b, player )
     playsoundatposition( "zmb_phdflop_explo", df_m2_rim_pos( b ) );
     who = "m2";
     left = 4 - df_m2_lit_count();
-    tail = "";
 
     if ( isdefined( player ) && isplayer( player ) )
     {
-        df_m2_prompt_clear( player );
         df_touch( "m2" );
         who = player.name;
         player playsoundtoplayer( "zmb_buildable_piece_add", player );
-        tail = "";
     }
 
-    df_debug_print( "DF: m2 " + b.name + " lit by " + who + " (" + df_m2_lit_count() + "/4 lit, " + left + " to go" + tail + ")" );
+    df_debug_print( "DF: m2 " + b.name + " lit by " + who + " (" + df_m2_lit_count() + "/4 lit, " + left + " to go)" );
     level notify( "df_m2_check" );
 }
 
@@ -2661,7 +2443,7 @@ df_m2_grave_clock()
 // burning or not. The old rule wanted zombie.is_on_fire (zm_transit_lava.gsc:179/241), which only the lava beside
 // the old row of graves ever set: in Town no kill would have counted. A kill beside an UNLIT grave (and no lit one
 // in reach) is refused to the killer (deny buzz, 5 s throttle): light it first. A Galvaknuckle kill
-// (zombie.damageweapon, set by the vanilla actor damage callback) never counts, as df_m2_fists_loop tells the
+// (zombie.damageweapon, set by the vanilla actor damage callback) never counts, and Maxis says so (M2_KNUCKLES_MAXIS, 20 s throttle) -
 // player: before 2026-09-23 the burning rule kept those out by itself.
 df_m2_on_zombie_death( zombie )
 {
@@ -2682,6 +2464,12 @@ df_m2_on_zombie_death( zombie )
             {
                 zombie.attacker.df_m2_deny_ms = gettime();
                 df_cue_deny( zombie.attacker );
+            }
+
+            if ( knuckles && ( !isdefined( level.df_m2_fists_time ) || gettime() - level.df_m2_fists_time > 20000 ) )
+            {
+                level.df_m2_fists_time = gettime();
+                df_say( "M2_KNUCKLES_MAXIS" );
             }
         }
 
@@ -2768,19 +2556,14 @@ df_m2_fill( b, quiet )
     if ( isdefined( b.model ) )
         b.model delete();
 
-    if ( isdefined( b.clip ) )
-        b.clip delete();
-
-    if ( isdefined( b.clip_top ) )
-        b.clip_top delete();
+    df_m2_grave_shield_remove( b );
 
     if ( is_true( quiet ) )
         return;
 
     df_cue_subgoal( top );
     df_say( "M2_MAXIS_BRAZIER" );
-    // owner 2026-09-25: was "spent and gone" - the grave model stays from boot, only its flame goes out
-    df_debug_print( "DF: m2 " + b.name + " spent (the grave stays, its flame is out) (" + df_m2_done_count() + "/4)" );
+    df_debug_print( "DF: m2 " + b.name + " spent, it burst and is gone (" + df_m2_done_count() + "/4)" );
 
     if ( df_m2_all_done() )
         df_m2_ember_charged();
@@ -2894,7 +2677,6 @@ df_m2_export_nodes()
 // The hand (df_model "ember", the power switch hand piece) waits on the table at its own pose (df_coords
 // df_model_def "ember" offset, in the table frame: df_table_point) with the tiny flame the graves carry.
 // resting = 1: it came back charged and stays there, no prompt, until Step 6 bursts it (df_s6_ember_burst).
-// Take: df_m2_ember_take.
 df_m2_ember_spawn_table( resting )
 {
     df_m2_ember_table_remove();
@@ -2908,7 +2690,6 @@ df_m2_ember_spawn_table( resting )
 
     yaw = df_table_yaw();
     level.df_m2_ember_pos = df_table_point( df_model_offset( "ember" ) );
-    level.df_m2_ember_on_table = !is_true( resting );
     level.df_m2_ember_table_fx = [];
     level.df_m2_hand_table = spawn( "script_model", level.df_m2_ember_pos );
     level.df_m2_hand_table setmodel( df_model( "ember" ) );
@@ -2931,8 +2712,6 @@ df_m2_ember_spawn_table( resting )
 
 df_m2_ember_table_remove()
 {
-    level.df_m2_ember_on_table = 0;
-
     if ( isdefined( level.df_m2_ember_table_fx ) )
     {
         foreach ( fx in level.df_m2_ember_table_fx )
@@ -2988,86 +2767,18 @@ df_m2_small_fire_fx()
     return fire_fx;
 }
 
-// All four stones are spent: the ember in hand (or on the table) is charged. In hand: the carrier's flame grows,
-// Maxis asks for it back, the prompt at the table says "return". On the table (nobody carried it at that moment):
-// it goes back into the table by itself.
+// All four graves are spent: the lantern on the table is charged and M2 completes (df_m2_run). It rests there
+// until Step 6 bursts it (df_s6_ember_burst).
 df_m2_ember_charged()
 {
     level.df_m2_ember_charged = 1;
-
-    if ( is_true( level.df_m2_ember_on_table ) )
-    {
-        df_say( "M2_EMBER_CHARGED" ); // owner 2026-09-25: the four fires reach the lantern on the table
-        df_m2_ember_return( undefined );
-        return;
-    }
-
-    // owner 2026-09-23: "bring it back" only when a player carries the hand (on the table it returns by itself)
-    carried = 0;
-
-    // heard and seen (owner 2026-09-11): the sub-goal chime + flash + runner to the tower from the carrier
-    foreach ( player in getplayers() )
-    {
-        if ( is_true( player.df_ember ) )
-        {
-            carried = 1;
-            df_cue_subgoal( player.origin + ( 0, 0, 40 ) );
-        }
-    }
-
-    df_say( "M2_EMBER_CHARGED" ); // owner 2026-09-25: always (the lantern never leaves the table now)
-
-    df_debug_print( "DF: m2 all four graves spent, the burning lantern is charged: return it to the table (one press within 150)" );
-}
-
-// The charged fire hand goes back on the table (it rests there until Step 6), the carrier's hand is empty, M2 completes (df_m2_run).
-df_m2_ember_return( player )
-{
-    if ( isdefined( player ) )
-        df_m2_ember_release( player );
-
-    df_m2_ember_spawn_table( 1 ); // owner 2026-09-23: the charged hand rests on the table until Step 6
+    df_say( "M2_EMBER_CHARGED" );
+    df_m2_ember_spawn_table( 1 );
     level.df_m2_ember_returned = 1;
-    socket = df_coord( "DF_SOCKET" ).origin;
     df_cue_table_place( level.df_m2_ember_pos ); // owner 2026-09-23: the one placing snap, no fire burst or ash
-    playsoundatposition( "zmb_buildable_complete", socket );
-    df_debug_print( "DF: m2 the charged burning lantern is back in the table" );
+    playsoundatposition( "zmb_buildable_complete", df_coord( "DF_SOCKET" ).origin );
+    df_debug_print( "DF: m2 all four graves spent, the burning lantern rests on the table" );
     level notify( "df_m2_check" );
-}
-
-// ---- fists (owner 2026-09-11, idea 7) ---------------------------------------------------------
-// Maxis wants fire, not the creature's current: a Galvaknuckle melee within 100 of a tombstone, or with the ember
-// in hand, is refused (deny buzz + M2_KNUCKLES_MAXIS once per 20 s); a knuckle kill never counts at a grave
-// (df_m2_on_zombie_death).
-df_m2_fists_loop()
-{
-    level endon( "end_game" );
-    level endon( "df_m2_done" );
-    level endon( "df_skip_m2" );
-
-    while ( true )
-    {
-        wait 0.05;
-
-        foreach ( player in getplayers() )
-        {
-            if ( !is_player_valid( player ) || !df_melee_edge( player ) || !df_has_knuckles( player ) )
-                continue;
-
-            if ( !is_true( player.df_ember ) && !isdefined( df_m2_nearest( player.origin, 100, undefined ) ) )
-                continue;
-
-            df_cue_deny( player );
-
-            if ( !isdefined( level.df_m2_fists_time ) || gettime() - level.df_m2_fists_time > 20000 )
-            {
-                level.df_m2_fists_time = gettime();
-                df_say( "M2_KNUCKLES_MAXIS" );
-            }
-
-            df_debug_print( "DF: m2 " + player.name + " used the knuckles at the graves: refused" );
-        }
-    }
 }
 
 // ---- grave waves (owner 2026-09-23) --------------------------------------------------------------

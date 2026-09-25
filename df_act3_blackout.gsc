@@ -147,6 +147,11 @@ df_bo_set( s, on, quiet )
     if ( on )
     {
         wait 0.3;
+
+        // owner 2026-09-25: a respawn (df_bo_respawn) may have deleted this lever, or it was thrown OFF again meanwhile
+        if ( !isdefined( s.lever ) || !s.on )
+            return;
+
         s.lever playsound( "zmb_turn_on" );
         // owner 2026-09-25: his power comes back: an electric burst at the lever and a blue snap
         df_fx_burst( "elec_md", s.lever.origin, 0.8 );
