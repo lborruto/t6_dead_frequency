@@ -2451,7 +2451,10 @@ df_r2_table_battery_show( i )
         need = 3;
 
     side = ( i - ( need - 1 ) * 0.5 ) * 16;
-    pos = df_ground( c.origin + anglestoforward( ( 0, yaw, 0 ) ) * 8 + anglestoright( ( 0, yaw, 0 ) ) * side + ( 0, 0, 20 ) );
+    // owner 2026-09-25: ON THE GROUND under the table: a ground trace hits the table top, so the floor height is
+    // the table's own (DF_TABLE stands on the ground + 1)
+    pos = c.origin + anglestoforward( ( 0, yaw, 0 ) ) * 8 + anglestoright( ( 0, yaw, 0 ) ) * side;
+    pos = ( pos[0], pos[1], c.origin[2] - 1 );
     b = spawnstruct();
     b.model = spawn( "script_model", pos );
     b.model setmodel( df_model( "r2_battery" ) );
