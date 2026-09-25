@@ -29,7 +29,8 @@
 //   "screecher_light_<name>" (zm_transit.csc:650 safety_light_callback -> power_controlled_or_turbine);
 //   while a set lamp carries our light its clientfield is held at 0 (df_lamp_keeper) and the SERVER flag
 //   light.power_on (the only thing a denizen burrow checks, zm_transit_ai_screecher.gsc:55) is kept on
-//   silently for Step 5 (df_lamp_power_silent) - no forced green, anchors still possible.
+//   silently (df_lamp_power_silent) - no forced green. owner 2026-09-25: only the Maxis Act 2 reward
+//   (df_fin_reward_maxis) and the finale (df_fin_world) set it; Step 5 does not touch it.
 //   Colours (fixed 2026-09-08 after the owner still saw no blue): the vanilla quest does NOT colour a lamp with
 //   a server fx. Each lamp has four client EXPLODERS (zm_transit.csc power_controlled_lights: on 100+2i green,
 //   off 101+2i dark, off_sq 400+2i = fx_zmb_tranzit_light_safety_max ORANGE, on_sq 401+2i =

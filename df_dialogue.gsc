@@ -359,7 +359,7 @@ df_dialogue_finale()
     // FIN_WORLD_*: the permanent world change after the spectacle (audit #8)
     df_add_line( "FIN_WORLD_RICH", "rich", "The lamps, Samuel! All sparking, all mine. And Avogadro? The obelisk ate him!" );
     df_add_line( "FIN_WORLD_MAXIS", "maxis", "The lamps answer to me now. The fog is quiet. The little ones will not return." );
-    // residue lines, once, right after FIN_WORLD_* (df_finale df_fin_keepsake): the card / the skull stay on the table
+    // residue lines, once, right after FIN_WORLD_* (df_finale df_fin_keepsake): the card / the hand stay on the table
     df_add_line( "ITEM_KEEPSAKE_RICH", "rich", "Keep the card, Samuel. A souvenir of the day you made me very happy." );
     df_add_line( "ITEM_KEEPSAKE_MAXIS", "maxis", "The hand burnt away for this. Let the Spire remember whose fire it holds." );
 }

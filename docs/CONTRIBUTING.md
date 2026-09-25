@@ -63,9 +63,10 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   header (see "Rules" below). Event keys added 2026-09-23: `S4_CHOOSE` (first lift of the relay), `R1_RICH_NOSTORM`
   (no Avogadro entity), `R2_POWER_RICH` (power-OFF penalty), `A2_JETGUN_RICH` / `_MAXIS` (Act 2 done, nobody has
   a Jet Gun; `S6_NOJETGUN_*` stays for the Step 6 pickup), `M2_GRAVE_COLD`, `D5_ANCHOR`, `S6_CARD_RICH`,
-  `D6_FULL_RICH` / `_MAXIS`, `S7_DENIZEN_MAXIS` (kept in the sheet but no longer played: the Maxis Step 7 wave has
-  no denizens since 2026-09-25), `D7_ZONE_RICH` / `_MAXIS`. The Maxis item lines follow the hand arc (2026-09-25):
-  `ITEM_SKULL_MAXIS`, `M1_DONE`, `M2_START`, `ITEM_EMBER_MAXIS`, `M2_EMBER_CHARGED`, `M2_EMBER_LOST` and
+  `D6_FULL_RICH` / `_MAXIS`, `D7_ZONE_RICH` / `_MAXIS`. `S7_DENIZEN_MAXIS` was removed (owner 2026-09-25: no
+  caller left, the Maxis Step 7 wave no longer releases denizens, `df_act3_hold` `df_s7_side_pressure`). The
+  Maxis item lines follow the hand arc (2026-09-25):
+  `ITEM_HAND_MAXIS` (renamed from `ITEM_SKULL_MAXIS`), `M1_DONE`, `M2_START`, `ITEM_EMBER_MAXIS`, `M2_EMBER_CHARGED`, `M2_EMBER_LOST` and
   `ITEM_KEEPSAKE_MAXIS` speak of the hand, never a skull.
 - `df_coords.gsc` - world anchors and the model registry. Positions derive from TranZit's entity list
   (`tools/assets/zm_transit.d3dbsp.ents.txt`, dumped with the OpenAssetTools Unlinker); wall props find their wall at
@@ -120,8 +121,8 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   `df_s5_run` / `df_s5_setup`, Step 5's single entry point on both sides (registered with `df_register_step`): on
   Richtofen (`level.df_side == "rich"`) it hands off at once to `df_bo_run` / `df_bo_setup` in
   `df_act3_blackout.gsc` (owner 2026-09-25); the file's own Galvaknuckle-jolt anchor branch for Richtofen
-  (`df_s5_is_rich`, S5_ANCHOR_DENIZEN_RICH / S5_NOFISTS_RICH) is dead code kept for safety, never reached in
-  normal play.
+  (`df_s5_is_rich`, S5_ANCHOR_DENIZEN_RICH / S5_NOFISTS_RICH) was deleted (owner 2026-09-25): it was never
+  reached in normal play.
 - `df_act3_blackout.gsc` - Step 5 on Richtofen (owner 2026-09-25): "Blackout". Three power switches (kinds
   `pswitch_body` + `pswitch_lever`, anchors `DF_BLACKOUT_1..3`, vanilla's power switch without its hand) stand ON
   from boot on both sides; when Step 5 opens all three roll OFF at once (Maxis cuts the grid). One press of F
@@ -268,7 +269,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 |---|---|
 | Act 1 | `a1_solve1` (Step 1 solved, the coil arrives), `a1_tv` (kick the next expected pipe), `a1_parts` (take every part, coil included), `a1_hit` (200 dmg to the relay), `a1_stop` (count the running sweep), `a1_relay` (relay to your feet), `a1_build` (vanilla build hands demo), `a1_receiver` (the coil arrives at DF_COIL_DROP now, without the pipes), `a1_corn` (the Maxis cornfield line at the relay) |
 | R1 / R2 | `simon_solved` (= `!df simon`), `souls_done` (= `!df souls`), `r1_captured`, `r1_sounds` (click / buzzer / arpeggio), `r1_soul` (ONE box gets its battery without the bus trip), `r1_card` (card arrival fx), `r2_soul` (one soul into the first unfilled lamp), `r2_punch` (every full lamp gives its spool without the knuckles), `r2_spool` (one spool counts as placed) |
-| M1 / M2 | `m1_latch`, `m1_kills`, `m1_cue` (kill cue demo), `m1_burst`, `m1_fog` (toggle bunker fog), `m1_ride` (first-ride cue: table pulse + line + hint, no denizen needed), `m1_skull` (drop the M1 hand in front of you; fire again to send it to the table), `m2_ember` (you hold the hand now), `m2_light` (light the next unlit grave), `m2_fill` (spend every grave and return the fire hand: a carrier returns it, else it is put back on the table), `m2_restage` (re-skin the graves after `!df model brazier ...`), `m2_penalty` (the power-ON penalty now), `m2_column` (the 20 s smoke column at the tower top) |
+| M1 / M2 | `m1_latch`, `m1_kills`, `m1_cue` (kill cue demo), `m1_burst`, `m1_fog` (toggle bunker fog), `m1_ride` (first-ride cue: table sound + line + hint, no table fx, no denizen needed), `m1_skull` (drop the M1 hand in front of you; fire again to send it to the table), `m2_ember` (you hold the hand now), `m2_light` (light the next unlit grave), `m2_fill` (spend every grave and return the fire hand: a carrier returns it, else it is put back on the table), `m2_restage` (re-skin the graves after `!df model brazier ...`), `m2_penalty` (the power-ON penalty now), `m2_column` (the 20 s smoke column at the tower top) |
 | Step 5 (Maxis sweep) | `s5_anchor`, `s5_all`, `s5_time` (needs one anchor first), `s5_penalty` |
 | Step 5 (Richtofen Blackout) | `blackout_off` (all three switches OFF, a running step keeps going), `blackout_on` (all three ON, completes the step if it is open) |
 | Step 6 | `s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver`, `s6_restart`, `orb_aura` (next aura candidate) |

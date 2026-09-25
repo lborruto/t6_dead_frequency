@@ -121,6 +121,8 @@ df_bo_run()
         return;
     }
 
+    // owner 2026-09-25: the AVAILABLE glint at the first switch, same as every other step's focus
+    df_step_focus( "step5", level.df_bo[0].origin + ( 0, 0, 60 ) );
     level thread df_bo_skip_cleanup();
     level.df_bo_active = 1;
 
@@ -153,11 +155,12 @@ df_bo_setup()
 }
 
 // owner 2026-09-25: only clears players whose df_bo_prompt is actually set (df_bo_press_loop is the only
-// other writer of that flag, and resets it itself; this covers the "stopped mid-prompt" case)
+// other writer of that flag, and resets it itself; this covers the "stopped mid-prompt" case). The
+// notify is LAST: df_bo_skip_cleanup endons "df_bo_stop" and calls this itself, so notifying first would
+// kill that thread before the prompt cleanup below ever ran.
 df_bo_stop()
 {
     level.df_bo_active = 0;
-    level notify( "df_bo_stop" );
 
     foreach ( player in getplayers() )
     {
@@ -167,6 +170,8 @@ df_bo_stop()
         player.df_bo_prompt = 0;
         player df_prompt( 0, undefined );
     }
+
+    level notify( "df_bo_stop" );
 }
 
 df_bo_skip_cleanup()

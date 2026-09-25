@@ -452,7 +452,6 @@ df_s7_teardown()
     level thread df_s7_afterwave(); // owner 2026-09-11: the dead keep coming until the song ends
     df_s7_release_hunters();
     df_s7_boost( 0 );
-    df_s7_denizens();
     df_s7_song_stop();
     df_fx_stop( level.df_s7_storm );
     level.df_s7_storm = undefined;
@@ -1807,32 +1806,10 @@ df_s7_avogadro_watch()
     }
 }
 
-// ---- Maxis: denizen levers (restore only) ----------------------------------------------------
-// owner 2026-09-25: the release branch (on = 1) is gone - Maxis no longer lets denizens loose on the tower
-// (a latching denizen made guarding the rock unfair, df_s7_side_pressure). Nothing sets level.df_s7_denizens_on
-// true any more, so this is a safe no-op kept for the one teardown call site (df_s7_teardown, "safe to call
-// when no wave runs"); it would restore the three levers if anything ever set the flag again:
-//   level.zones["zone_cornfield_prototype"].screecher_zone (zm_transit::init_screecher_zones),
-//   level.zombie_ai_limit_screecher (2 in _zm_ai_screecher::init) raised to 4,
-//   the tower's "screecher_volume" safety box (ents dump: info_volume at 7640 -457 -11) taken out of
-//   level.safety_volumes (zm_transit::player_entered_safety_zone), which otherwise makes every player
-//   at the tower invisible to the denizen spawner.
-df_s7_denizens()
-{
-    if ( !is_true( level.df_s7_denizens_on ) )
-        return;
-
-    level.df_s7_denizens_on = 0;
-
-    if ( isdefined( level.zones ) && isdefined( level.zones["zone_cornfield_prototype"] ) )
-        level.zones["zone_cornfield_prototype"].screecher_zone = level.df_s7_zone_saved;
-
-    if ( isdefined( level.df_s7_limit_saved ) )
-        level.zombie_ai_limit_screecher = level.df_s7_limit_saved;
-
-    df_s7_tower_safety_volume( 1 );
-    df_debug_print( "DF: s7 denizen levers restored" );
-}
+// owner 2026-09-25: df_s7_denizens (the Maxis denizen-lever restore, on = 1 release branch already gone)
+// removed along with its lone call site in df_s7_teardown - Maxis no longer lets denizens loose on the
+// tower (a latching denizen made guarding the rock unfair, df_s7_side_pressure), nothing set
+// level.df_s7_denizens_on true any more, and nothing else called it.
 
 // on = 0: rebuild level.safety_volumes without the tower box and forget cached hits;
 // on = 1: drop the cache so vanilla re-reads the full list on the next check (zm_transit.gsc:956

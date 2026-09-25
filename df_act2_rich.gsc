@@ -14,9 +14,10 @@
 // (df_r1_boot_spawn: dark, inert, a faint glow); R1 only arms them. The key card stays a reveal.
 // Audit pass (2026-09-08, C-rich): capture_time / simon_len / fuse_souls rows (df_rich_scaled fallbacks
 // until df_steps has them), no capture fail while he is within 900 of the tower, power-chamber softlock
-// fix (R1_RICH_CHAMBER + poll), table pulses blue while he is alive at the tower, R2 beams on unfilled
-// lamps, Richtofen side rules from R1 on (Avogadro every round, turrets need no turbine from R2, power-OFF
-// penalty at end of round).
+// fix (R1_RICH_CHAMBER + poll), R2 beams on unfilled lamps, Richtofen side rules from R1 on (Avogadro
+// every round, turrets need no turbine from R2, power-OFF penalty at end of round). owner 2026-09-25: the
+// table pulse while he was alive at the tower is gone (df_r1_table_pulse removed); no replacement cue,
+// the no-fail-within-900 rule (df_r1_wait_capture) is silent.
 // Earlier passes kept: models via df_model, puzzle prompt via df_prompt_puzzle, single-press pickups via
 // df_press_use, lamps via df_lamps.gsc (one set per game), the inserted card stays on table slot 1.
 // V2 pass (2026-09-09, V2-rich; tools/audit_steps_v2.md #1, tools/audit_art.md R1/R2, tools/audit_dialogue_v2.md):
@@ -457,6 +458,11 @@ df_r1_setup()
     df_r1_export_nodes();
     df_r1_card_table_place();
     df_r1_side_rules_start();
+
+    // owner 2026-09-25: the same steady charged glow df_r1_finish gives, since a goto skips straight to
+    // "already charged" and the boxes should read that way
+    foreach ( fuse in level.df_fuses )
+        df_rich_glow_set( fuse, fuse.led_origin, "fx_zmb_tranzit_light_glow" );
 }
 
 // The R2 lamps are NOT exported on this side.

@@ -57,7 +57,7 @@ df_init_scaling()
     df_scale_row( "orb_hp", 3000, 4200, 5400, 6600 ); // audit v3 co-op: the sprinter cap grows faster than the old hp did // owner 2026-09-09: was 2000..3200 // audit (was a fixed 2000): Step 7 orb hit points (level.df_s7_cfg_orb_hp in df_act3_hold)
     df_scale_row( "s7_period", 1.3, 1.0, 0.8, 0.7 ); // audit v2 section 6 (was 1.0/0.9/0.8/0.7): Step 7 seconds between sprinter spawns (df_act3_hold level.df_s7_cfg_period)
     df_scale_row( "s7_cap_rich", 10, 14, 18, 22 ); // audit v2 section 6 (was 12/16/20/24): Step 7 sprinters alive at once, Richtofen side (Avogadro adds pressure)
-    df_scale_row( "s7_cap_maxis", 14, 18, 22, 26 ); // audit v2 section 6 (was 16/20/24/28): same, Maxis side (denizens add pressure)
+    df_scale_row( "s7_cap_maxis", 14, 18, 22, 26 ); // audit v2 section 6 (was 16/20/24/28): same, Maxis side (the smoke column, full sprinter cap)
 }
 
 // Stores one table row: index 0..3 = 1..4 players.

@@ -120,7 +120,7 @@ at the table to insert it. Then:
 
 Defeat him AT THE TOWER: three knife hits, as vanilla. There is a clock (240 s solo, 300 in co-op) but it never
 fails while he is near the tower; it fails only if he is defeated far away or if the clock runs out with him
-far away. While he is alive at the tower the table pulses blue.
+far away.
 
 If it fails, the card leaves the table and the boxes go dark and lock. A single BATTERY appears on the bus
 dashboard: take it, ride to the barn, press F at each of the four boxes (glow, sparks, clink). The battery stays
@@ -163,9 +163,9 @@ loses its battery. When R2 completes every lamp of the set counts as full.
 <details><summary><b>M1 - The Cold Room (the tower, then Nacht)</b> (click to reveal)</summary>
 
 
-Go into the fog and let a denizen jump on your head. The first time it happens the table pulses orange and
-Maxis speaks. Walk to the table with the denizen still on you: it dies in ash and an orange hole opens in front
-of the table. Walk INTO the hole (no F): you are in the Nacht der Untoten bunker.
+Go into the fog and let a denizen jump on your head. The first time it happens Maxis speaks. Walk to the table
+with the denizen still on you: it dies in ash and an orange hole opens in front of the table. Walk INTO the
+hole (no F): you are in the Nacht der Untoten bunker.
 
 Cold room: 60 s solo (75 / 90 / 100). Denizens rise two at a time, at random spots of the bunker away from
 you; kill 6 (9 / 12 / 15). Downed players come along and can be revived inside. Timeout: everyone is sent back

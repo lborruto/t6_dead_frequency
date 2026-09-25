@@ -325,9 +325,9 @@ df_m1_wait_latch()
 }
 
 // A player carrying a denizen (player.screecher, _zm_ai_screecher.gsc:549) within 300 of the table.
-// Audit #6: the FIRST time anyone is ridden after M1 opened, the table pulses orange and Maxis speaks
-// (M1_EVENT alone: the dialogue audit v2 dropped the hint rung that said the same thing 6.5 s later): the
-// counter-reflex "do not knife it".
+// Audit #6: the FIRST time anyone is ridden after M1 opened, the table sounds its cue and Maxis speaks
+// (M1_EVENT alone: the dialogue audit v2 dropped the hint rung that said the same thing 6.5 s later; owner
+// 2026-09-25: sound cue only, no table fx any more): the counter-reflex "do not knife it".
 df_m1_latch_poll()
 {
     level endon( "end_game" );
@@ -421,7 +421,7 @@ df_m1_debug_kills_hook()
 //                       kill's sub-goal cue 2.5 s later;
 //   "!df fire m1_burst" the return burst at DF_TOWER_RETURN;
 //   "!df fire m1_fog"   toggles the cold room fog at the Nacht anchors (visit with !df tp DF_NACHT_SPAWN_1);
-//   "!df fire m1_ride"  the first-ride cue (table pulse + M1_EVENT) even without a denizen;
+//   "!df fire m1_ride"  the first-ride cue (table sound + M1_EVENT, no table fx) even without a denizen;
 //   "!df fire m1_skull" drops the hand in front of the first player; fired again (the hand on the floor or
 //                       already carried) it goes onto table slot 1, which completes M1 once the cold room is done.
 df_m1_debug_cue_hook()
@@ -2464,7 +2464,8 @@ df_m2_fill( b, quiet )
 
     df_cue_subgoal( top );
     df_say( "M2_MAXIS_BRAZIER" );
-    df_debug_print( "DF: m2 " + b.name + " spent and gone (" + df_m2_done_count() + "/4)" );
+    // owner 2026-09-25: was "spent and gone" - the grave model stays from boot, only its flame goes out
+    df_debug_print( "DF: m2 " + b.name + " spent (the grave stays, its flame is out) (" + df_m2_done_count() + "/4)" );
 
     if ( df_m2_all_done() )
         df_m2_ember_charged();

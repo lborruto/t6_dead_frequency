@@ -45,7 +45,7 @@ untouched, new zombies freeze as they finish rising); `!df jet` / `!df jet watch
 - ~20 s into round 1: MAXIS (orange name, white text) then RICHTOFEN (blue name) bottom centre, a soft tick per line.
   Readable? Cut on the right? A vanilla Maxis voice line plays at the phone when Step 1 opens (console `vox vox_maxi_tv_distress_0 3D`).
 - `!df fire perks` -> `finale perks (debug): 5 perks` + one `finale perk X given` line each, five icons. `!df say FIN_RICH_2` (longest line): still readable?
-- `!df scale` -> `players 1 | lamp_souls 12 | nodes 3 | sweep_time 360 | sweep_time_rich 480` and `hold_time 75 | orb_hp 3000 | s7_period 1.3 | s7_cap rich 10 maxis 14`.
+- `!df scale` -> `players 1 | lamp_souls 12 | nodes 3 | sweep_time 360` and `hold_time 75 | orb_hp 3000 | s7_period 1.3 | s7_cap rich 10 maxis 14`.
   A step's quotas are frozen at the player count it opened with.
 
 ## 1. What to check at round 1 (touch nothing first)
@@ -188,8 +188,8 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - Case B (he roams or sits in the cloud): storm over the tower, `avogadro called down`, warped to the tower at once.
 - Case C (no Avogadro entity at all): R1_RICH_NOSTORM ("Nothing came, Samuel..."), `no avogadro entity to summon, r1
   counts as captured`, R1 completes without a fight.
-- While he is alive within 900 of the tower the table pulses BLUE. The last 30 s of the 240 s clock tick once a second;
-  stay near him past it: NO fail while he is within 900.
+- While he is alive within 900 of the tower there is no table fx, only the no-fail rule. The last 30 s of the
+  240 s clock tick once a second; stay near him past it: NO fail while he is within 900.
 - Knife him 3 times (vanilla's defeat): `avogadro captured at the tower`, soul trails from the table into the 4 boxes, a
   blue burst on each, `step complete r1`, the fifth step glow on the relay. Maxis's vanilla stab line once.
 - Wrong: paste `simon ...`, `avogadro ...` lines.
@@ -224,8 +224,8 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 **M1 The Cold Room**. Skips: `!df fire m1_ride` (ride cue), `m1_latch`, `m1_kills`, `m1_skull` (the hand in front of you; fire again = on the table).
 - `!df goto m1`: console `m1 waiting for a denizen latched within 300 of the table` then `s7 tower safety volumes
   removed: N`. Denizens now rise AT the tower in the fog. Glint over the table.
-- Let a denizen jump on you anywhere: the portal-open sound, the table pulses ORANGE 5 s, Maxis's M1_EVENT line,
-  console `m1 first ride: table pulse + event line`. Only the first time.
+- Let a denizen jump on you anywhere: the portal-open sound, Maxis's M1_EVENT line, console `m1 first ride:
+  table cue + event line`. No light. Only the first time.
 - Walk to the table with it: it dies in ash, `m1 denizen latched at the table`, `m1 portal at 7623 -457 ...`: the hole
   rises out of the ground in front of the table and spins with an orbiting orange light; the glint moves onto it.
 - Walk INTO the hole (no F): warp sound, black flash, Nacht. `m1 cold room 60 s, 6 denizen kills`, cold fog, the
@@ -234,7 +234,8 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   trail + ash + `m1 denizen kill k/6`.
 - Success: `m1 cold room over: success (6/6)`, the STRIKE where the last one died and the HAND (the power switch hand,
   `p6_zm_buildable_pswitch_hand`; code kind `skull`, so the console still says skull) lies there with a glint (`m1
-  skull on the floor at ..., one press takes it`), Maxis: "The cold left a hand behind. The hand of his switch..."; 30 s
+  skull on the floor at ..., one press takes it`), Maxis (ITEM_HAND_MAXIS): "The cold left a hand behind. The
+  hand of his switch. Set it on the table."; 30 s
   window, "Press F to take the hand" within 100 ("Take the hand before the cold closes" for the room only with hints
   on). Then everyone is sent back (`m1 1 player(s) returned to the tower`). Nobody took it: `m1
   skull not taken in 30 s, it comes along to the tower`, it lies at the tower return point with its glint, NEVER
@@ -267,9 +268,9 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   burning or not, any gun: EVERY counted kill = a fire burst at the body with the swipe sound there, a fire trail into
   the grave, then the clink at the grave (two different sounds; paste it if one is missing on quick kills), `m2
   brazier_n 1/5`. A kill at an unlit grave does not count (deny buzz to the killer, console silent); a Galvaknuckle kill
-  at a lit grave does not count either (deny buzz). At 5: `m2 brazier_n spent and gone (k/4)` (owner 2026-09-25:
-  the console text still says "gone", but the model does not delete any more): a small burst, the tombstone STAYS
-  standing with its clips, its flame goes out, and a scorched lava glow marks the spot.
+  at a lit grave does not count either (deny buzz). At 5: `m2 brazier_n spent (the grave stays, its flame is out)
+  (k/4)`: a small burst, the tombstone STAYS standing with its clips, its flame goes out, and a scorched lava
+  glow marks the spot.
 - Cold timer: a lit grave not filled within 90 s (`set df_m2_grave_time <s>` before loading) goes cold: the tick-tock
   runs for the grave that cools first (dry ticks in its last 30 s), then EMP thump at the grave, M2_GRAVE_COLD, `m2
   brazier_n went cold (not filled within 90 s): light it again and fill it from 0`, the crackle stops, `m2 wave OFF at
@@ -298,19 +299,17 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   a glint at the bulb; no lamp turns green.
 - Hold F 5 s: a rising power sound at the lamp (NO bar), 1 / 2 / 3 quick ticks at 25 / 50 / 75 %, then two clinks and
   `lamp X tuned, waiting 15 s for an anchor`: the light blinks, tick-tock at the lamp, no timer, the electric arcs are
-  off. The first time, the patron names the anchor (S5_ANCHOR_TURBINE_MAXIS = "A turbine at its foot. Quickly!").
+  off. The first time, the patron names the anchor (S5_ANCHOR_TURBINE_MAXIS = "It drifts. A door is not an
+  anchor. A turbine at its foot. Quickly!").
 - Put a RUNNING TURBINE within 200 of the lamp base (before or during the wait): NavCard chime + fire flash +
   runner to the tower, `lamp X anchored (1/3)`, and only now `s5 countdown started at the first anchor: 360 s`, ticks.
-- Every anchor short of the last: D5_ANCHOR ("That one holds. The others still drift.").
+- Every anchor short of the last: D5_ANCHOR ("That one holds. The others still drift. Listen again.").
 - Without an anchor: after 15 s EMP thump + side fx at the lamp, `no anchor within 15 s, signal lost, draining`, 10 s,
   `tunable again`, prompt back. No countdown.
 - The countdown is the Pack-a-Punch tick-tock riding you (one loop per player, everywhere on the map); the dry ticks join
   under 30 s. Anchored lamp: steady side light + light shaft from the tower + slow double burst, no arcs. All anchored:
   `s5 3 lamps anchored, step done`, D5_DONE, `step complete step5`.
 - Wrong: paste `s5 lamp X ...` lines and where the turbine stood.
-- The file's own Richtofen anchor branch (Galvaknuckle jolt on the post, S5_ANCHOR_DENIZEN_RICH / S5_NOFISTS_RICH)
-  is dead code kept for safety: `df_s5_run` / `df_s5_setup` hand Richtofen off to Blackout before any of it can
-  run, so it is not reachable in normal play and needs no test.
 
 **Step 5 Blackout (Richtofen)**. Skips: `!df fire blackout_off` (all three switches OFF, a running step keeps
 going), `!df fire blackout_on` (all three ON, completes the step if it is open), `!df goto step6`.
@@ -326,8 +325,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - End of a round with at least one switch still OFF: `DF: blackout Maxis knocked switch N OFF at the end of the
   round`, BO_OFF_MAXIS ("Another of his switches falls. The dark is patient.") - Maxis always knocks an ON switch,
   never one already dark.
-- All three ON at once: sub-goal cue, `DF: blackout all switches ON`, D5_DONE_RICH ("All three ON! Hear it hum,
-  Samuel? Now something must carry the charge."), `step complete step5`.
+- All three ON at once: sub-goal cue, `DF: blackout all switches ON`, D5_DONE_RICH ("All three ON! The obelisk
+  drinks, Samuel. Now my card wants to let go!"), `step complete step5`.
 - `!df fire blackout_off` / `blackout_on`: `DF: blackout debug: every switch df_debug_blackout_off` /
   `df_debug_blackout_on` (the console line names the raw hook, not ON/OFF, on purpose). `!df goto step6`: all
   three switches stand ON, nothing running, no console line.
