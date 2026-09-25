@@ -232,7 +232,7 @@ df_dialogue_act3_sweep()
     df_add_line( "S5_START_MAXIS", "rich", "Street lights, Samuel! He has you tuning STREET LIGHTS! Hahaha! Pathetic." );
     // plain S5_HINT_1 (D5_HINT alias, !df say before the fork): the sided texts word for word, no own string
     df_add_line( "S5_HINT_1", "maxis", "Hold on at a humming lamp until it settles. Then it waits. It will need power." );
-    df_add_line( "S5_HINT_1", "rich", "Stand at one of YOUR lamps and hold on. Then jolt the post. Electric fists." );
+    df_add_line( "S5_HINT_1", "rich", "Three power switches, Samuel. One press each puts my power back." );
     df_add_line( "S5_HINT_1_RICH", "rich", "Three power switches, Samuel. One press each puts my power back." );
     df_add_line( "S5_HINT_1_MAXIS", "maxis", "Hold on at a humming lamp until it settles. Then it waits. It will need power." );
     df_add_line( "S5_HINT_2_RICH", "rich", "One fell again? Maxis sulks every round. Flip it back ON, schnell!" );
@@ -252,7 +252,7 @@ df_dialogue_act3_sweep()
     df_add_line( "D5_ANCHOR_MAXIS", "maxis", "That one holds. The others still drift. Listen again." );
     df_add_line( "D5_FAIL", "maxis", "The clock ran out. What is anchored stays. Loose lamps want the dead first." );
     df_add_line( "D5_FAIL_MAXIS", "maxis", "The clock ran out. What is anchored stays. Loose lamps want the dead first." );
-    df_add_line( "D5_DONE", "rich", "Tuned! Do you hear it, Samuel? Now something must carry the charge home." );
+    df_add_line( "D5_DONE", "rich", "All three ON! Hear it hum, Samuel? Now something must carry the charge." );
     df_add_line( "D5_DONE", "maxis", "Every anchor holds. It cannot drift. Something small must carry the charge." );
     df_add_line( "D5_DONE_RICH", "rich", "All three ON! Hear it hum, Samuel? Now something must carry the charge." );
     df_add_line( "D5_DONE_MAXIS", "maxis", "Every anchor holds. It cannot drift. Something small must carry the charge." );
