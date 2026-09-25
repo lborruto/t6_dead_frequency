@@ -589,8 +589,16 @@ df_tower_fx_lightning( side )
         level.df_tower_fx_ents[level.df_tower_fx_ents.size] = df_fx_loop( sparks, top + ( 0, 0, 20 ) );
     }
 
+    // owner 2026-09-25 (fire only on Maxis): the lightning orb is Richtofen's; the fire side keeps a slow fire pulse at the top instead
     while ( true )
     {
+        if ( side == "maxis" )
+        {
+            df_fx_burst( "fx_zmb_tranzit_fire_med", top, 0.8 );
+            wait( randomfloatrange( 2, 3 ) );
+            continue;
+        }
+
         df_fx_once( "sq_common_lightning", top );
         wait( randomfloatrange( 1, 2 ) );
     }
@@ -738,15 +746,11 @@ df_cue_side_flash( origin, side )
 // the blue one-shot spark the relay plug always used. Nothing stays behind: the lasting look is the step glow.
 // owner 2026-09-23: on the Maxis side a short fire snap instead (0.3 s of fx_zmb_tranzit_fire_med); Richtofen and
 // no side keep the blue spark.
+// owner 2026-09-25: the table under the tower carries NO fx of ours (owner: "remove glow or anything on the table"): the
+// placing snap is the clink only, played by the callers; this stays as the one place to change that.
 df_cue_table_place( pos )
 {
-    if ( isdefined( level.df_side ) && level.df_side == "maxis" )
-    {
-        df_fx_burst( "fx_zmb_tranzit_fire_med", pos + ( 0, 0, 10 ), 0.3 );
-        return;
-    }
-
-    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", pos + ( 0, 0, 10 ) );
+    df_snd_near( "zmb_buildable_piece_add", pos, 700 );
 }
 
 // PROGRESS TICK: one soul counted, one charge, one part, one click. To every player within 700 of origin, at the

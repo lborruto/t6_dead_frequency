@@ -128,7 +128,7 @@ df_fin_socket_watch()
     level endon( "df_fin_started" );
 
     c = df_coord( "DF_SOCKET" );
-    level.df_fin_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", c.origin + df_fx_point( "socket_glow" ) );
+    level.df_fin_marker = undefined; // owner 2026-09-25: no marker glint on the table (owner); the prompt leads
 
     while ( true )
     {
@@ -300,7 +300,9 @@ df_fin_spectacle( side, base, socket, real )
     // for Maxis, plus the lava "ignite" crack at the top; art audit #9: the blue spark over the table was a
     // leak on the Maxis path).
     df_tower_fx_start( side );
-    df_fx_once( "sq_common_lightning", top );
+
+    if ( side != "maxis" )
+        df_fx_once( "sq_common_lightning", top ); // owner 2026-09-25 (fire only on Maxis)
     df_cue_side_flash( top, side );
     df_cue_side_flash( socket + ( 0, 0, 30 ), side );
 
@@ -313,7 +315,9 @@ df_fin_spectacle( side, base, socket, real )
     // thunder: the Avogadro arrival crack (_zm_ai_avogadro.gsc:810), verified loud by the owner; the cue
     // table keeps it on both sides (SPECTACLE row). earthquake( scale, duration, origin, radius ):
     // _zm_powerups.gsc:857 (nuke, 0.5 / 0.75 / 1000)
-    playsoundatposition( "zmb_avogadro_spawn_3d", top );
+    if ( side != "maxis" )
+        playsoundatposition( "zmb_avogadro_spawn_3d", top ); // owner 2026-09-25 (fire only on Maxis): the Maxis finale keeps the fire whoosh above
+
     earthquake( 0.5, 3, base, 1500 );
     df_fin_vox( side, base );
     df_debug_print( "DF: finale burst, tower fx on (" + side + ")" );
@@ -1132,7 +1136,7 @@ df_fin_step_glow( key )
     fxname = getdvar( "df_step_glow_fx" );
 
     if ( !isdefined( fxname ) || fxname == "" )
-        fxname = "fx_zmb_tranzit_light_bulb_xsm";
+        fxname = "fx_zmb_tranzit_key_glint"; // owner 2026-09-25: the bulb glow was still too strong
 
     fx = df_fx_loop( fxname, relay.origin + df_fx_point_at( "relay_step_glow_" + i, relay.angles[1] ) );
 

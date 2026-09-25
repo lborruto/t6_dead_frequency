@@ -1612,6 +1612,10 @@ df_step4_socket_light( side )
     if ( side == "rich" )
         fxname = "fx_zmb_tranzit_light_safety_ric";
 
+    // owner 2026-09-25: no light on the table under the tower (owner); the fork is said by S4_CHOOSE and the S4 hints
+    if ( 1 )
+        return;
+
     level.df_socket_fx = df_fx_loop( fxname, level.df_socket.origin + df_fx_point( "socket_glow" ) );
 }
 
@@ -1935,7 +1939,9 @@ df_a1_socket_marker_set( on )
         return;
 
     c = df_coord( "DF_SOCKET" );
-    level.df_socket_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", c.origin + df_fx_point( "socket_marker" ) );
+    // owner 2026-09-25: no marker glint on the table (owner); the prompt and the lines lead the carrier
+    if ( !isdefined( c ) )
+        return;
 }
 
 // The side the power switch would lock right now: on = Richtofen, off = Maxis (Step 4 rule).
@@ -2004,11 +2010,7 @@ df_step4_plug( who )
     df_step4_plugged_relay_spawn();
     spark = level.df_socket.origin + df_fx_point_at( "socket_spark", df_table_yaw() ); // horizontal part: turned with the table (DF_SOCKET sits on DF_TABLE)
 
-    // owner 2026-09-23 (audit P4): the plug spark is the side's: blue for Richtofen, a fire snap for Maxis
-    if ( side == "maxis" )
-        df_fx_burst( "fx_zmb_tranzit_fire_med", spark, 0.3 );
-    else
-        df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", spark );
+    // owner 2026-09-25: no plug spark on the table (owner); the clink and the switch-on sound stay
 
     df_cue_tick( level.df_socket.origin + ( 0, 0, 30 ) );
     playsoundatposition( "zmb_buildable_complete", level.df_socket.origin ); // 1.4 s "built" (zmb_turn_on = 14 s)

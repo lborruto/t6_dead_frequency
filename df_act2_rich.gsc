@@ -879,8 +879,8 @@ df_r1_wait_card_inserted()
     level endon( "end_game" );
 
     socket = df_coord( "DF_SOCKET" ).origin;
-    df_fx_stop( level.df_socket_marker );
-    level.df_socket_marker = df_fx_loop( "fx_zmb_tranzit_light_glow", socket + df_fx_point( "socket_marker" ) );
+    df_fx_stop( level.df_socket_marker ); // owner 2026-09-25: no marker glint on the table (owner)
+    level.df_socket_marker = undefined;
 
     while ( true )
     {

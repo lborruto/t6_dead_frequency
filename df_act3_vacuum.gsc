@@ -439,7 +439,10 @@ df_s6_orb_arrival( pos )
     }
 
     df_cue_side_flash( pos, undefined );
-    playsoundatposition( "zmb_avogadro_spawn_3d", pos );
+
+    if ( !df_s6_is_maxis() )
+        playsoundatposition( "zmb_avogadro_spawn_3d", pos ); // owner 2026-09-25 (fire only on Maxis): Avogadro's crack on Richtofen only
+
     earthquake( 0.3, 0.6, pos, 800 );
     df_debug_print( "DF: s6 strike at DF_ORB_SPAWN" );
 }

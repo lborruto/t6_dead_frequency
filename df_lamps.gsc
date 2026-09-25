@@ -597,6 +597,10 @@ df_lamp_set_all( state )
 // Loop sound on a script_origin at the bulb (vanilla pattern, zm_transit.gsc:3349); alias undefined = silence.
 df_lamp_hum_set( lamp, alias, volume )
 {
+    // owner 2026-09-25: the fire side hums with fire, never Avogadro's electric loop
+    if ( isdefined( alias ) && alias == "zmb_avogadro_loop" && df_lamp_side_is_maxis() )
+        alias = "zmb_fire_loop";
+
     if ( isdefined( lamp.snd ) )
     {
         lamp.snd stoploopsound();
@@ -707,6 +711,10 @@ df_lamp_side_exploder( lamp )
 // (clientscripts/mp/_fx.csc playlightloopexploder appends, it does not check).
 df_lamp_exploder_set( lamp, on )
 {
+    // owner 2026-09-25: the vanilla lamp exploder carries electric arcs: never lit on the fire side (the lava bursts and glow say it)
+    if ( on && df_lamp_side_is_maxis() )
+        on = 0;
+
     id = df_lamp_side_exploder( lamp );
 
     if ( !isdefined( id ) )

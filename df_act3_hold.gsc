@@ -310,7 +310,7 @@ df_s7_run()
     df_s7_success();
 }
 
-// Poll players near the socket: df_prompt (mechanic), then hold use 3 s (usebuttonpressed + df_hold_use, a
+// Poll players near the socket: df_prompt (mechanic), then hold use 1.5 s (owner 2026-09-25: halved from 3 s) (usebuttonpressed + df_hold_use, a
 // channelling hold the owner validated). Returns the player who started the wave (undefined for the debug hook).
 df_s7_wait_for_start()
 {
@@ -342,7 +342,7 @@ df_s7_wait_for_start()
             df_touch( "step7" );
             player df_prompt( 0, undefined );
 
-            if ( !player df_hold_use( socket, 200, 3, "Powering the relay" ) )
+            if ( !player df_hold_use( socket, 200, 1.5, "Powering the relay" ) )
                 continue;
 
             df_s7_prompts_off();
@@ -779,7 +779,10 @@ df_s7_charge_strike()
     }
 
     df_cue_side_flash( pos, undefined );
-    playsoundatposition( "zmb_avogadro_spawn_3d", pos );
+
+    if ( !maxis )
+        playsoundatposition( "zmb_avogadro_spawn_3d", pos ); // owner 2026-09-25 (fire only on Maxis): Avogadro's crack on Richtofen only
+
     earthquake( 0.25, 0.5, pos, 600 );
 
     // owner 2026-09-09: a strike CHARGES the orb (the strikes are the reason to hold on); audit v2 #5: more
@@ -935,6 +938,13 @@ df_s7_orb_damage( amount, who )
 // Short controllable spark riding the orb (elec_md, zm_transit_fx.gsc:36). Hits are physical, so both sides spark.
 df_s7_orb_spark( seconds )
 {
+    // owner 2026-09-25 (fire only on Maxis): a fire flicker on the Maxis rock, the electric spark on Richtofen's
+    if ( isdefined( level.df_side ) && level.df_side == "maxis" )
+    {
+        df_s7_orb_fx_burst( "lava_burning", seconds );
+        return;
+    }
+
     df_s7_orb_fx_burst( "elec_md", seconds );
 }
 
@@ -1559,15 +1569,9 @@ df_s7_side_pressure()
         return;
     }
 
-    df_debug_print( "DF: s7 Maxis pressure: denizens from the start" );
-    df_s7_denizens( 1 );
-
-    // owner 2026-09-23: Maxis says why the denizens come, once per game
-    if ( !is_true( level.df_s7_denizen_said ) )
-    {
-        level.df_s7_denizen_said = 1;
-        df_say( "S7_DENIZEN_MAXIS" );
-    }
+    // owner 2026-09-25: no denizens on the Maxis wave any more (a latching denizen made guarding the rock unfair); the fast
+    // zombies and the smoke column carry it
+    df_debug_print( "DF: s7 Maxis pressure: the fast zombies only (no denizens)" );
 }
 
 // ---- Richtofen: Avogadro (same recall as R1: region = a player's, return_round = now, then warped) ----

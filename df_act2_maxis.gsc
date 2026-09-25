@@ -2590,12 +2590,12 @@ df_m2_ember_spawn_table( resting )
     level.df_m2_hand_table = spawn( "script_model", level.df_m2_ember_pos );
     level.df_m2_hand_table setmodel( df_model( "ember" ) );
     level.df_m2_hand_table.angles = df_model_angles( "ember", yaw );
-    f = df_fx_loop( df_m2_small_fire_fx(), level.df_m2_ember_pos + df_fx_point_at( "hand_fire", yaw ) );
+    f = df_fx_loop( df_m2_hand_fire_fx(), level.df_m2_ember_pos + df_fx_point_at( "hand_fire", yaw ) );
 
     if ( isdefined( f ) )
     {
         level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = f;
-        level thread df_m2_flame_keep( f );
+        level thread df_m2_flame_keep( f, df_m2_hand_fire_fx() );
     }
 
     df_debug_print( "DF: m2 the fire hand is on the table" );
@@ -2621,10 +2621,12 @@ df_m2_ember_table_remove()
 
 // The small flame burns out after a few seconds (a character death fire, not a looping one: owner 2026-09-23, the
 // hand showed none and only a freshly lit grave had one). Replayed on its carrier every 2 s while it exists.
-df_m2_flame_keep( ent )
+df_m2_flame_keep( ent, fxname )
 {
     level endon( "end_game" );
-    fxname = df_m2_small_fire_fx();
+
+    if ( !isdefined( fxname ) )
+        fxname = df_m2_small_fire_fx();
 
     while ( isdefined( ent ) )
     {
@@ -2633,6 +2635,18 @@ df_m2_flame_keep( ent )
         if ( isdefined( ent ) && isdefined( level._effect[fxname] ) )
             playfxontag( level._effect[fxname], ent, "tag_origin" );
     }
+}
+
+// owner 2026-09-25: the fire hand's own, smaller flame (the zombie fire of the graves looked big on a hand): the hellhound
+// trail fire by default, `set df_m2_hand_fx <fx key>` swaps it at the next spawn (character_fire_death_sm = the old one).
+df_m2_hand_fire_fx()
+{
+    fxname = getdvar( "df_m2_hand_fx" );
+
+    if ( !isdefined( fxname ) || fxname == "" )
+        fxname = "dog_trail_fire";
+
+    return fxname;
 }
 
 // The one small flame of M2 (graves and the fire hand); `set df_m2_fire_fx <fx key>` swaps it.

@@ -10,7 +10,7 @@
 //     owner 2026-09-11): it counts during the tuning or up to df_s5_anchor_fresh (45) seconds before it.
 //     Without the knuckles a melee there is refused (deny + S5_NOFISTS_RICH). Denizen burrows no longer count
 //     (they were RNG); df_lamp_power_silent still keeps the lamp's power flag set for the step.
-//   Every set lamp must be anchored (df_s5_need_all). The FIRST ANCHOR starts the countdown: Richtofen reads
+//   Three anchors win (df_s5_need_all; fewer only with a smaller set). The FIRST ANCHOR starts the countdown: Richtofen reads
 //   the "sweep_time_rich" row (480/360/300/270; steps audit v2 #3) when df_steps has it, else "sweep_time";
 //   Maxis reads "sweep_time" (360/300/270/240).
 //   Expiry FAILS FORWARD (steps audit v2 #2, 2026-09-09): the anchored lamps STAY anchored (beam and look
@@ -70,7 +70,12 @@ df_s5_config()
 // df_s5_collect_lamps.
 df_s5_need_all()
 {
-    level.df_s5_need = level.df_s5_lamps.size;
+    // owner 2026-09-25: THREE anchors win (the owner's call; the 2026-09-23 "every set lamp" change is undone),
+    // fewer only when the set itself is smaller
+    level.df_s5_need = 3;
+
+    if ( level.df_s5_lamps.size < 3 )
+        level.df_s5_need = level.df_s5_lamps.size;
 }
 
 // Penalty souls per unanchored lamp (12 + 3 per player since audit v3 #8). A "sweep_souls" row in df_steps wins when the
