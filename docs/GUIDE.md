@@ -8,8 +8,8 @@
 
 A few things that are true for the whole quest:
 
-- Every pickup and placement is ONE press of F. Only four actions are holds: building the relay (3 s), tuning
-  a lamp (5 s), powering the relay (1.5 s) and opening the frequency (5 s).
+- Every pickup and placement is ONE press of F. Only three actions are holds: building the relay (3 s),
+  powering the relay (1.5 s) and opening the frequency (2.5 s).
 - No timer is ever drawn on screen. When something is on a clock you HEAR it: the Pack-a-Punch tick-tock rides
   you, and dry ticks join in the last 30 seconds.
 - One sound always means the same thing: a portal-like whoosh + a glint on an object = a step is available;
@@ -173,7 +173,7 @@ you (three spots), fast enough to keep the pressure on the whole team (three per
 four alive at once); kill 6 (9 / 12 / 15). Downed players come along and can be revived inside. Timeout: everyone is sent back
 to the tower; get a denizen on your head again and repeat.
 
-Success: a HAND (the hand of the power switch) arrives by a strike where the last denizen died. You have 30 s
+Success: a LANTERN (Maxis's lantern, dead and red) arrives by a strike where the last denizen died. You have 30 s
 to take it (F) before everyone is sent back; if nobody takes it, it comes along and lies at the return point at
 the tower, still pickable. Carry it (no lamp portals; dropped at your feet if you go down) and press F at the
 table to place it (a clink): it lies on the table, cold and still. That completes M1.
@@ -183,14 +183,15 @@ table to place it (a clink): it lies on the table, cold and still. That complete
 <details><summary><b>M2 - Fire and Ash (Town)</b> (click to reveal)</summary>
 
 
-The hand M1 left on the table stays right there for this whole step - you never pick it up. Four graves stand
+The lantern M1 left on the table stays right there for this whole step - you never pick it up. Four graves stand
 OUTSIDE the map, one to each side of Town, showing nothing until you act on them: you cannot walk up to one,
 only shoot it.
 
 SHOOT a grave (any weapon) to light it: a large fire catches on it, easily seen from Town, and a kill zone opens
 on the ground where YOU were standing when you fired - a circle 400 units across, marked by a lava glow and its
 own small flame. Lighting a grave starts a wave of sprinting zombies at that zone. Kill 5 zombies inside the
-zone (5 / 5 / 6 / 7, fixed when M2 opens), burning or not (a Galvaknuckle kill does not count): every counted
+zone (5 / 5 / 6 / 7, fixed when M2 opens), burning or not (a Galvaknuckle kill does not count, and Maxis will
+say so): every counted
 kill sends a red trail and rising embers off the body, flying to the burning grave itself. Full: the grave
 bursts into fire and ash and a small tremor, then is simply gone - nothing left standing. A lit grave has 90
 seconds to be filled (you hear the clock, dry ticks at the end): if not, its fire goes out and its zone
@@ -198,7 +199,7 @@ disappears, though the grave itself still stands - shoot it again to open a fres
 A kill outside a lit zone, or at a grave that has not been shot, does not count (a buzz tells you). Denizens
 leave you alone inside the kill zone of a lit grave while M2 runs.
 
-All four gone: chime, and the hand waiting on the table becomes the BURNING LANTERN by itself, burning where it lies
+All four gone: chime, and the lantern waiting on the table becomes the BURNING LANTERN by itself, burning where it lies
 - nothing to carry back to the table. That completes M2 and the Act 2 reward drops at once. If nobody in the
 team carries a Jet Gun, Maxis says you will need one before the end.
 
@@ -241,7 +242,7 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
   a zombie dying to a CLAYMORE (sold at the Farm wall buy, or one already planted there) within 250 units of a
   humming lamp's base snaps his power off it - a blue spark flies away toward the tower and the lamp goes back
   to exactly the light the map gave it, nothing of his left on it. Kill it there any other
-  way and the lamp does not care - Maxis tells you why, once for the whole game ("Not your hand. His light must
+  way and the lamp does not care - Maxis tells you why, once for the whole game ("Not your gun. His light must
   fall at the step of the dead. A claymore."). Every lamp you put out costs him a little ("One lamp is dark. His
   voice is thinner already."), and at the end of every round while a lamp still hums, Richtofen relights one dark
   lamp again ("He has relit one of them. Put it out again."). Put out THREE lamps at once (every lamp if the set

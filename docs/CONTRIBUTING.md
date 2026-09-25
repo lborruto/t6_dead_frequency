@@ -44,8 +44,9 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   hatch at the Diner, prices the Galvaknuckles at 3000 (owner 2026-09-25: they are a MELEE wall buy, priced by
   `_zm_weap_tazer_knuckles::init` into `level.tazer_cost`, the wall stub's `cost` / `hint_parm2`, and
   `level._melee_weapons` - a stale write to `level.zombie_weapons[...].cost` was never read, so the wall still
-  charged 6000; `df_knuckles_price` now patches every copy of the price, retrying for up to 30 s in case the map
-  inits the weapon after us), and dumps the state on `!df fire compat`.
+  charged 6000; `level.tazer_cost` is set at once, then `df_knuckles_price` waits for round logic to start
+  (`flag_wait( "start_zombie_round_logic" )`, owner 2026-09-25: the wall stubs can spawn after our init) before it
+  patches every copy of the price, retrying for up to 30 s), and dumps the state on `!df fire compat`.
 - `df_systems.gsc` - shared systems: the subtitle HUD (`df_say` / `df_show_line`, per-player hud elems destroyed
   on disconnect), vanilla VO helpers (`df_maxis_vox`, `df_rich_vox`, `df_vox_once`), FX helpers (`df_fx_loop`,
   `df_fx_burst`, `df_side_burst_fx`), the unified cue grammar (`df_cue_tick / _subgoal / _fail / _deny`,
@@ -68,17 +69,22 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   (no Avogadro entity), `R2_POWER_RICH` (power-OFF penalty), `A2_JETGUN_RICH` / `_MAXIS` (Act 2 done, nobody has
   a Jet Gun; `S6_NOJETGUN_*` stays for the Step 6 pickup), `M2_GRAVE_COLD`, `S6_CARD_RICH`,
   `D6_FULL_RICH` / `_MAXIS`, `D7_ZONE_RICH` / `_MAXIS`. `S7_DENIZEN_MAXIS` was removed (owner 2026-09-25: no
-  caller left, the Maxis Step 7 wave no longer releases denizens, `df_act3_hold` `df_s7_side_pressure`). The
-  Maxis item lines follow the hand arc (2026-09-25):
-  `ITEM_HAND_MAXIS` (renamed from `ITEM_SKULL_MAXIS`), `M1_DONE`, `M2_START`, `ITEM_EMBER_MAXIS`, `M2_EMBER_CHARGED`, `M2_EMBER_LOST` and
-  `ITEM_KEEPSAKE_MAXIS` speak of the hand, never a skull.
+  caller left, the Maxis Step 7 wave no longer releases denizens, `df_act3_hold` `df_s7_side_pressure`).
+  `ITEM_EMBER_MAXIS` and `M2_EMBER_LOST` were cut in the same 2026-09-25 audit pass (no caller left once the M2
+  lantern take/carry/monitor code was removed, `df_act2_maxis.gsc`). The
+  Maxis item lines follow the lantern arc (2026-09-25):
+  `ITEM_HAND_MAXIS` (renamed from `ITEM_SKULL_MAXIS`), `M1_DONE`, `M2_START`, `M2_EMBER_CHARGED` and
+  `ITEM_KEEPSAKE_MAXIS` speak of the lantern, never a skull. That same 2026-09-25 pass reworded ~24 lines to
+  match the mechanics (the M2 / Lights Out hint ladders, the Blackout switch lines naming Nacht / Town / the
+  plant, stale M2 / D5 / S6 / D7 lines, `M2_KNUCKLES_MAXIS`) - every quote elsewhere in the docs must match
+  `df_dialogue.gsc` verbatim.
 - `df_coords.gsc` - world anchors and the model registry. Positions derive from TranZit's entity list
   (`tools/assets/zm_transit.d3dbsp.ents.txt`, dumped with the OpenAssetTools Unlinker); wall props find their wall at
   runtime with a trace; heights snap to the real floor. `df_models_init()` maps a kind (`table`, `tv`, `relay`,
   `fuse`, `card`, `brazier`, `skull`, `orb`, `pswitch_body`, `pswitch_lever`, ...) to a model plus facing
   convention; step files never name a model, they call `df_model( kind )`. `df_apply_overrides()` is where `!df grab` output is pasted; overrides
   always win. Also the table (`DF_TABLE`, three slots; `DF_SOCKET` is moved onto it; `df_table_point( offset )`
-  for props posed in the table frame: the M1 hand and the burning lantern, at the same pose), the fx attach points (`df_fx_point_def`,
+  for props posed in the table frame: the M1 lantern and the burning lantern, at the same pose), the fx attach points (`df_fx_point_def`,
   e.g. `relay_step_glow_1..9`), the Step 6 landing-spot draw (once per game at boot) and the curated
   `df_catalog_models()`.
 - `df_lamps.gsc` - the ONE lamp set per game (3 lamps, 4 with a full lobby, picked at boot from the six lamps
@@ -122,24 +128,35 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
 - `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt in
   the woods behind the hunter's cabin at the farthest of three rising spots (DF_NACHT_SPAWN_1..3, never twice in
   a row, a no-denizen zone of `level.df_m1_zone_radius`, 1000, around `DF_M1_ZONE` pauses vanilla's own denizens
-  for the whole zone while it runs), the plain HAND, code kind `skull`, floating with a white + lava glow linked
-  to it, left on the table at the burning lantern's pose; the tower keeps its vanilla safety box during the latch so a
+  for the whole zone while it runs), the lantern, code kind `skull`, standing upright on the ground and spinning,
+  with a white + lava glow linked to it, left on the table at the burning lantern's pose; a lantern dropped on the
+  bus (owner 2026-09-25) links to it (no spin while linked) and, left untaken 60 s, flies home to `DF_TOWER_RETURN`
+  (`df_m1_skull_home_timer`); the tower keeps its vanilla safety box during the latch so a
   denizen must be carried in from the fog, never rises there for free), M2 Fire and Ash (owner 2026-09-25: the
-  hand M1 left on the table is never picked up again; the four graves stand OUTSIDE the map at their own owner
-  spots, `DF_BRAZIER_1..4`, showing nothing until shot: each carries a `trigger_damage`, and a bullet on an
-  unlit one (`df_m2_grave_shot_watch`) lights it - a large fire on the grave itself (`df_m2_fire_fx`, default
-  `fx_zmb_tranzit_fire_lrg`) plus a fixed medium one at its rim, seen from Town - and opens its KILL ZONE, a
+  lantern M1 left on the table is never picked up again - the old take/carry/monitor code and the fists loop
+  (`df_m2_fists_loop`) are gone; a Galvaknuckle kill inside a lit grave's zone is refused and Maxis says so,
+  `M2_KNUCKLES_MAXIS`, throttled to once per 20 s; the four graves stand OUTSIDE the map at their own owner
+  spots, `DF_BRAZIER_1..4`, with NO player collision any more (the old two stacked clips are gone - the graves
+  are unreachable on foot anyway) and showing nothing until shot: each carries a `trigger_damage` PLUS two
+  ghosted `collision_wall_64x64x10_standard` bullet walls crossed inside the stone (`df_m2_grave_shield_spawn`,
+  the map's own ghosted collision model) so a shot cannot fly through it; every hit on any of the four (trigger,
+  model or either wall) prints `DF: m2 <name> hit (lit N)` first, so a grave that "does nothing" can still be
+  read; a bullet on an unlit one (`df_m2_grave_shot_watch`) lights it - a large fire on the grave itself
+  (`df_m2_fire_fx`, default `fx_zmb_tranzit_fire_lrg`) plus a fixed medium one at its rim, seen from Town - and
+  opens its KILL ZONE, a
   SEPARATE small flame (fixed `character_fire_death_sm`) plus a lava glow in a circle of `df_m2_zone_radius`
   (dvar, default 400) on the ground where the shooter stood; `df_m2_zone_of` reads the zone back for
   `df_m2_on_zombie_death`; the wave and the denizen-safe rule (`df_m2_grave_near`) key off the zone, not the
   (unreachable) grave position; a counted kill sends a red trail + rising embers off the corpse (`df_m2_soul`,
   the M1 look) to the GRAVE itself (`df_m2_ash_pos`), not the zone; the 90 s cold timer clears the zone and the
   grave's fire, not just the count, but leaves the grave standing - the same grave must be shot again to open a
-  fresh one; the fifth kill (`df_m2_fill`) sends a separate trail from the grave's rim to the hand on the table
+  fresh one; the fifth kill (`df_m2_fill`) sends a separate trail from the grave's rim to the lantern on the table
   (`df_act2_maxis_trail`) and then EXPLODES the grave (`zmb_explo_sweet` + a `fx_zmb_tranzit_fire_lrg` burst +
-  `fx_zmb_ash_rising_md` + a small earthquake) before deleting it outright - trigger, model, both clips gone,
-  even on a quiet (`!df goto` skip) fill; the fourth spent grave charges the hand in place,
-  `df_m2_ember_charged` -> `df_m2_ember_return`, no carry, no return trip; at completion it exports the ONE
+  `fx_zmb_ash_rising_md` + a small earthquake) before deleting it outright - trigger, model, both bullet walls
+  gone, console `DF: m2 <name> spent, it burst and is gone (k/4)`, even on a quiet (`!df goto` skip) fill;
+  `!df fire m2_fill` just fills all four the same way; the fourth spent grave charges the lantern in place,
+  `df_m2_ember_charged` alone now (no `df_m2_ember_return`, no carry, no return trip - cut with the rest of the
+  take/carry code); at completion it exports the ONE
   Step 6 node, the hunter's cabin fireplace `DF_CABIN_HEARTH`, and warns when nobody has a Jet Gun), and the Maxis side rules
   (`df_m1_protected`: denizens leave players alone inside a lit grave's kill zone while M2 runs and near the
   cabin fireplace while Step 6 is open; doubled fog spawns; the power-ON penalty, which empties only the
@@ -151,10 +168,13 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   within `level.df_s5_kill_radius` (250, owner 2026-09-25, up from 150: a claymore throws its kill several steps
   before it dies) of a humming lamp's base puts it out (`df_s5_lit_near`, `df_s5_on_zombie_death`). The game
   reports a claymore kill as weapon `none`, mod `MOD_GRENADE_SPLASH` (identical to a thrown grenade), so the step
-  watches the PLANTED claymores instead (`df_s5_claymore_watch`, `player.claymores` polled every 0.1 s): each
-  lamp remembers the last moment a claymore stood within its radius (`lamp.df_s5_clay_ms`), and a splash kill
-  there within 1.5 s of that claymore vanishing (`df_s5_claymore_blast`) is credited to it; every kill near a
-  humming lamp prints its weapon and mod to the console first, so a refused kill can be read. Put out, a lamp
+  TRACKS each planted claymore near a humming lamp individually (owner 2026-09-25 rework: `level.df_s5_clays`,
+  one struct per claymore + lamp, `df_s5_claymore_sweep` polled every 0.05 s, `df_s5_claymore_watch`); when a
+  TRACKED claymore disappears (it exploded) its lamp is stamped (`lamp.df_s5_clay_gone_ms`, `df_s5_claymore_gone`),
+  and a splash kill there within 1.5 s of that stamp is credited, either order - a kill seen BEFORE the watch
+  notices the claymore gone waits as `lamp.df_s5_splash_ms` and is credited retroactively at the stamp; a merely
+  PLANTED (not yet exploded) claymore no longer lets a grenade kill count by itself; every kill near a
+  humming lamp still prints its weapon and mod to the console first, so a refused kill can be read. Put out, a lamp
   goes back to state "vanilla" - exactly the map's own light, nothing of ours left on it - with his stolen power
   snapping off as a blue spark and flying to the tower top (`df_soul_fly`); any other kill in range does nothing
   to the lamp and says LO_NOTHAND_MAXIS once for the game. THREE dark lamps win (`level.df_s5_need`; fewer only with a smaller set).
@@ -194,9 +214,11 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   line at 5 s), charge strikes, per-side pressure (Avogadro boss on Richtofen; on Maxis the fast zombies and the smoke column
   only, no denizens since 2026-09-25), the song (one length constant,
   `df_s7_song_seconds`, for the restart guard and the after-hold waves), and the after-hold waves (never started
-  after a skip).
-- `df_finale.gsc` - the finale (power gate, perks, build-up, orb rise, burst, permanent world change, rewards,
-  globe stat), the Act 2 reward listener, and the tower tracker (runner lights per act, one glow per step up the table relay).
+  after a skip; also end the moment the finale starts, owner 2026-09-25, `level endon( "df_fin_started" )`).
+- `df_finale.gsc` - the finale (power gate, hold 2.5 s, perks, build-up, orb rise, burst, permanent world change, rewards,
+  globe stat), the Act 2 reward listener, and the tower tracker (runner lights per act, one glow per step up the
+  table relay); the no-overheat Jet Gun reward (`df_fin_jetgun_cool_loop`) accepts the upgraded Jet Gun too
+  (owner 2026-09-25).
 
 ## The build
 
@@ -284,7 +306,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | Command | Effect |
 |---|---|
 | `!df status` | version, side, player count, round, hints state, steps done / available / registered |
-| `!df who` | diagnostic for "why is F doing nothing": prints whether you are drinking / screecher-ridden / in laststand, your current weapon, whether you carry the relay / orb / hand / burning lantern / battery, and every `trigger_radius_use` within 200 of you with its distance |
+| `!df who` | diagnostic for "why is F doing nothing": prints whether you are drinking / screecher-ridden / in laststand, your current weapon, whether you carry the relay / orb / lantern / battery, and every `trigger_radius_use` within 200 of you with its distance |
 | `!df goto <step>` | mark previous steps done, make `<step>` available (`step1..step4 r1 r2 m1 m2 step5 step6 step7 finale`). Forward only: a step already done or not ahead of the current one is refused, and so is a step of the other side once a side is locked. A jump that does not finish in 20 s is aborted by a watchdog (the goto flag is cleared). Never deletes the boot props (pipes, table, boxes, graves, the three power switches, lamps); the side lock only ever changes their look (glow / flame), never removes them |
 | `!df side rich` / `!df side maxis` | lock the side by hand; FINAL, a second, different side is refused (`side X is already locked ...`). Re-copies the landing spot drawn at boot into DF_ORB_SPAWN (console `orb spawn for side X: ...`, no new draw) |
 | `!df say <KEY>` | show a dialogue key (`!df say s1_start` works too) |
@@ -295,7 +317,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | `!df side_fx` / `!df side_fx stop` | start / stop the tower visuals for the locked side |
 | `!df power on` / `!df power off` | flip TranZit power (fires the real switch if built, else the flags) |
 | `!df stat rich` / `!df stat maxis` / `!df stat none` | WRITES the completion stat (globe glow) for that side, or clears it |
-| `!df hints on` / `!df hints off` | show / hide the on-screen puzzle prompts only (the Simon boxes, Jet Gun hints, the cold-room "Take the hand before the cold closes"); default off. Mechanic prompts (take / place / build / hold) always stay; the Step 1 pipes never show one |
+| `!df hints on` / `!df hints off` | show / hide the on-screen puzzle prompts only (the Simon boxes, Jet Gun hints, the cold-room "Take the lantern before the cold closes"); default off. Mechanic prompts (take / place / build / hold) always stay; the Step 1 pipes never show one |
 | `!df texthints on` / `!df texthints off` | the spoken hint ladder (HINT_1 at 4 min, HINT_2 at 10 min then every 6 min, event hints); default on. START / FAIL / DONE lines always play |
 | `!df cue avail|tick|subgoal|fail|deny|trail|done` | plays one row of the cue grammar where you stand (step available, progress tick, sub-goal chime + flash + trail to the tower, fail thump, deny buzz, the trail alone, step done) |
 | `!df vox <alias>` | plays a vanilla patron voice line (`vox_maxi_*` 3D at your feet, anything else 2D to Samuel); silence = unknown alias |
@@ -307,9 +329,9 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | `!df model` / `!df model <kind> <name>` / `!df orb <name>` | list the model registry / swap a model for props spawned from now on. A swapped model renders only if the map precached it; make it permanent in `df_models_init` (df_coords.gsc) |
 | `!df show [KEY]` / `!df hide` / `!df tp <KEY>` / `!df dump` (= `!df coords`) | preview props with a glint / remove them / teleport to an anchor / print every anchor as `[SPOT]` and every model as `[MODEL]` |
 | `!df lift <KEY> <up>` / `!df move <KEY> <fwd> <right> <up>` / `!df ang <KEY> <pitch> <yaw> <roll>` | tune an anchor live. `!df move DF_TABLE ...` moves the real table |
-| `!df setpos <KEY> <x> <y> <z> [yaw]` | an anchor straight to world coordinates (yaw optional, keeps the anchor's current one if left off); calls `df_coord_override` + `df_coord_tune_done` like every other tune, so a `DF_BLACKOUT_n` or `DF_BRAZIER_n` respawns the real prop too |
-| `!df grab <KEY>` / `!df drop` / `!df cancel` / `!df rot <deg>` / `!df up <units>` | live placement: the prop follows your crosshair (fire = place, melee = cancel, ADS = freeze, 1/2 turn, 3/4 raise, F = surface/float, space = reset); turn and raise move ONE step per PRESS of the slot button (edge-detected, `df_place_edge`), not per frame while it reads as held - a held or stuck action slot used to spin the prop at full speed. A `DF_BLACKOUT_n` or `DF_BRAZIER_n` placed this way moves the real switch / grave along with the anchor (model, clips, flame/lever), not just the anchor |
-| `!df pos` / `!df aim [KEY]` | print where you stand and what you aim at / snap an anchor to the aim point |
+| `!df setpos <KEY> <x> <y> <z> [yaw]` | an anchor straight to world coordinates (yaw optional, keeps the anchor's current yaw if left off; pitch and roll always stay from the anchor - only yaw can change); an unknown `KEY` is refused (`DF: unknown anchor <KEY> (!df dump lists them)`, nothing changes); calls `df_coord_override` + `df_coord_tune_done` like every other tune, so a `DF_BLACKOUT_n` or `DF_BRAZIER_n` respawns the real prop too |
+| `!df grab <KEY>` / `!df drop` / `!df cancel` / `!df rot <deg>` / `!df up <units>` | live placement: the prop follows your crosshair (fire = place, melee = cancel, ADS = freeze, 1/2 turn, 3/4 raise, F = surface/float, space = reset); turn and raise move ONE step per PRESS of the slot button (edge-detected, `df_place_edge`), not per frame while it reads as held - a held or stuck action slot used to spin the prop at full speed. A `DF_BLACKOUT_n` or `DF_BRAZIER_n` placed this way moves the real switch / grave along with the anchor (model, trigger, bullet walls / lever), not just the anchor |
+| `!df pos` / `!df aim [KEY]` | print where you stand and what you aim at / snap an anchor to the aim point (also calls `df_coord_tune_done`, so a `DF_BLACKOUT_n` or `DF_BRAZIER_n` respawns the real prop, like `!df setpos`, owner 2026-09-25) |
 | `!df catalog <keyword|all> [page]` / `!df catalog pick <n> <kind>` / `!df catalog clear` | up to 10 candidate models in a row in front of you; `pick` assigns one to a kind. Needs `--multi` for the full list |
 | `!df sizes <keyword|all> [page]` | list catalogue models with size and zone, no precache needed (`--multi` only) |
 | `!df fire <name>` | generic hook, see the table below (`level notify( "df_debug_<name>" )`) |
@@ -321,7 +343,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 |---|---|
 | Act 1 | `a1_solve1` (Step 1 solved, the coil arrives), `a1_tv` (kick the next expected pipe), `a1_parts` (take every part, coil included), `a1_hit` (200 dmg to the relay), `a1_stop` (count the running sweep), `a1_relay` (relay to your feet), `a1_build` (vanilla build hands demo), `a1_receiver` (the coil arrives at DF_COIL_DROP now, without the pipes), `a1_corn` (the Maxis cornfield line at the relay) |
 | R1 / R2 | `simon_solved` (= `!df simon`), `souls_done` (= `!df souls`), `r1_captured`, `r1_sounds` (click / buzzer / arpeggio), `r1_soul` (ONE box gets its battery without the bus trip), `r1_card` (card arrival fx), `r2_soul` (one soul into the first unfilled lamp), `r2_punch` (every full lamp gives its spool without the knuckles), `r2_spool` (one spool counts as placed) |
-| M1 / M2 | `m1_latch`, `m1_kills`, `m1_cue` (kill cue demo), `m1_burst`, `m1_fog` (toggle cold-room fog at the DF_NACHT_SPAWN anchors), `m1_ride` (first-ride cue: table sound + line + hint, no table fx, no denizen needed), `m1_skull` (drop the M1 hand in front of you; fire again to send it to the table), `m2_ember` (you hold the hand now), `m2_light` (light the next unlit grave), `m2_fill` (spend every grave and return the burning lantern: a carrier returns it, else it is put back on the table), `m2_restage` (re-skin the graves after `!df model brazier ...`), `m2_penalty` (the power-ON penalty now), `m2_column` (the 20 s smoke column at the tower top) |
+| M1 / M2 | `m1_latch`, `m1_kills`, `m1_cue` (kill cue demo), `m1_burst`, `m1_fog` (toggle cold-room fog at the DF_NACHT_SPAWN anchors), `m1_ride` (first-ride cue: table sound + line + hint, no table fx, no denizen needed), `m1_skull` (drop the M1 lantern in front of you; fire again to send it to the table), `m2_light` (light the next unlit grave), `m2_fill` (spend every grave; the fourth charges the burning lantern on the table), `m2_restage` (re-skin the graves after `!df model brazier ...`), `m2_penalty` (the power-ON penalty now), `m2_column` (the 20 s smoke column at the tower top). (`m2_ember` and the old lantern-carry debug are gone, owner 2026-09-25.) |
 | M3 / R3 (Maxis Lights Out) | `s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again) |
 | M3 / R3 (Richtofen Blackout) | `blackout_off` (all three switches OFF, a running step keeps going), `blackout_on` (all three ON, completes the step if it is open), `blackout_respawn` (deletes and respawns all three switches from their anchors at the current `df_bo_lever_on` / `df_bo_lever_off` poses, keeping each one's ON / OFF state; also fires itself when a `DF_BLACKOUT_n` anchor is tuned) |
 | Step 6 | `s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver`, `s6_restart`, `orb_aura` (next aura candidate) |
@@ -413,12 +435,12 @@ The older way (the owner's `cheats_zm.gsc`: `!place <model>`, `!nudge`, `!spot <
 | DF_PART_A / B | part_a `p6_zm_buildable_sq_transceiver` (the radio), part_b `p6_zm_chain_fence_piece_end` (the mast, standing, 117 tall) | Diner garage, behind the box (-4830 -7978 -29) / Farm barn upper floor (8149 -5088 52). The DF_PART_C anchor is gone (2026-09-23); the `part_c` kind stays only as the spool fallback model |
 | DF_COIL_DROP | receiver = `p6_zm_buildable_jetgun_wires` (the wire coil, slightly tilted) | where the coil lands after Step 1 (-6311 5019 -46); move it with `!df move DF_COIL_DROP ...` or `!df grab DF_COIL_DROP` |
 | DF_BUS_ROOF_OFFSET | relay = `p6_zm_buildable_sq_transceiver` + relay_coil = `p6_zm_buildable_sq_electric_box` (+17) + relay_mast = relay_top = `p6_zm_chain_fence_piece_end` (+27), yaw -45: the same three pieces on the roof and on the table | bus roof centre / table slot 0 |
-| DF_FUSE_1..4 | fuse = `p6_zm_buildable_sq_electric_box` (13 x 20 power box, centre at 50, 6 off the wall) | barn walls (Farm); stand from boot on both sides, no fx until Richtofen locks (a faint LED glow, then R1 drives the sparks and the Simon); Maxis locked = dark scenery, model kept |
+| DF_FUSE_1..4 | fuse = `p6_zm_buildable_sq_electric_box` (13 x 20 power box, centre at 50, 6 off the wall) | owner 2026-09-25: four owner spots on the Farm barn walls (8825 -5744 105, 8801 -5889 106, 8526 -5889 105, 8518 -5582 106); stand from boot on both sides, no fx until Richtofen locks (a faint LED glow, then R1 drives the sparks and the Simon); Maxis locked = dark scenery, model kept |
 | DF_CARD_SPAWN | card = `p6_zm_keycard` (the strike lands it 36 above the floor under the anchor) | barn wall (8614 -5864 91) |
 | (battery / spool, no anchor) | battery = `p6_zm_buildable_battery`, spool = `p6_zm_buildable_jetgun_wires` | bus dashboard / the foot of a punched lamp |
-| DF_BRAZIER_1..4 | brazier = `ch_tombstone1` (the graves, 31 tall, two stacked player clips each = 64 tall; unlit shows nothing, lit carries a large fire seen from Town; a `trigger_damage` on each is the SHOT that lights it) | owner 2026-09-25: OUTSIDE the map around Town (1944 -1040 124, 328 -797 132, 2062 374 88, -86 224 -36); stand from boot on both sides, Richtofen locked = dark scenery, model and clips kept; a spent grave (M2 quota met, `df_m2_fill`) EXPLODES and is deleted outright - trigger, model, both clips - nothing left standing; `!df grab` / `!df setpos` on the anchor (before that) moves the real grave (model, both clips, flame/crackle) along (`df_m2_grave_move_hook`) | Every game draws four of eight owner spots at random (df_coords df_grave_pool_pick; console `m2 grave N drawn at x y z`).
+| DF_BRAZIER_1..4 | brazier = `ch_tombstone1` (the graves, 31 tall, NO player collision - owner 2026-09-25: the old two stacked clips are gone, the graves stand outside the map, unreachable on foot; unlit shows nothing, lit carries a large fire seen from Town; a `trigger_damage` PLUS two ghosted `collision_wall_64x64x10_standard` bullet walls crossed inside the stone (`df_m2_grave_shield_spawn`) are what a SHOT hits to light it) | owner 2026-09-25: OUTSIDE the map around Town; stand from boot on both sides, Richtofen locked = dark scenery, model and shield kept; a spent grave (M2 quota met, `df_m2_fill`) EXPLODES and is deleted outright - trigger, model, both bullet walls - nothing left standing; `!df grab` / `!df setpos` / `!df aim` on the anchor (before that) moves the real grave (model, trigger, bullet walls, flame/crackle) along (`df_m2_grave_move_hook`) | Every game draws four of the eight owner spots below at random (df_coords df_grave_pool_pick; console `m2 grave N drawn at x y z`): (1944 -1040 124, yaw 127), (328 -797 132, yaw 297), (2062 374 88, yaw 259), (-86 224 -36, yaw 43), (2581 -1009 -55, yaw 139), (2610 413 -55, yaw 204), (2812 -264 -62, yaw 218), (799 -1024 -52, yaw 56).
 | DF_BLACKOUT_1..3 | pswitch_body = `p6_zm_buildable_pswitch_body` (the switch body) + pswitch_lever = `p6_zm_buildable_pswitch_lever` (the lever, offset `(0 -9 46.25)` onto the body, exactly the map's own; ON / OFF poses are dvars, `df_bo_lever_on` / `_off`, added to the registry angle) | owner 2026-09-25: three power switches, each at its OWN owner spot (13810 -196 -188, 829 -1482 -44, 11668 8524 -575), no longer side by side under the tower; stand ON from boot on both sides; `!df grab` / `!df setpos` on the anchor respawns the real switch (`df_bo_respawn`) |
-| (M1 hand, burning lantern, no anchor) | both `p_lights_cagelight02_red_off`, HUD label "Hand", rock icon `zm_hud_icon_sq_meteor`: the M1 hand = kind `skull` (the name stays in the code and console), placed at the `ember` table pose, no spin, no flame; the burning lantern = kind `ember`, the same hand entity M1 left on the table (owner 2026-09-25: never swapped or taken again for M2 - it just becomes the burning lantern in place once the four graves are spent), flame only when charged (fx point `hand_fire`, dvar `df_m2_hand_fx`); posed in the table frame by the `ember` df_model_def offset (`df_table_point`) | on the table for the whole of M1 and M2; the M1 hand is dropped on the floor where the last denizen died before that |
+| (M1 lantern, burning lantern, no anchor) | both `p_lights_cagelight02_red_off`, HUD label "Lantern", rock icon `zm_hud_icon_sq_meteor`: the M1 lantern = kind `skull` (the name stays in the code and console), placed at the `ember` table pose, no spin, no flame; the burning lantern = kind `ember`, the same lantern entity M1 left on the table (owner 2026-09-25: never swapped or taken again for M2 - it just becomes the burning lantern in place once the four graves are spent), flame only when charged (fx point `hand_fire`, dvar `df_m2_hand_fx`); posed in the table frame by the `ember` df_model_def offset (`df_table_point`) | on the table for the whole of M1 and M2; the M1 lantern is dropped on the floor where the last denizen died before that |
 | DF_NACHT_SPAWN_1..4 | none, stand there | inside the woods behind the cabin (the cold room moved there from the Nacht bunker, owner 2026-09-25), owner spots 2026-09-23 (13673 -337, 13861 -327, 13643 -541, 13886 -522; z -188); each denizen rises at a random one at least 150 from every player, never the same twice in a row, inside the no-denizen zone (`DF_M1_ZONE`, radius 1000, `level.df_m1_zone_radius`) that pauses vanilla's own denizens for the whole zone while the room runs |
 | DF_TOWER_RETURN | none, stand there | return point after the Cold Room (7552 -512 -72) |
 | DF_ORB_SPOT_1..3 | orb = `p6_zm_buildable_sq_meteor` (kind `orb_ground` on the floor, rests 3 above the ground) | the three Step 6 landing spots: diner (-5991 -7686 34), Town (900 130 -39), power station (11720 8491 -575); ONE is drawn at boot for the whole game (`level.df_orb_spot_key`); a live tune of a spot makes it the pick |
@@ -429,7 +451,7 @@ The older way (the owner's `cheats_zm.gsc`: `!place <model>`, `!nudge`, `!spot <
 | DF_PORTAL | portal = `p6_zm_screecher_hole` | the M1 hole in front of the table (7623 -457 -207) |
 | (fx grid) | beacon = `p6_zm_buildable_sq_meteor` | the pedestals of `!df fx grid` |
 
-Note: the M1 item is the power switch hand (since 2026-09-25; `zombie_skull` from 2026-09-23, the meteor model before);
+Note: the M1 item is Maxis's lantern (since 2026-09-25; `zombie_skull` from 2026-09-23, the meteor model before);
 `!df catalog pick <n> skull` swaps it, `!df orb <name>` the Step 6 rock. `!df model` lists every kind; `!df fire
 table_demo` previews relay + coil box + mast, card and rock on the three slots. The table under the tower carries NO fx of
 ours (no Step 4 preview light, no plug spark, no marker glint at Step 4 / the R1 card insert / the finale, no placing
@@ -480,8 +502,8 @@ the source with an `owner pick <date>` comment.
 | step DONE | evt_bridge_collapse_start (the bridge groan) to every player, the only step-done sound |
 | DENY (wrong input) | zmb_sq_navcard_fail to the presser only |
 | FAIL / lost | zmb_bus_emp_shutdown + the side's loss fx |
-| ITEM ARRIVAL | grenade_samantha_steal burst + zmb_avogadro_spawn_3d thunder + a short quake: coil, card, spools, M1 hand, rock |
-| ITEM ON THE TABLE | `df_cue_table_place`: the zmb_buildable_piece_add clink only, NO fx (since 2026-09-25 the table under the tower shows nothing of ours): M1 hand, burning lantern, rock; the relay plug has no spark either (clink + switch-on sound) |
+| ITEM ARRIVAL | grenade_samantha_steal burst + zmb_avogadro_spawn_3d thunder + a short quake: coil, card, spools, M1 lantern, rock |
+| ITEM ON THE TABLE | `df_cue_table_place`: the zmb_buildable_piece_add clink only, NO fx (since 2026-09-25 the table under the tower shows nothing of ours): M1 lantern, burning lantern, rock; the relay plug has no spark either (clink + switch-on sound) |
 
 Side family: everything electric (blue sparks) on Richtofen and before the fork, everything fire / ash on Maxis. On
 Maxis nothing electric (2026-09-25): no lamp exploder and a fire hum on the lamps; the tower top gets a slow
@@ -493,7 +515,7 @@ the Step 7 rock flickers with `lava_burning` when hit (Richtofen keeps `elec_md`
 
 - `scripts\zm\zm_scavenger.gsc` (Project Scavenger v1.9, NickB_05). Disjoint from Dead Frequency: it replaces only
   `_zm_buildables::player_can_take_piece`, we replace only the sidequest functions and the denizen portal use; our
-  parts, coil, battery, spools, the M1 / M2 hand and rock are our own script_models, so a press can never be taken by both. The
+  parts, coil, battery, spools, the M1 / M2 lantern and rock are our own script_models, so a press can never be taken by both. The
   bus-part pin uses vanilla's own piece functions. HUD: Scavenger draws top-left / top-right while TAB is held; our
   notices sit one row lower and our TAB square right after their fifth. Only risk: it precaches `zom_hud_icon_epod_key`
   (Die Rise); an error naming it is theirs.
@@ -515,7 +537,7 @@ the Step 7 rock flickers with `lava_burning` when hit (Richtofen keeps `elec_md`
    holds for; a future change should either accept that or restore the "stays standing, scorched" look this
    rule originally described. The only things that appear later are quest ITEMS, and **every quest item arrives
    by the shared strike** (`grenade_samantha_steal` burst +
-   `zmb_avogadro_spawn_3d` thunder + a short quake): the coil, the key card, the spools, the M1 hand, the rock.
+   `zmb_avogadro_spawn_3d` thunder + a short quake): the coil, the key card, the spools, the M1 lantern, the rock.
 2. **Cue grammar: one sound = one meaning.** Use the `df_cue_*` helpers, never a raw `playsound` for a quest
    cue; do not reuse a grammar alias for anything else (the table above is the contract).
 3. **No on-screen timers.** Clocks are heard (`df_sys_clock_run`: the tick-tock loop + dry ticks under 30 s).
