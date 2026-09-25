@@ -31,7 +31,8 @@ df_act3_sweep_init()
 df_s5_config()
 {
     level.df_s5_need = 3;
-    level.df_s5_kill_radius = 150; // a claymore kill this close to the lamp base puts it out
+    level.df_s5_kill_radius = 250; // owner 2026-09-25: a claymore kill this close to the lamp base puts it out (150 missed:
+                                   // a claymore throws the zombie several steps before it dies)
 }
 
 // =========================================================================================
@@ -208,7 +209,20 @@ df_s5_on_zombie_death( zombie )
     if ( !isdefined( lamp ) )
         return;
 
-    if ( !isdefined( zombie.damageweapon ) || zombie.damageweapon != "claymore_zm" )
+    weapon = "none";
+
+    if ( isdefined( zombie.damageweapon ) )
+        weapon = zombie.damageweapon;
+
+    mod = "none";
+
+    if ( isdefined( zombie.damagemod ) )
+        mod = zombie.damagemod;
+
+    // owner 2026-09-25: the console says what killed each zombie by a humming lamp, so a refused kill can be read
+    df_debug_print( "DF: s5 kill by " + lamp.name + " at " + int( distance2d( zombie.origin, lamp.origin ) ) + ": weapon " + weapon + ", mod " + mod );
+
+    if ( !issubstr( weapon, "claymore" ) )
     {
         if ( !is_true( level.df_s5_nothand_said ) )
         {
