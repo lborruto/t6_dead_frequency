@@ -2018,13 +2018,41 @@ df_m2_grave_shot_watch( b, src )
         if ( !is_true( level.df_m2_armed ) || b.lit || b.done || !isdefined( attacker ) || !isplayer( attacker ) )
             continue;
 
-        b.zone = df_ground( attacker.origin );
+        b.zone = df_m2_zone_ground( attacker );
         b.df_spots = undefined;
         df_m2_zone_fx( b, 1 );
         level thread df_act2_maxis_trail( df_m2_rim_pos( b ), b.zone, 0 );
         df_m2_light( b, attacker );
         df_debug_print( "DF: m2 " + b.name + " shot by " + attacker.name + ", kill zone at " + int( b.zone[0] ) + " " + int( b.zone[1] ) + " (" + df_m2_zone_radius() + ")" );
     }
+}
+
+// owner 2026-09-25: the kill zone always lies on the road, never on the bus: a shooter on the bus (roof or
+// inside) gets the ground under the bus (the trace ignores the bus, then anything else linked to it), so the
+// flame and the radius stay where he fired and never ride away with the bus.
+df_m2_zone_ground( player )
+{
+    if ( !df_player_on_bus( player ) )
+        return df_ground( player.origin );
+
+    from = player.origin + ( 0, 0, 10 );
+
+    for ( i = 0; i < 4; i++ )
+    {
+        trace = bullettrace( from, from - ( 0, 0, 600 ), 0, level.the_bus );
+
+        if ( !isdefined( trace["position"] ) || trace["fraction"] >= 1 )
+            break;
+
+        ent = trace["entity"];
+
+        if ( !isdefined( ent ) || ( isdefined( ent.classname ) && ent.classname == "worldspawn" ) )
+            return trace["position"];
+
+        from = trace["position"] - ( 0, 0, 4 );
+    }
+
+    return df_ground( player.origin );
 }
 
 df_m2_zone_fx( b, on )
