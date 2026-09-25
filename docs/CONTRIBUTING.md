@@ -62,7 +62,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   `<P>_HINT_2` and event keys per step; `_RICH` / `_MAXIS` variants for the shared acts. Writing rules are in its
   header (see "Rules" below). Event keys added 2026-09-23: `S4_CHOOSE` (first lift of the relay), `R1_RICH_NOSTORM`
   (no Avogadro entity), `R2_POWER_RICH` (power-OFF penalty), `A2_JETGUN_RICH` / `_MAXIS` (Act 2 done, nobody has
-  a Jet Gun; `S6_NOJETGUN_*` stays for the Step 6 pickup), `M2_GRAVE_COLD`, `D5_ANCHOR`, `S6_CARD_RICH`,
+  a Jet Gun; `S6_NOJETGUN_*` stays for the Step 6 pickup), `M2_GRAVE_COLD`, `S6_CARD_RICH`,
   `D6_FULL_RICH` / `_MAXIS`, `D7_ZONE_RICH` / `_MAXIS`. `S7_DENIZEN_MAXIS` was removed (owner 2026-09-25: no
   caller left, the Maxis Step 7 wave no longer releases denizens, `df_act3_hold` `df_s7_side_pressure`). The
   Maxis item lines follow the hand arc (2026-09-25):
@@ -79,7 +79,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   `df_catalog_models()`.
 - `df_lamps.gsc` - the ONE lamp set per game (3 lamps, 4 with a full lobby, picked at boot from the six lamps
   valid on both sides, diner and townbridge excluded) and every lamp look (`df_lamp_state_set`: off, souls,
-  filled, tuning, waiting, anchored, charged, drained, final). The side colour is the map's own per-lamp client
+  filled, dark, charged, drained, final; `dark` owner 2026-09-25, Maxis Step 5 "Lights Out"). The side colour is the map's own per-lamp client
   exploder fired from the server and re-fired after every power change (never on the Maxis side: that exploder
   carries electric arcs, so `df_lamp_exploder_set` keeps it off there and the lava glow and bursts carry the look;
   `df_lamp_hum_set` swaps `zmb_avogadro_loop` for `zmb_fire_loop` on Maxis); the clientfield is held at 0 so no
@@ -115,14 +115,19 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   Step 6 node, the hunter's cabin fireplace `DF_CABIN_HEARTH`, and warns when nobody has a Jet Gun), and the Maxis
   side rules (`df_m1_protected`: denizens leave players alone within 400 of any grave while M2 runs and of the cabin
   fireplace while Step 6 is open; doubled fog spawns; the power-ON penalty, which empties only the fullest lit grave).
-- `df_act3_sweep.gsc` - Step 5 on Maxis: Frequency Sweep, tune (hold 5 s) then anchor (a running turbine near the
-  lamp base) the set lamps, THREE anchors win (`df_s5_need_all`; fewer only with a smaller set); the audible
-  countdown from the first anchor; fail-forward expiry with a soul penalty on the unanchored lamps only. Also owns
-  `df_s5_run` / `df_s5_setup`, Step 5's single entry point on both sides (registered with `df_register_step`): on
-  Richtofen (`level.df_side == "rich"`) it hands off at once to `df_bo_run` / `df_bo_setup` in
-  `df_act3_blackout.gsc` (owner 2026-09-25); the file's own Galvaknuckle-jolt anchor branch for Richtofen
-  (`df_s5_is_rich`, S5_ANCHOR_DENIZEN_RICH / S5_NOFISTS_RICH) was deleted (owner 2026-09-25): it was never
-  reached in normal play.
+- `df_act3_sweep.gsc` - Step 5 on Maxis: "Lights Out" (owner 2026-09-25, replaces the old tune + turbine
+  Frequency Sweep). Richtofen feeds his power into the set lamps (`df_lamp_set_get`); Step 5 opens with all of
+  them "filled" (humming with his power). Only the dead may break his light: a lamp goes dark when a zombie dies
+  to a CLAYMORE (`claymore_zm`, sold at the Farm wall buy) within `level.df_s5_kill_radius` (150) of its base
+  (`df_s5_lit_near`, `df_s5_on_zombie_death`); any other kill in range does nothing to the lamp and says
+  LO_NOTHAND_MAXIS once for the game. THREE dark lamps win (`level.df_s5_need`; fewer only with a smaller set).
+  At every end of round with a lamp still humming, Richtofen relights one dark lamp at random
+  (`df_s5_relight_loop`, LO_RELIGHT) - the mirror of Blackout's knock. No timer, no countdown, no soul penalty.
+  Debug: `!df fire s5_dark` (every lamp dark at once) / `s5_relight` (every lamp humming again),
+  `df_s5_debug_hook`. `df_s5_setup` (`!df goto` past Step 5 on Maxis) leaves the set lamps dark, nothing running.
+  Also owns `df_s5_run` / `df_s5_setup`, Step 5's single entry point on both sides (registered with
+  `df_register_step`): on Richtofen (`level.df_side == "rich"`) it hands off at once to `df_bo_run` / `df_bo_setup`
+  in `df_act3_blackout.gsc` (owner 2026-09-25).
 - `df_act3_blackout.gsc` - Step 5 on Richtofen (owner 2026-09-25): "Blackout". Three power switches (kinds
   `pswitch_body` + `pswitch_lever`, anchors `DF_BLACKOUT_1..3`, vanilla's power switch without its hand) stand ON
   from boot on both sides; when Step 5 opens all three roll OFF at once (Maxis cuts the grid). One press of F
@@ -239,7 +244,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | `!df say <KEY>` | show a dialogue key (`!df say s1_start` works too) |
 | `!df scale` | print a few scaled values for the current player count |
 | `!df simon` | solve the R1 Simon (storm + summon follow) |
-| `!df souls` | fill every soul / carry counter of the open step: R1 refill (all four boxes charged), R2 (lamps filled AND every spool counted), M1 kills, M2 graves (all spent, fire hand returned), Step 5 penalty |
+| `!df souls` | fill every soul / carry counter of the open step: R1 refill (all four boxes charged), R2 (lamps filled AND every spool counted), M1 kills, M2 graves (all spent, fire hand returned) |
 | `!df avogadro` | force Avogadro back from the cloud (only when he is in the cloud) |
 | `!df side_fx` / `!df side_fx stop` | start / stop the tower visuals for the locked side |
 | `!df power on` / `!df power off` | flip TranZit power (fires the real switch if built, else the flags) |
@@ -270,7 +275,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | Act 1 | `a1_solve1` (Step 1 solved, the coil arrives), `a1_tv` (kick the next expected pipe), `a1_parts` (take every part, coil included), `a1_hit` (200 dmg to the relay), `a1_stop` (count the running sweep), `a1_relay` (relay to your feet), `a1_build` (vanilla build hands demo), `a1_receiver` (the coil arrives at DF_COIL_DROP now, without the pipes), `a1_corn` (the Maxis cornfield line at the relay) |
 | R1 / R2 | `simon_solved` (= `!df simon`), `souls_done` (= `!df souls`), `r1_captured`, `r1_sounds` (click / buzzer / arpeggio), `r1_soul` (ONE box gets its battery without the bus trip), `r1_card` (card arrival fx), `r2_soul` (one soul into the first unfilled lamp), `r2_punch` (every full lamp gives its spool without the knuckles), `r2_spool` (one spool counts as placed) |
 | M1 / M2 | `m1_latch`, `m1_kills`, `m1_cue` (kill cue demo), `m1_burst`, `m1_fog` (toggle bunker fog), `m1_ride` (first-ride cue: table sound + line + hint, no table fx, no denizen needed), `m1_skull` (drop the M1 hand in front of you; fire again to send it to the table), `m2_ember` (you hold the hand now), `m2_light` (light the next unlit grave), `m2_fill` (spend every grave and return the fire hand: a carrier returns it, else it is put back on the table), `m2_restage` (re-skin the graves after `!df model brazier ...`), `m2_penalty` (the power-ON penalty now), `m2_column` (the 20 s smoke column at the tower top) |
-| Step 5 (Maxis sweep) | `s5_anchor`, `s5_all`, `s5_time` (needs one anchor first), `s5_penalty` |
+| Step 5 (Maxis Lights Out) | `s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again) |
 | Step 5 (Richtofen Blackout) | `blackout_off` (all three switches OFF, a running step keeps going), `blackout_on` (all three ON, completes the step if it is open) |
 | Step 6 | `s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver`, `s6_restart`, `orb_aura` (next aura candidate) |
 | Step 7 | `s7_start`, `s7_time` (win), `s7_fail`, `s7_hp`, `s7_dmg` (100 dmg; solo 3000 hp: damaged under 900, destroyed at 0, strikes heal in between), `s7_strike` (one charge strike now) |
@@ -386,7 +391,8 @@ dvar `df_step_glow_fx`, default `fx_zmb_tranzit_key_glint`).
 ## Lamps
 
 ONE lamp set per game (3 lamps, 4 with a full lobby), picked at boot from the six lamps valid on both sides (diner and
-townbridge are skipped) with the idle spark marker; R2 feeds THESE, Step 5 (Maxis: the sweep) tunes THESE.
+townbridge are skipped) with the idle spark marker; R2 feeds THESE, Step 5 (Maxis: "Lights Out") fills THESE with
+Richtofen's power and darkens them with claymore kills.
 Richtofen's Step 5 is Blackout instead (`df_act3_blackout.gsc`, the three `DF_BLACKOUT_1..3` power switches) and
 touches none of the lamps. The side colour is the map's
 own per-lamp client exploder (blue = 401 + 2i, orange = 400 + 2i, i = the lamp's area index) fired from the server and
@@ -394,7 +400,8 @@ re-fired after every vanilla power change, plus a safety glow in the bulb. On th
 (it carries electric arcs): the lava glow in the bulb and the lava bursts carry the look, and the hum is `zmb_fire_loop`. `set df_lamp_glow 0` before loading turns
 the safety glow off. No forced green under our light: the clientfield is held at 0 and the server power flag is kept
 silently so burrows still work. States: off, souls (hungry: colour + hum + a spark every 2 s), filled (steady bulb
-glow, no sparks), tuning, waiting, anchored, charged, drained, final (steady side colour after the finale, all 8 lamps).
+glow, no sparks; also Richtofen's power in a Maxis Step 5 lamp), dark (Maxis Step 5 Lights Out: the vanilla light
+off and nothing of ours), charged, drained, final (steady side colour after the finale, all 8 lamps).
 Stall hints: a step untouched 4 min gets a hint line, then at 10 min and every 6 min (never once the finale is
 reachable); every touch starts the ladder over from that touch; an event hint spoken earlier skips the 4 min rung once. Vanilla EE: fully off (both quests, their dialogue,
 the tower relight for returning players); the NavCard table and its stats keep working. `!df fire compat` dumps it.

@@ -221,7 +221,7 @@ overheat). Maxis: every lamp is powered, so portals and denizen burrows work wit
 
 ## Act 3 - Convergence (shared; the actions differ per side)
 
-<details><summary><b>Step 5 - Blackout (Richtofen) / Frequency Sweep (Maxis)</b> (click to reveal)</summary>
+<details><summary><b>Step 5 - Blackout (Richtofen) / Lights Out (Maxis)</b> (click to reveal)</summary>
 
 
 Richtofen and Maxis no longer share Step 5: each side gets its own puzzle.
@@ -234,14 +234,14 @@ Richtofen and Maxis no longer share Step 5: each side gets its own puzzle.
   round with at least one switch still dark, Maxis knocks one lit switch back off ("Another of his switches
   falls. The dark is patient."). Get all three ON at the same time and Step 5 is done. There are always three
   switches, whatever the lobby size.
-- MAXIS - Frequency Sweep: only the same set lamps as before can be tuned; each untuned one shows a glint at its
-  bulb. Stand at a lamp and HOLD F for 5 s (a rising sound, no bar). The lamp then blinks and ticks for 15 s,
-  waiting for a RUNNING TURBINE placed close to the lamp's base (before or during the 15 s). No turbine within
-  15 s: "signal lost", the lamp drains for 10 s, then you can tune it again. Nothing else is lost. The FIRST
-  anchor starts a countdown you hear, not see: 360 s solo (300 / 270 / 240). Anchor THREE lamps before it ends
-  (every lamp if the set is smaller) and Step 5 is done. If it runs out, the anchored lamps STAY anchored; only
-  the lamps you missed need kills again (15 / 18 / 21 / 24 each near the post, solo to four players) before they
-  can be tuned, and the next anchor starts a fresh countdown with only the missing lamps left.
+- MAXIS - Lights Out: the moment Step 5 opens, Richtofen feeds his power into three lamps of the same set as
+  before - each one hums with a steady bulb glow. Only the dead can break his light: a lamp goes dark when a
+  zombie dies to a CLAYMORE (sold at the Farm wall buy) within 150 units of its base. Kill it there any other
+  way and the lamp does not care - Maxis tells you why, once for the whole game ("Not your hand. His light must
+  fall at the step of the dead. A claymore."). Every lamp you put out costs him a little ("One lamp is dark. His
+  voice is thinner already."), and at the end of every round while a lamp still hums, Richtofen relights one dark
+  lamp again ("He has relit one of them. Put it out again."). Put out THREE lamps at once (every lamp if the set
+  is smaller) and Step 5 is done - no hold, no timer, nothing to lose by taking your time.
 
 </details>
 

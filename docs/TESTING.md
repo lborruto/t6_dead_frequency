@@ -13,7 +13,7 @@ else from the repo. `!df status` prints the version: `DF <version> | side none |
 Every `!df` answer and every quest event lands in the console as `[DF] ...`: paste those lines when something is off.
 ONE press of F = every pickup and placement (parts, coil, relay, card, battery, spools, the M1 / M2 hand, rock) and every
 pipe kick / grave touch / Blackout switch flip.
-Holds only: build the relay (3 s, vanilla bar + builder hands), tune a lamp (5 s, heard not seen), power the relay (1.5 s,
+Holds only: build the relay (3 s, vanilla bar + builder hands), power the relay (1.5 s,
 small bar "Powering the relay"), open the frequency (5 s, bar "Opening the frequency"). NO timer on screen anywhere:
 every clock is the Pack-a-Punch tick-tock loop on every player plus dry ticks in the last 30 s (every second, doubled
 under 10 s). `set df_hud_timers 1` before loading brings the old top-centre timers back for a test.
@@ -45,7 +45,7 @@ untouched, new zombies freeze as they finish rising); `!df jet` / `!df jet watch
 - ~20 s into round 1: MAXIS (orange name, white text) then RICHTOFEN (blue name) bottom centre, a soft tick per line.
   Readable? Cut on the right? A vanilla Maxis voice line plays at the phone when Step 1 opens (console `vox vox_maxi_tv_distress_0 3D`).
 - `!df fire perks` -> `finale perks (debug): 5 perks` + one `finale perk X given` line each, five icons. `!df say FIN_RICH_2` (longest line): still readable?
-- `!df scale` -> `players 1 | lamp_souls 12 | nodes 3 | sweep_time 360` and `hold_time 75 | orb_hp 3000 | s7_period 1.3 | s7_cap rich 10 maxis 14`.
+- `!df scale` -> `players 1 | lamp_souls 12 | nodes 3` and `hold_time 75 | orb_hp 3000 | s7_period 1.3 | s7_cap rich 10 maxis 14`.
   A step's quotas are frozen at the player count it opened with.
 
 ## 1. What to check at round 1 (touch nothing first)
@@ -106,7 +106,7 @@ list the same sets as `!df snd list` / `!df fx list`. In game: `!df snd <n>` / `
 full volume and prints its name; `!df fx <n>` / `!df fx next` plays an effect 8 s where you aim (`[FX n/150] name`);
 `!df fx grid` puts a whole page of effects on pedestals in front of you (`gridnext` / `gridprev` / `gridbig` for the
 huge ones / `gridoff`), walk to a pedestal and the bottom label reads `[n] name`. Paste the numbers or names you want,
-and for what (pipe flash, signal light, lamp hungry / full / anchored, grave flame, step glow, rock aura, ...).
+and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, step glow, rock aura, ...).
 
 ## 3. Act 1 (shared)
 **Step 1 Dead Air** (depot, no power). Skip: `!df fire a1_solve1` or `!df goto step2` (the coil arrives in both cases).
@@ -292,24 +292,32 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - Wrong: paste the `m2 brazier_n ...` lines, the `spawn structs` count, and what killed the zombie.
 
 ## 5. Act 3 (shared; what differs per side is marked)
-**Step 5 Frequency Sweep (Maxis)**. Skips: `!df fire s5_anchor` (one lamp), `s5_all`, `s5_time` (expire, needs an anchor), `s5_penalty` (pay it), `!df goto step6`.
-- S5 START waits until the end-of-Act-2 lines are over (at most 90 s). Console `s5 sweep open: 3 set lamps, anchor 3
-  (turbine within 200), timer 360 s from the first anchor`: THREE anchors win, also with 4 set lamps in a full
-  lobby (fewer only if the set itself is smaller). ONLY the set lamps get "Hold F to tune"; each untuned one wears
-  a glint at the bulb; no lamp turns green.
-- Hold F 5 s: a rising power sound at the lamp (NO bar), 1 / 2 / 3 quick ticks at 25 / 50 / 75 %, then two clinks and
-  `lamp X tuned, waiting 15 s for an anchor`: the light blinks, tick-tock at the lamp, no timer, the electric arcs are
-  off. The first time, the patron names the anchor (S5_ANCHOR_TURBINE_MAXIS = "It drifts. A door is not an
-  anchor. A turbine at its foot. Quickly!").
-- Put a RUNNING TURBINE within 200 of the lamp base (before or during the wait): NavCard chime + fire flash +
-  runner to the tower, `lamp X anchored (1/3)`, and only now `s5 countdown started at the first anchor: 360 s`, ticks.
-- Every anchor short of the last: D5_ANCHOR ("That one holds. The others still drift. Listen again.").
-- Without an anchor: after 15 s EMP thump + side fx at the lamp, `no anchor within 15 s, signal lost, draining`, 10 s,
-  `tunable again`, prompt back. No countdown.
-- The countdown is the Pack-a-Punch tick-tock riding you (one loop per player, everywhere on the map); the dry ticks join
-  under 30 s. Anchored lamp: steady side light + light shaft from the tower + slow double burst, no arcs. All anchored:
-  `s5 3 lamps anchored, step done`, D5_DONE, `step complete step5`.
-- Wrong: paste `s5 lamp X ...` lines and where the turbine stood.
+**Step 5 Lights Out (Maxis)**. Skips: `!df fire s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again), `!df goto step6`.
+- S5 START waits until the end-of-Act-2 lines are over (at most 90 s). Console `DF: s5 lights out: 3 lamps hum with
+  his power, a claymore kill within 150 puts one out, 3 dark to win` (also with 4 set lamps in a full lobby, need
+  4; fewer only if the set itself is smaller). Every set lamp is state "filled": a steady bulb glow, no sparks, no
+  hold prompt anywhere - nothing to press.
+- Buy a CLAYMORE at the Farm wall buy (`claymore_zm`, 8827 -5838) and plant one at the foot of a humming lamp
+  (within 150 of its base). Let a zombie walk into it: `DF: s5 lamp X put out by a claymore (1/3 dark)`, the fire
+  burst + rising ash at the bulb + a tick clink (progress cue), the lamp goes state "dark" (the vanilla light off,
+  nothing of ours - no glow, no hum), LO_DARK_MAXIS ("One lamp is dark. His voice is thinner already.") unless
+  that kill is the winning one.
+- Kill a zombie within 150 of a humming lamp WITHOUT a claymore (gun, melee, anything): the lamp does not change,
+  console silent, LO_NOTHAND_MAXIS ("Not your hand. His light must fall at the step of the dead. A claymore.")
+  plays once for the whole game - kill a few more that way and it does not repeat.
+- End a round (`!round <n>`) with at least one lamp still dark and at least one still humming: `DF: s5 Richtofen
+  relit lamp X at the end of the round`, the `zmb_turn_on` sound, LO_RELIGHT ("He has relit one of them. Put it
+  out again."), one random dark lamp goes back to "filled". With zero dark, or all of them dark, end of round does
+  nothing.
+- Put out THREE lamps at once (every lamp if the set is smaller): `DF: s5 3 lamps dark, step done`, D5_DONE
+  ("Three lamps dark. His voice is gone. Something small must carry the charge."), `step complete step5`.
+- No countdown, no soul penalty, nothing lost by taking your time: only the claymore mechanic and the end-of-round
+  relight move the count.
+- `!df fire s5_dark` / `s5_relight`: `DF: s5 debug: every lamp df_debug_s5_dark` / `df_debug_s5_relight` (the
+  console line names the raw hook, not dark/lit, on purpose); every lamp jumps to that state at once (`s5_dark`
+  also completes the step if it is open). `!df goto step6`: every set lamp stands dark, nothing running,
+  `DF: s5 setup: 3 lamps dark`.
+- Wrong: paste every `DF: s5 ...` line and which lamp.
 
 **Step 5 Blackout (Richtofen)**. Skips: `!df fire blackout_off` (all three switches OFF, a running step keeps
 going), `!df fire blackout_on` (all three ON, completes the step if it is open), `!df goto step6`.
@@ -455,12 +463,6 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   0/5 (the others keep theirs, spent graves stay gone); nothing left to lose prints `m2 power on at end of round,
   nothing left to lose`. `!df fire m2_penalty` does it now.
 - M2, a lit grave left alone 90 s: see the cold timer in 4M.
-- Step 5, expiry FAILS FORWARD: anchor ONE lamp, then `!df fire s5_time`: EMP thump, `s5 countdown expired: 1 anchor(s)
-  kept, 2 lamp(s) pay the penalty`, D5_FAIL, the anchored lamp KEEPS its light and shaft, `s5 penalty: 15 souls each into
-  the unanchored lamp(s) <names>`: ONLY those two show the hungry look. Kill within 400 of them: trails, `s5 penalty lamp
-  X souls a/15`, at 15 `filled`; `s5 penalty paid`, `s5 tuning open again on the unanchored lamps, countdown starts at
-  the next anchor`. `!df fire s5_penalty` or `!df souls` pays it.
-- Step 5, no anchor: "signal lost" after 15 s, 10 s drain, nothing else, no countdown.
 - Step 6, rock dropped: 60 s then home (nearer of the landing spot / table front, charges kept). After a Step 7 fail its
   home is the table front. Never touched after landing: 3 min, then the table front.
 - Step 7, rock destroyed / zone empty: see Step 7 above; hold the table again, no second song.
