@@ -19,6 +19,10 @@ A few things that are true for the whole quest:
 - Everything electric (blue sparks, arcs, lightning, thunder) belongs to Richtofen; everything fire and ash
   belongs to Maxis, and nothing on Maxis's side looks or sounds electric. Before you pick a side the world is
   electric.
+- Every fixed object the quest ever uses - the four barn fuse boxes, the four Town graves and the three power
+  switches under the tower - stands in the world from the moment you load in, on both sides, and none of them is
+  ever removed. Only the look follows your side and the step: a fuse box only glows once Richtofen is locked, a
+  grave only flames once Maxis is locked, and a spent grave stays standing, cold, once its flame goes out.
 - The table under the tower never lights up: what you put on it just clinks. The lasting look is on the relay's
   mast (one small glow per finished step).
 - The vanilla Easter Egg is off. The NavCard and its table still work as usual.
@@ -81,8 +85,10 @@ it drops at your feet if you go down). The first lift warns you that a choice is
 TABLE that stands under the tower, next to the cornfield. The table shows nothing: the power state at the
 moment you plug in is the choice (the patrons tell you so):
 
-- power ON -> RICHTOFEN. The four tombstones in Town vanish.
-- power OFF -> MAXIS. The four power boxes in the Farm barn vanish.
+- power ON -> RICHTOFEN. The four power boxes in the Farm barn come alive with a faint glow; the four Town graves
+  stay standing, dark.
+- power OFF -> MAXIS. The four Town graves catch their small flame; the four power boxes in the barn stay
+  standing, dark.
 
 Press F at the table to plug the relay in (a clink and the switch-on sound, no light on the table). The choice
 is final for this game. A white runner light now climbs the tower for the rest of the game, and the relay's mast
@@ -182,8 +188,8 @@ Four tombstones stand in Town, each with a small flame. Carry the hand there (th
 portals refuse you) and press F on any of them to light it (any order, as many as you like); a lit grave
 crackles. Lighting a grave starts a wave of sprinting zombies at it that ends when the grave is full. Kill 5
 zombies near a lit grave (5 / 5 / 6 / 7, fixed when M2 opens), burning or not (a Galvaknuckle kill does not
-count): every counted kill bursts, its fire flies into the grave with a clink. Full: the tombstone vanishes and a
-scorched glow stays on the ground. A lit grave has 90 seconds to be filled (you hear the clock, dry ticks at the
+count): every counted kill bursts, its fire flies into the grave with a clink. Full: the tombstone stays standing,
+its flame goes out and a scorched glow marks it as spent. A lit grave has 90 seconds to be filled (you hear the clock, dry ticks at the
 end): if not, it goes cold (the thump and Maxis tell you), loses its kills and must be lit again and filled from
 zero. A kill at an UNLIT grave does not count (a buzz tells you). Denizens leave you alone within a few steps of
 any of the four graves while M2 runs.
@@ -215,23 +221,27 @@ overheat). Maxis: every lamp is powered, so portals and denizen burrows work wit
 
 ## Act 3 - Convergence (shared; the actions differ per side)
 
-<details><summary><b>Step 5 - Frequency Sweep (the set lamps)</b> (click to reveal)</summary>
+<details><summary><b>Step 5 - Blackout (Richtofen) / Frequency Sweep (Maxis)</b> (click to reveal)</summary>
 
 
-Only the same set lamps as before can be tuned; each untuned one shows a glint at its bulb. Stand at a lamp
-and HOLD F for 5 s (a rising sound, no bar). The lamp then blinks and ticks for 15 s, waiting for its ANCHOR:
+Richtofen and Maxis no longer share Step 5: each side gets its own puzzle.
 
-- MAXIS: a RUNNING TURBINE placed close to the lamp's base (before or during the 15 s).
-- RICHTOFEN: punch the lamp's post with the GALVAKNUCKLES while it ticks. A punch given up to 45 s BEFORE
-  you finish tuning counts too.
-
-No anchor within 15 s: "signal lost", the lamp drains for 10 s, then you can tune it again. Nothing else is
-lost.
-
-The FIRST anchor starts a countdown you hear, not see: Maxis 360 s solo (300 / 270 / 240), Richtofen 480 s
-(360 / 300 / 270). Anchor THREE lamps before it ends (every lamp if the set is smaller) and Step 5 is done. If it runs out, the anchored lamps
-STAY anchored; only the lamps you missed need kills again (15 / 18 / 21 / 24 each near the post, solo to four players) before
-they can be tuned, and the next anchor starts a fresh countdown with only the missing lamps left.
+- RICHTOFEN - Blackout: the moment Step 5 opens, Maxis cuts the grid. The three power switches standing near
+  the tower (there since the start of the game, always ON until now) flip OFF, one spark each. Walk up to a dark
+  switch and press F once within reach: the lever rolls back ON with a click, then a hum - no hold, no timer.
+  Turning a switch back ON pulls a short wave of sprinting zombies at it. A switch refuses you while the map's
+  main power itself is off ("Power ON first, Samuel! A switch on a dead grid is a toy."). At the end of every
+  round with at least one switch still dark, Maxis knocks one lit switch back off ("Another of his switches
+  falls. The dark is patient."). Get all three ON at the same time and Step 5 is done. There are always three
+  switches, whatever the lobby size.
+- MAXIS - Frequency Sweep: only the same set lamps as before can be tuned; each untuned one shows a glint at its
+  bulb. Stand at a lamp and HOLD F for 5 s (a rising sound, no bar). The lamp then blinks and ticks for 15 s,
+  waiting for a RUNNING TURBINE placed close to the lamp's base (before or during the 15 s). No turbine within
+  15 s: "signal lost", the lamp drains for 10 s, then you can tune it again. Nothing else is lost. The FIRST
+  anchor starts a countdown you hear, not see: 360 s solo (300 / 270 / 240). Anchor THREE lamps before it ends
+  (every lamp if the set is smaller) and Step 5 is done. If it runs out, the anchored lamps STAY anchored; only
+  the lamps you missed need kills again (15 / 18 / 21 / 24 each near the post, solo to four players) before they
+  can be tuned, and the next anchor starts a fresh countdown with only the missing lamps left.
 
 </details>
 

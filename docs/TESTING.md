@@ -12,7 +12,7 @@ else from the repo. `!df status` prints the version: `DF <version> | side none |
 
 Every `!df` answer and every quest event lands in the console as `[DF] ...`: paste those lines when something is off.
 ONE press of F = every pickup and placement (parts, coil, relay, card, battery, spools, the M1 / M2 hand, rock) and every
-pipe kick / grave touch.
+pipe kick / grave touch / Blackout switch flip.
 Holds only: build the relay (3 s, vanilla bar + builder hands), tune a lamp (5 s, heard not seen), power the relay (1.5 s,
 small bar "Powering the relay"), open the frequency (5 s, bar "Opening the frequency"). NO timer on screen anywhere:
 every clock is the Pack-a-Punch tick-tock loop on every player plus dry ticks in the last 30 s (every second, doubled
@@ -64,11 +64,16 @@ Everything below must already be there. Missing = the biggest bug of this build.
 - Tower: `!df tp DF_TABLE`: the work bench stands there, empty. Walk into it: you must NOT pass through, and you must
   NOT be able to jump onto it (two rows of clips, a 64-tall wall). `!df move DF_TABLE 20 0 0` moves the real table
   (`table follows DF_TABLE to ...`); move it back or restart.
-- Barn: `!df tp DF_FUSE_1..4`: four small power boxes (13 x 20, centre at mid height) on the walls, faint glow, back
-  against the wall, lever side towards the room. Press F on one: nothing.
-- Town: `!df tp DF_BRAZIER_1..4`: four TOMBSTONES spread over Town (owner spots 2026-09-23), standing on the ground, each
-  with ONE small flame (replayed every 2 s, never burns out), no crackle, no glow. Walk into one: you must not pass
-  through, and you must not be able to stand on it (two clip blocks, 64 tall).
+- Barn: `!df tp DF_FUSE_1..4`: four small power boxes (13 x 20, centre at mid height) on the walls, back against
+  the wall, lever side towards the room, NO glow yet (owner 2026-09-25: the boxes stand from boot on both sides;
+  only a side lock gives them a look). Press F on one: nothing.
+- Town: `!df tp DF_BRAZIER_1..4`: four TOMBSTONES spread over Town (owner spots 2026-09-23), standing on the ground,
+  NO flame yet (owner 2026-09-25: the graves stand from boot on both sides; the small flame belongs to the Maxis
+  side only, once locked). Walk into one: you must not pass through, and you must not be able to stand on it (two
+  clip blocks, 64 tall).
+- Tower: `!df tp DF_BLACKOUT_1..3`: three power switches stand near the table under the tower, lever ON, on BOTH
+  sides from boot (console `DF: blackout 3 power switch(es) standing ON`). Press F: nothing yet (Richtofen's
+  Step 5 arms them).
 - Lamps: walk to one lamp of the printed set: one small electric spark at the bulb every 6 s, no colour, not green.
   `!df fire lamps` lists 3 lamps `set 1 state off`. None of them is diner or townbridge; one is the lamp nearest the tower.
 - Bus parts: the ladder lies at the Depot (-7313 5441), the hatch at the Diner (-3537 -7214). `!df fire busparts`
@@ -152,11 +157,18 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   relay_mast`), no table light at any time, tower visuals 15 s, one vanilla voice line, D4 line,
   `relay plugged by <you>, power 1, side rich`. A white runner starts climbing a tower leg every ~5 s and stays for the
   game. Four small step glows appear on the relay mast, bottom up (steps 1-4; default fx_zmb_tranzit_key_glint, `set df_step_glow_fx <fx>` swaps the glow).
-- Side lock: power ON = `side rich` and `Richtofen side locked, the four tombstones are gone` (check Town: no
-  graves); power OFF = `side maxis` and `Maxis side locked, the four Simon boxes are gone` (check the barn: no boxes).
-  Both print `orb spawn for side X: x y z` (the spot drawn at boot, not a new draw). `!df status` shows the side. The
-  lock is FINAL: `!df side maxis` now answers `side rich is already locked, it cannot change in this game (start a fresh
-  game to test maxis)`.
+- Side lock: `DF: side locked rich` (power ON) or `DF: side locked maxis` (power OFF). Boxes and graves are NEVER
+  removed any more (owner 2026-09-25): power ON -> rich turns on the boxes' faint boot glow (no console line for
+  it) and prints `DF: Richtofen side locked, the four graves stay dark` (check Town: four cold tombstones, still
+  standing, no flame); power OFF -> maxis prints `DF: Maxis side locked, the four boxes stay dark` (check the
+  barn: four boxes, still standing, no glow) and `DF: Maxis side locked, the four graves show their flame` (check
+  Town: four graves, each flaming). The three DF_BLACKOUT switches keep standing ON, unaffected, on either side.
+  Both locks also print `orb spawn for side X: x y z` (the spot drawn at boot, not a new draw). `!df status` shows
+  the side. The lock is FINAL: `!df side maxis` now answers `side rich is already locked, it cannot change in
+  this game (start a fresh game to test maxis)`.
+- Persistence (owner, `say` in the in-game chat with `df_debug 1`): fresh game `say !df side maxis` -> graves
+  flame, barn boxes present and dark. Fresh game `say !df side rich` -> boxes glow, graves present, no flame.
+  `say !df goto step7` on Maxis -> all four graves still standing.
 - Co-op: the carrier leaves the game with the relay: `relay carrier left the game, relay dropped`, then after 60 s
   untouched `orphan relay untouched for 60 s, returned to the table`.
 
@@ -255,8 +267,9 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
   burning or not, any gun: EVERY counted kill = a fire burst at the body with the swipe sound there, a fire trail into
   the grave, then the clink at the grave (two different sounds; paste it if one is missing on quick kills), `m2
   brazier_n 1/5`. A kill at an unlit grave does not count (deny buzz to the killer, console silent); a Galvaknuckle kill
-  at a lit grave does not count either (deny buzz). At 5: `m2 brazier_n spent and gone (k/4)`: the tombstone bursts
-  (large fire + rising ash) and VANISHES with its clips, a scorched lava glow stays on the ground.
+  at a lit grave does not count either (deny buzz). At 5: `m2 brazier_n spent and gone (k/4)` (owner 2026-09-25:
+  the console text still says "gone", but the model does not delete any more): a small burst, the tombstone STAYS
+  standing with its clips, its flame goes out, and a scorched lava glow marks the spot.
 - Cold timer: a lit grave not filled within 90 s (`set df_m2_grave_time <s>` before loading) goes cold: the tick-tock
   runs for the grave that cools first (dry ticks in its last 30 s), then EMP thump at the grave, M2_GRAVE_COLD, `m2
   brazier_n went cold (not filled within 90 s): light it again and fill it from 0`, the crackle stops, `m2 wave OFF at
@@ -278,26 +291,48 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - Wrong: paste the `m2 brazier_n ...` lines, the `spawn structs` count, and what killed the zombie.
 
 ## 5. Act 3 (shared; what differs per side is marked)
-**Step 5 Frequency Sweep**. Skips: `!df fire s5_anchor` (one lamp), `s5_all`, `s5_time` (expire, needs an anchor), `s5_penalty` (pay it), `!df goto step6`.
+**Step 5 Frequency Sweep (Maxis)**. Skips: `!df fire s5_anchor` (one lamp), `s5_all`, `s5_time` (expire, needs an anchor), `s5_penalty` (pay it), `!df goto step6`.
 - S5 START waits until the end-of-Act-2 lines are over (at most 90 s). Console `s5 sweep open: 3 set lamps, anchor 3
-  (turbine within 200 | knuckle jolt on the post), timer 360 | 480 s from the first anchor` (Maxis 360, Richtofen 480):
-  THREE anchors win, also with 4 set lamps in a full lobby (fewer only if the set itself is smaller). ONLY the set lamps get "Hold F to tune"; each
-  untuned one wears a glint at the bulb; no lamp turns green.
+  (turbine within 200), timer 360 s from the first anchor`: THREE anchors win, also with 4 set lamps in a full
+  lobby (fewer only if the set itself is smaller). ONLY the set lamps get "Hold F to tune"; each untuned one wears
+  a glint at the bulb; no lamp turns green.
 - Hold F 5 s: a rising power sound at the lamp (NO bar), 1 / 2 / 3 quick ticks at 25 / 50 / 75 %, then two clinks and
   `lamp X tuned, waiting 15 s for an anchor`: the light blinks, tick-tock at the lamp, no timer, the electric arcs are
-  off. The first time, the patron names the anchor (S5_ANCHOR_TURBINE_MAXIS / S5_ANCHOR_DENIZEN_RICH = "Punch the post!").
-  - MAXIS: put a RUNNING TURBINE within 200 of the lamp base (before or during the wait): NavCard chime + fire flash +
-    runner to the tower, `lamp X anchored (1/3)`, and only now `s5 countdown started at the first anchor: 360 s`, ticks.
-  - RICH: melee the post with the GALVAKNUCKLES within 90 while it ticks (or up to 45 s before you tune it): `s5 lamp X
-    jolted by <you> (counts as the anchor for 45 s)`, anchored, `s5 countdown started ...: 480 s`. A denizen burrow does
-    NOTHING here any more. Richtofen's vanilla lamp line once.
-  - Every anchor short of the last: D5_ANCHOR (Richtofen: "One holds!").
-  - Without an anchor: after 15 s EMP thump + side fx at the lamp, `no anchor within 15 s, signal lost, draining`, 10 s,
-    `tunable again`, prompt back. No countdown.
+  off. The first time, the patron names the anchor (S5_ANCHOR_TURBINE_MAXIS = "A turbine at its foot. Quickly!").
+- Put a RUNNING TURBINE within 200 of the lamp base (before or during the wait): NavCard chime + fire flash +
+  runner to the tower, `lamp X anchored (1/3)`, and only now `s5 countdown started at the first anchor: 360 s`, ticks.
+- Every anchor short of the last: D5_ANCHOR ("That one holds. The others still drift.").
+- Without an anchor: after 15 s EMP thump + side fx at the lamp, `no anchor within 15 s, signal lost, draining`, 10 s,
+  `tunable again`, prompt back. No countdown.
 - The countdown is the Pack-a-Punch tick-tock riding you (one loop per player, everywhere on the map); the dry ticks join
   under 30 s. Anchored lamp: steady side light + light shaft from the tower + slow double burst, no arcs. All anchored:
   `s5 3 lamps anchored, step done`, D5_DONE, `step complete step5`.
-- Wrong: paste `s5 lamp X ...` lines; on Maxis say where the turbine stood.
+- Wrong: paste `s5 lamp X ...` lines and where the turbine stood.
+- The file's own Richtofen anchor branch (Galvaknuckle jolt on the post, S5_ANCHOR_DENIZEN_RICH / S5_NOFISTS_RICH)
+  is dead code kept for safety: `df_s5_run` / `df_s5_setup` hand Richtofen off to Blackout before any of it can
+  run, so it is not reachable in normal play and needs no test.
+
+**Step 5 Blackout (Richtofen)**. Skips: `!df fire blackout_off` (all three switches OFF, a running step keeps
+going), `!df fire blackout_on` (all three ON, completes the step if it is open), `!df goto step6`.
+- The three DF_BLACKOUT switches stand ON from boot on both sides (console `DF: blackout 3 power switch(es)
+  standing ON`); Maxis's side never touches them.
+- S5 opens (after the end-of-Act-2 lines, at most 90 s): `DF: blackout Maxis cut the grid: 3 switch(es) OFF, one
+  press each turns it ON` - all three levers roll OFF at once (flip sound + a short blue spark at each).
+- Within 80 of a dark switch: "Press [{+activate}] to turn the power switch ON". One press (no hold): the lever
+  rolls ON (flip sound, then `zmb_turn_on`, a progress clink), `DF: blackout switch N ON by <you> (a/3)`, and a
+  20 s wave of sprinting zombies rises at that switch (2 every 2 s, cap 8 + 3 per extra player).
+- Press an OFF switch while the map's main power is OFF: deny buzz, BO_NOPOWER_RICH ("Power ON first, Samuel! A
+  switch on a dead grid is a toy."), said at most once every 10 s even if you hold the key.
+- End of a round with at least one switch still OFF: `DF: blackout Maxis knocked switch N OFF at the end of the
+  round`, BO_OFF_MAXIS ("Another of his switches falls. The dark is patient.") - Maxis always knocks an ON switch,
+  never one already dark.
+- All three ON at once: sub-goal cue, `DF: blackout all switches ON`, D5_DONE_RICH ("All three ON! Hear it hum,
+  Samuel? Now something must carry the charge."), `step complete step5`.
+- `!df fire blackout_off` / `blackout_on`: `DF: blackout debug: every switch df_debug_blackout_off` /
+  `df_debug_blackout_on` (the console line names the raw hook, not ON/OFF, on purpose). `!df goto step6`: all
+  three switches stand ON, nothing running, no console line.
+- No scaling: three switches whatever the lobby size.
+- Wrong: paste every `DF: blackout ...` line and which switch.
 
 **Step 6 Vacuum**. Skips: `!df fire s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver` (finish), `s6_restart`, `orb_aura` (next aura), `!df goto step7`.
 - Step opens at the table: RICH the key card discharges (blue spark + arc crack, a blue runner to the landing spot,
@@ -434,9 +469,11 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 
 ## 7. Skips and cleanliness
 - `!df goto <step>` at any point: the skipped steps leave nothing behind (no lights, sparks, prompts, hums) BUT the boot
-  props stay: pipes (dark), table, boxes / graves (the side lock removes the other side's), lamps. No AVAILABLE / DONE
-  sounds during the jump, the target step plays its own once it opens. `!df goto step3`: no parts anywhere, relay on the
-  roof. `!df goto step2`: coil at DF_COIL_DROP, two parts in the fog, 3 needed.
+  props stay: pipes (dark), table, boxes, graves, the three DF_BLACKOUT switches, lamps. Boxes and graves are NEVER
+  removed by the side lock any more (owner 2026-09-25): only their look (glow / flame) follows the locked side, both
+  stay standing for the rest of the game. No AVAILABLE / DONE sounds during the jump, the target step plays its own
+  once it opens. `!df goto step3`: no parts anywhere, relay on the roof. `!df goto step2`: coil at DF_COIL_DROP, two
+  parts in the fog, 3 needed.
 - The goto only moves FORWARD and never crosses the lock: `<step> is already done, goto only moves forward`, `<step> is
   not ahead of the current step <key>, goto only moves forward`, `<step> belongs to the <side> side but <side> is locked
   in this game (start a fresh game)`. A jump that hangs is aborted after 20 s: `goto <step> did not finish in 20 s,
@@ -447,7 +484,8 @@ and for what (pipe flash, signal light, lamp hungry / full / anchored, grave fla
 - `!df goto step5` RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
   (steady glow, no sparks), six step glows on the relay mast, `act 2 reward given silently (goto)` (no Max Ammo, no
   line). MAXIS: ONE hand on the table (M2's replaced M1's at the same pose), the charged fire hand
-  resting there with its small flame (no prompt), four scorched glows where the graves stood (cosmetic, not Step 6 nodes). `!df goto step7` / `finale`: the
+  resting there with its small flame (no prompt), four graves STILL STANDING, spent, dark, each with a scorched
+  glow (owner 2026-09-25: no longer deleted; cosmetic, not Step 6 nodes). `!df goto step7` / `finale`: the
   rock rests on the right slot (no "Rock" notice), the fire hand is gone, tracker runners on.
 - Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched)` + one line, then at 10 min and every
   6 min; every touch of the step starts the ladder over (HINT_1 4 min after the LAST touch); an event hint earlier
