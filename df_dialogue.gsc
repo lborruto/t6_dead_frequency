@@ -182,22 +182,22 @@ df_dialogue_act2_maxis()
     df_add_line( "M1_PORTAL", "maxis", "The old bunker in the corn, where the dead first rose. One steps in, all go." );
     df_add_line( "M1_PORTAL", "rich", "Do not go in there, Samuel. Actually, do. I could use the laugh." );
     df_add_line( "M1_MAXIS_FAIL", "maxis", "Too slow. The cold does not wait. Bring another one to the table." );
-    df_add_line( "M1_DONE", "maxis", "It is keyed. The signal knows us now. Next I need the hand of his switch." );
+    df_add_line( "M1_DONE", "maxis", "It is keyed. The signal knows us now. The hand still wants fire." );
     // ITEM_SKULL_MAXIS: the frozen SKULL (zombie_skull) appears after the denizen kills; the take cue, called from
     // df_m1_skull_appear instead of the table placement (dialogue audit v2 #8; M1_DONE covers the placement)
-    df_add_line( "ITEM_SKULL_MAXIS", "maxis", "The cold left a skull behind. Take it. Set it on the table under the Spire." );
+    df_add_line( "ITEM_SKULL_MAXIS", "maxis", "The cold left a hand behind. The hand of his switch. Set it on the table." );
 
     // M2 - Fire and Ash
-    df_add_line( "M2_START", "maxis", "A burning hand waits on the table. Four graves in Town want its fire." );
+    df_add_line( "M2_START", "maxis", "The hand on the table wants fire. Four graves in Town still remember it." );
     df_add_line( "M2_HINT_1", "maxis", "Four graves stand in Town. Touch each with the fire hand from the table." );
     df_add_line( "M2_HINT_2", "maxis", "Light a grave in Town. Kill the dead beside it before it cools. Then the next." );
     df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. The fire remembers it." );
     // ITEM_EMBER_MAXIS: the fire hand taken from the table; a grave lights it, then the lit graves want
     // kills beside them, burning or not (dialogue audit v2, M2: the take touches the ladder, so this line
     // carries the second half)
-    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "The hand of his switch, burning. Carry it to the graves in Town, touch each." );
-    df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. The hand burns heavy now. Bring it back to the table." );
-    df_add_line( "M2_EMBER_LOST", "maxis", "The fire hand fell with you. It waits on the table again." );
+    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "Take the hand to the graves in Town. Wake each one and feed it the dead." );
+    df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. Their fire lives in the hand now. Set it on the table." );
+    df_add_line( "M2_EMBER_LOST", "maxis", "The hand fell with you. It waits on the table again." );
     df_add_line( "M2_KNUCKLES_MAXIS", "maxis", "Nein! His current will not touch my graves. Any weapon but his fists." );
     // M2_POWER_MAXIS: the grid was ON at the end of a round and ONE lit grave forgets its kills
     // (df_act2_maxis df_m2_power_penalty; dialogue audit v2 section 3)
@@ -357,7 +357,7 @@ df_dialogue_finale()
     df_add_line( "FIN_WORLD_MAXIS", "maxis", "The lamps answer to me now. The fog is quiet. The little ones will not return." );
     // residue lines, once, right after FIN_WORLD_* (df_finale df_fin_keepsake): the card / the skull stay on the table
     df_add_line( "ITEM_KEEPSAKE_RICH", "rich", "Keep the card, Samuel. A souvenir of the day you made me very happy." );
-    df_add_line( "ITEM_KEEPSAKE_MAXIS", "maxis", "The skull stays on the table. Let it remind him whose Spire this is." );
+    df_add_line( "ITEM_KEEPSAKE_MAXIS", "maxis", "The hand burnt away for this. Let the Spire remember whose fire it holds." );
 }
 
 // Old stall hint keys (spec section 7, README, `!df say`) point at the HINT_1 rung of their step.

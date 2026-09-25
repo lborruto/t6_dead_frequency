@@ -188,7 +188,7 @@ df_scav_icon( kind )
         case "ember":
             return "zm_hud_icon_sq_meteor"; // owner 2026-09-23: the rock picture on the fire hand too
         case "skull":
-            return "hud_status_dead"; // owner 2026-09-23: the scoreboard skull (precached by df_coords_precache)
+            return "zm_hud_icon_sq_meteor"; // owner 2026-09-23: the scoreboard skull (precached by df_coords_precache)
         case "part_a":
             return "zm_hud_icon_sq_tranceiver"; // the radio
         case "part_b":
@@ -220,9 +220,9 @@ df_scav_display_name( kind )
         case "battery":
             return "Battery";
         case "ember":
-            return "Fire hand";
+            return "Hand";
         case "skull":
-            return "Skull"; // owner 2026-09-23: a real skull again (was "Stone" on the meteor model)
+            return "Hand"; // owner 2026-09-23: a real skull again (was "Stone" on the meteor model)
         case "parts":
         case "part_a":
         case "part_b":

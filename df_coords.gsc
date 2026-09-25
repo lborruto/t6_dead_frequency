@@ -1417,7 +1417,9 @@ df_models_init_items()
     // owner 2026-09-23: a real skull again (was the meteor stone of the 2026-09-11 Prop Picker pick): zombie_skull,
     // common_zm ALWAYS, 16 x 23 x 21, upright at pitch / roll 0 (the powerup spawns it with plain angles), faces
     // the table front. Rest 14 / top +9 (df_model_rest_z / df_model_top_z). Table slot 1 keeps its value.
-    df_model_def( "skull", "zombie_skull", 0, 0, 0, ( -3, 8, 58 ) ); // owner 2026-09-23: pose in the TABLE frame (df_table_point, z from the floor: bench top 44 + the skull's rest 14), like the fire hand
+    // owner 2026-09-25 (the hand arc): the M1 item is the HAND of the power switch (M1 drops it, it waits on the table, M2 carries it to the
+    // graves and it comes back as the fire hand): same model and table pose as kind "ember"
+    df_model_def( "skull", "p6_zm_buildable_pswitch_hand", -16, 0, -8.5, ( -6, -12, 48 ) );
 
     // receiver: the COIL that arrives when Step 1 is solved (audit 9, the relay's third part; the name is from
     // the old phone handset). The wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the

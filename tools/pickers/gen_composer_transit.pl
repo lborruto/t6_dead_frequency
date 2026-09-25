@@ -459,7 +459,7 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
 
     my @occupant = $is_rich
       ? ( model_part( kind => 'card', model => $model_def{card}{name}, x => $card_pos[0], y => $card_pos[1], z => $card_pos[2], pitch => $model_def{card}{pitch}, roll => $model_def{card}{roll}, yaw => $card_yaw, slot => 1 ) )
-      : ( model_part( kind => 'skull', model => $model_def{skull}{name}, x => $model_def{skull}{ox} // $skull_pos[0], y => $model_def{skull}{oy} // $skull_pos[1], z => $model_def{skull}{oz} // $skull_pos[2], pitch => $model_def{skull}{pitch}, roll => $model_def{skull}{roll}, yaw => $skull_yaw, parent => 'table' ) ); # owner 2026-09-23: own pose in the table frame (df_table_point), slot 1 stays the card's
+      : (); # owner 2026-09-25 (the hand arc): the M1 hand shares the fire hand's pose (kind "ember" below)
 
     my @occupant_fx = $is_rich
       ? ()

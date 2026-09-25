@@ -1267,7 +1267,7 @@ df_m1_skull_poll()
                     continue;
                 }
 
-                df_m1_skull_prompt_set( player, "Press [{+activate}] to place the skull" );
+                df_m1_skull_prompt_set( player, "Press [{+activate}] to place the hand" );
 
                 if ( player df_press_use() )
                     df_m1_skull_place_by( player );
@@ -1285,7 +1285,7 @@ df_m1_skull_poll()
             }
 
             df_m1_skull_room_prompt( player, 0 );
-            df_m1_skull_prompt_set( player, "Press [{+activate}] to take the skull" );
+            df_m1_skull_prompt_set( player, "Press [{+activate}] to take the hand" );
 
             if ( player df_press_use() )
                 df_m1_skull_take( player );
@@ -1311,7 +1311,7 @@ df_m1_skull_room_prompt( player, show )
             return;
 
         player.df_m1_skull_room_prompt = 1;
-        player df_prompt_puzzle( 1, "Take the skull before the cold closes" );
+        player df_prompt_puzzle( 1, "Take the hand before the cold closes" );
         return;
     }
 
@@ -1458,14 +1458,13 @@ df_m1_skull_place_table( quiet )
     df_m1_skull_clear_hands();
     // owner 2026-09-23: the skull (zombie_skull, pivot 14 over its base) has its own pose in the table frame, set in the
     // Prop Composer (df_coords df_model_def "skull" offset); slot 1 stays the card's
-    pos = df_table_point( df_model_offset( "skull" ) );
+    pos = df_table_point( df_model_offset( "ember" ) ); // owner 2026-09-25: exactly where the fire hand will lie
     level.df_m1_skull_table = spawn( "script_model", pos );
     level.df_m1_skull_table setmodel( df_model( "skull" ) );
-    level.df_m1_skull_table.angles = df_model_angles( "skull", df_table_yaw() );
+    level.df_m1_skull_table.angles = df_model_angles( "ember", df_table_yaw() );
     // owner 2026-09-23: no glow on the skull (one glow per step on the relay); the placing snap only
     if ( !is_true( quiet ) )
         df_cue_table_place( pos );
-    level thread df_m1_skull_spin();
     df_debug_print( "DF: m1 skull on the table, slot 1 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
 
     if ( !is_true( quiet ) )
@@ -2049,7 +2048,7 @@ df_m2_ember_poll()
                 {
                     if ( distancesquared( player.origin, df_coord( "DF_SOCKET" ).origin ) <= 150 * 150 )
                     {
-                        df_m2_prompt_set( player, "Press [{+activate}] to return the fire hand" );
+                        df_m2_prompt_set( player, "Press [{+activate}] to set the fire hand on the table" );
 
                         if ( player df_press_use() )
                             df_m2_ember_return( player );
@@ -2083,7 +2082,7 @@ df_m2_ember_poll()
                 continue;
             }
 
-            df_m2_prompt_set( player, "Press [{+activate}] to take the fire hand" );
+            df_m2_prompt_set( player, "Press [{+activate}] to take the hand" );
 
             if ( player df_press_use() )
                 df_m2_ember_take( player );
@@ -2155,10 +2154,16 @@ df_m2_ember_carry()
     while ( is_true( self.df_ember ) )
     {
         df_fx_stop( self.df_m2_ember_fx );
-        fxname = "lava_burning";
+        self.df_m2_ember_fx = undefined;
 
-        if ( is_true( level.df_m2_ember_charged ) )
-            fxname = "fx_zmb_tranzit_fire_med"; // charged: a real flame on the carrier
+        // owner 2026-09-25 (the hand arc): a plain hand does not burn: no fire and no damage until the four graves are ash
+        if ( !is_true( level.df_m2_ember_charged ) )
+        {
+            wait 0.5;
+            continue;
+        }
+
+        fxname = "fx_zmb_tranzit_fire_med"; // charged: the fire hand, a real flame on the carrier
 
         ent = df_fx_loop( fxname, self.origin + ( 0, 0, 45 ) );
 
@@ -2583,6 +2588,14 @@ df_m2_export_nodes()
 df_m2_ember_spawn_table( resting )
 {
     df_m2_ember_table_remove();
+
+    // owner 2026-09-25 (the hand arc): the hand M1 left on the table is the one M2 hands out (same pose, the entity just changes owner)
+    if ( isdefined( level.df_m1_skull_table ) )
+    {
+        level.df_m1_skull_table delete();
+        level.df_m1_skull_table = undefined;
+    }
+
     yaw = df_table_yaw();
     level.df_m2_ember_pos = df_table_point( df_model_offset( "ember" ) );
     level.df_m2_ember_on_table = !is_true( resting );
@@ -2590,15 +2603,20 @@ df_m2_ember_spawn_table( resting )
     level.df_m2_hand_table = spawn( "script_model", level.df_m2_ember_pos );
     level.df_m2_hand_table setmodel( df_model( "ember" ) );
     level.df_m2_hand_table.angles = df_model_angles( "ember", yaw );
-    f = df_fx_loop( df_m2_hand_fire_fx(), level.df_m2_ember_pos + df_fx_point_at( "hand_fire", yaw ) );
 
-    if ( isdefined( f ) )
+    // owner 2026-09-25 (the hand arc): a plain hand until the four graves are ash; the flame only on the charged hand
+    if ( is_true( resting ) || is_true( level.df_m2_ember_charged ) )
     {
-        level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = f;
-        level thread df_m2_flame_keep( f, df_m2_hand_fire_fx() );
+        f = df_fx_loop( df_m2_hand_fire_fx(), level.df_m2_ember_pos + df_fx_point_at( "hand_fire", yaw ) );
+
+        if ( isdefined( f ) )
+        {
+            level.df_m2_ember_table_fx[level.df_m2_ember_table_fx.size] = f;
+            level thread df_m2_flame_keep( f, df_m2_hand_fire_fx() );
+        }
     }
 
-    df_debug_print( "DF: m2 the fire hand is on the table" );
+    df_debug_print( "DF: m2 the hand is on the table (charged " + is_true( level.df_m2_ember_charged ) + ")" );
 }
 
 df_m2_ember_table_remove()
