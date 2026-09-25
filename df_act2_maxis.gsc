@@ -1920,8 +1920,10 @@ df_m2_place_braziers()
         b.clip_top.angles = c.angles;
         df_m2_set_stage( b, 0 );
         // owner 2026-09-25: a damage trigger on the grave (outside the map): a bullet on it lights it
-        b.hit = spawn( "trigger_damage", b.origin, 0, 30, 80 );
-        level thread df_m2_grave_shot_watch( b );
+        b.hit = spawn( "trigger_damage", b.origin, 0, 40, 90 );
+        b.model setcandamage( 1 ); // owner 2026-09-25: the model takes the bullet too (a second path if the trigger misses)
+        level thread df_m2_grave_shot_watch( b, b.hit );
+        level thread df_m2_grave_shot_watch( b, b.model );
         level.df_m2_braziers[i] = b;
         df_debug_print( "DF: m2 " + b.name + " at " + int( c.origin[0] ) + " " + int( c.origin[1] ) + " " + int( c.origin[2] ) + " (" + model + ")" );
     }
@@ -1968,6 +1970,10 @@ df_m2_grave_move_hook()
                 b.clip_top.angles = c.angles;
             }
 
+            // owner 2026-09-25: the damage trigger follows too (a moved grave kept its trigger at the old spot: shots did nothing)
+            if ( isdefined( b.hit ) )
+                b.hit.origin = b.origin;
+
             df_m2_crackle_stop( b );
             stage = b.stage;
             b.stage = -1;
@@ -1989,13 +1995,19 @@ df_m2_zone_radius()
     return r;
 }
 
-df_m2_grave_shot_watch( b )
+// owner 2026-09-25: every grave has its own watchers, so the four can be lit at once (solo or co-op), each with its own 90 s timer.
+// src = the damage trigger or the model; the watcher ends when its entity goes (the grave explodes).
+df_m2_grave_shot_watch( b, src )
 {
     level endon( "end_game" );
 
-    while ( isdefined( b.hit ) )
+    while ( isdefined( src ) )
     {
-        b.hit waittill( "damage", amount, attacker );
+        src waittill( "damage", amount, attacker );
+
+        // owner 2026-09-25: the console names every hit on a grave, so a grave that "does nothing" can be read
+        if ( is_true( level.df_m2_armed ) && !b.done )
+            df_debug_print( "DF: m2 " + b.name + " hit (lit " + b.lit + ")" );
 
         if ( !is_true( level.df_m2_armed ) || b.lit || b.done || !isdefined( attacker ) || !isplayer( attacker ) )
             continue;
@@ -2521,7 +2533,7 @@ df_m2_light( b, player )
 
     // the first lit grave teaches the rule (audit v3 #4: M2_HINT_2 had no caller since the ember no longer burns out)
     if ( df_m2_lit_count() == 1 )
-        df_hint_now( "m2", 2 );
+        level thread df_hint_now( "m2", 2 ); // owner 2026-09-25: threaded, never holds up the shot watcher
     // fire whoosh, 1.4 s, 750 range: the closest thing to an ignition in the banks (zmb_firetrap_start and
     // "ignite" are Buried / lava-script aliases that no TranZit bank carries: both were silent)
     playsoundatposition( "zmb_phdflop_explo", df_m2_rim_pos( b ) );
@@ -2535,7 +2547,7 @@ df_m2_light( b, player )
         df_touch( "m2" );
         who = player.name;
         player playsoundtoplayer( "zmb_buildable_piece_add", player );
-        tail = ", you keep the fire hand";
+        tail = "";
     }
 
     df_debug_print( "DF: m2 " + b.name + " lit by " + who + " (" + df_m2_lit_count() + "/4 lit, " + left + " to go" + tail + ")" );
