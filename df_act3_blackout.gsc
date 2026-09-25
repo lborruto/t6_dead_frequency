@@ -132,6 +132,7 @@ df_bo_run()
     df_bo_stop();
     df_cue_subgoal( level.df_bo[0].origin + ( 0, 0, 40 ) );
     df_debug_print( "DF: blackout all switches ON" );
+    df_say( "D5_DONE" );
     df_complete( "step5" );
 }
 
@@ -199,7 +200,15 @@ df_bo_press_loop()
             if ( !flag( "power_on" ) )
             {
                 df_cue_deny( player );
-                df_say( "BO_NOPOWER_RICH" );
+
+                // owner 2026-09-25 (review round 1 #2): df_press_use only blocks presses < 300 ms apart, so
+                // a held key can queue BO_NOPOWER_RICH many times a second; say it at most once every 10 s.
+                if ( !isdefined( level.df_bo_nopower_ms ) || gettime() - level.df_bo_nopower_ms >= 10000 )
+                {
+                    level.df_bo_nopower_ms = gettime();
+                    df_say( "BO_NOPOWER_RICH" );
+                }
+
                 continue;
             }
 
