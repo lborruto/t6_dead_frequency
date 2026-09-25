@@ -996,9 +996,9 @@ df_fin_jetgun_cool_loop()
             if ( !is_player_valid( player ) )
                 continue;
 
-            w = player getcurrentweapon(); // owner 2026-09-25: the upgraded gun too
+            w = player getcurrentweapon();
 
-            if ( w != "jetgun_zm" && w != "jetgun_upgraded_zm" )
+            if ( w != "jetgun_zm" )
                 continue;
 
             player setweaponoverheating( 0, 0 );

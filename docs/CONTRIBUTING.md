@@ -228,7 +228,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   after a skip; also end the moment the finale starts, owner 2026-09-25, `level endon( "df_fin_started" )`).
 - `df_finale.gsc` - the finale (power gate, hold 2.5 s, perks, build-up, orb rise, burst, permanent world change, rewards,
   globe stat), the Act 2 reward listener, and the tower tracker (runner lights per act, one glow per step up the
-  table relay); the no-overheat Jet Gun reward (`df_fin_jetgun_cool_loop`) accepts the upgraded Jet Gun too
+  table relay); the no-overheat Jet Gun reward (`df_fin_jetgun_cool_loop`)
   (owner 2026-09-25).
 
 ## The build

@@ -266,7 +266,7 @@ itself. Every charged node also gets a beam from the tower and a light column, a
 Charge the rock (the draw is heard as a rising sound):
 
 Both sides draw the same way: ONE node, a full JET GUN charge into it. Carry the rock there and fire the Jet Gun
-(plain or upgraded) at the node until the gun OVERHEATS, as in the vanilla tower step: the whole gun goes into it
+at the node until the gun OVERHEATS, as in the vanilla tower step: the whole gun goes into it
 in one go. Keep looking at the node when it overheats; just switching weapons does not count. You need a Jet Gun
 in the team (your patron says so when the Act 2 step ends and nobody carries one).
 

@@ -198,10 +198,10 @@ df_s6_home_pos( from )
     return front;
 }
 
-// Weapon names from tools/assets/weapons_zm_transit.txt (jetgun_zm, jetgun_upgraded_zm; _zm_weap_jetgun.gsc)
+// The Jet Gun (jetgun_zm, _zm_weap_jetgun.gsc). TranZit cannot Pack-a-Punch it: jetgun_upgraded_zm never exists in play.
 df_s6_is_jetgun( weapon )
 {
-    return isdefined( weapon ) && ( weapon == "jetgun_zm" || weapon == "jetgun_upgraded_zm" );
+    return isdefined( weapon ) && ( weapon == "jetgun_zm" );
 }
 
 // level.df_side is locked by Step 4 (df_set_side); undefined counts as Richtofen colours.
@@ -1087,10 +1087,10 @@ df_s6_orb_take()
     df_say( "D6_HINT" );
 }
 
-// True when `player` has either Jet Gun (jetgun_zm or jetgun_upgraded_zm) in the inventory.
+// True when `player` has the Jet Gun in the inventory.
 df_s6_has_jetgun( player )
 {
-    return player hasweapon( "jetgun_zm" ) || player hasweapon( "jetgun_upgraded_zm" );
+    return player hasweapon( "jetgun_zm" );
 }
 
 // True when any player carries a Jet Gun (getweaponslistprimaries, the list _zm_weapons.gsc:197 walks).
@@ -1478,8 +1478,7 @@ df_s6_overheat_watch( node, range2 )
     // TranZit Enhanced takes the overheated gun away for its cooldown: that arrives as a weapon change, sometimes
     // before our thread reads the overheat notify (owner 2026-09-23: a full charge drew nothing). A weapon change
     // counts as the overheat only with a REAL overheat signal (TE's jgx_cooling, vanilla's jetgun_overheating, the
-    // engine's isweaponoverheating), read a frame later since TE sets jgx_cooling right after its notify. The old
-    // "no jetgun_zm in the inventory" test made every swap count with the upgraded gun (jetgun_upgraded_zm).
+    // engine's isweaponoverheating), read a frame later since TE sets jgx_cooling right after its notify.
     if ( what == "weapon_change" )
     {
         wait 0.05;

@@ -88,8 +88,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Blackout, Lights Out and grave props follow their anchors when moved by `!df setpos`,
   `!df grab` or `!df aim`; `!df setpos` refuses unknown keys and keeps pitch and roll.
 - Skipping past M1 during the cold room brings players back from the woods.
-- Lamps put out in Lights Out stay dark in Step 6; Step 7 after-hold waves stop at the finale;
-  the upgraded Jet Gun also cools for the finale reward.
+- Lamps put out in Lights Out stay dark in Step 6; Step 7 after-hold waves stop at the finale.
 
 ### Removed
 - M2 lantern carrying (take, burn, drop): the lantern never leaves the table now.

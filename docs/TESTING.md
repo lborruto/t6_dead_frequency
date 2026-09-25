@@ -440,7 +440,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   lamp portals while carrying. With no Jet Gun in any inventory: the side's "build a Jet Gun" line once (RICH "No
   engine? Build one...", MAXIS "The rock needs a Jet Gun"); otherwise D6_HINT once per game (it points at the node, no recipe).
   From this pickup the ladder speaks the S6_ROCK_HINT_n rungs, once full the S6_FULL_HINT_n rungs.
-- BOTH SIDES, the same draw: `!gun jetgun_zm` (the upgraded Jet Gun works too), carry the rock to the node, fire at it
+- BOTH SIDES, the same draw: `!gun jetgun_zm`, carry the rock to the node, fire at it
   within 350 looking at it (cone 55 degrees on the aim point): a rising power sound (no bar), `s6 drawing node 0`, side
   bursts at the node. Keep firing until the gun OVERHEATS while still aimed: `s6 jet gun overheated at the node: the
   charge is drawn`, NavCard chime + flash + runner to the tower + trail into you, `s6 charge 1/1 in the orb (node 0 ...)`.
