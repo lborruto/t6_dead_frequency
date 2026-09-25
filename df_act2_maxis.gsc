@@ -280,6 +280,9 @@ df_m2_grave_near( pos, radius )
     {
         if ( isdefined( b ) && isdefined( b.origin ) && distancesquared( pos, b.origin ) < radius * radius )
             return true;
+
+        if ( isdefined( b ) && isdefined( b.zone ) && b.lit && !b.done && distancesquared( pos, b.zone ) < radius * radius )
+            return true; // owner 2026-09-25: the kill zone of a lit grave
     }
 
     return false;
@@ -1665,7 +1668,8 @@ df_m2_run()
     df_death_listen_add( "m2", ::df_m2_on_zombie_death );
     level thread df_m2_skip_cleanup();
     level thread df_m2_debug_hook();
-    level thread df_m2_ember_poll();
+    // owner 2026-09-25: the graves stand outside the map: they are SHOT to light (df_m2_grave_shot_watch); the hand stays on the
+    // table and takes the four fires at the end (df_m2_ember_charged), nobody carries it
     level thread df_m2_power_penalty();
     level thread df_m2_fists_loop(); // owner 2026-09-11 (fists 7): the knuckles are the wrong tool here
     level thread df_m2_grave_spawner(); // owner 2026-09-11: gentle waves near a lit grave
@@ -1674,7 +1678,7 @@ df_m2_run()
     level.df_m2_ember_charged = 0;
     df_m2_ember_spawn_table();
     // owner 2026-09-25: no AVAILABLE glint over the table (nothing of ours on the table)
-    df_debug_print( "DF: m2 the fire hand burns on the table: take it (one press), touch any tombstone with it, " + level.df_m2_target + " zombies killed at a lit one make it vanish; all four gone = bring the charged fire hand back to the table" );
+    df_debug_print( "DF: m2 the hand waits on the table; shoot a grave outside Town to light it, kill " + level.df_m2_target + " zombies within " + df_m2_zone_radius() + " of where you shot from; four graves = the fire hand" );
 
     while ( !df_m2_all_done() || !is_true( level.df_m2_ember_returned ) )
         level waittill( "df_m2_check" );
@@ -1914,6 +1918,9 @@ df_m2_place_braziers()
         b.clip_top setmodel( df_model( "clip" ) );
         b.clip_top.angles = c.angles;
         df_m2_set_stage( b, 0 );
+        // owner 2026-09-25: a damage trigger on the grave (outside the map): a bullet on it lights it
+        b.hit = spawn( "trigger_damage", b.origin, 0, 30, 80 );
+        level thread df_m2_grave_shot_watch( b );
         level.df_m2_braziers[i] = b;
         df_debug_print( "DF: m2 " + b.name + " at " + int( c.origin[0] ) + " " + int( c.origin[1] ) + " " + int( c.origin[2] ) + " (" + model + ")" );
     }
@@ -1967,6 +1974,82 @@ df_m2_grave_move_hook()
             df_debug_print( "DF: m2 " + b.name + " moved to " + int( b.origin[0] ) + " " + int( b.origin[1] ) + " " + int( b.origin[2] ) );
         }
     }
+}
+
+// owner 2026-09-25: the kill zone of a lit grave: a circle of df_m2_zone_radius (dvar df_m2_zone_radius, default 400) on the
+// ground where the player stood when the shot lit it, marked by a lava glow and a small flame.
+df_m2_zone_radius()
+{
+    r = getdvarint( "df_m2_zone_radius" );
+
+    if ( r <= 0 )
+        r = 400;
+
+    return r;
+}
+
+df_m2_grave_shot_watch( b )
+{
+    level endon( "end_game" );
+
+    while ( isdefined( b.hit ) )
+    {
+        b.hit waittill( "damage", amount, attacker );
+
+        if ( !is_true( level.df_m2_armed ) || b.lit || b.done || !isdefined( attacker ) || !isplayer( attacker ) )
+            continue;
+
+        b.zone = df_ground( attacker.origin );
+        b.df_spots = undefined;
+        df_m2_zone_fx( b, 1 );
+        level thread df_act2_maxis_trail( df_m2_rim_pos( b ), b.zone, 0 );
+        df_m2_light( b, attacker );
+        df_debug_print( "DF: m2 " + b.name + " shot by " + attacker.name + ", kill zone at " + int( b.zone[0] ) + " " + int( b.zone[1] ) + " (" + df_m2_zone_radius() + ")" );
+    }
+}
+
+df_m2_zone_fx( b, on )
+{
+    if ( isdefined( b.zone_fx ) )
+    {
+        foreach ( fx in b.zone_fx )
+            df_fx_stop( fx );
+    }
+
+    b.zone_fx = [];
+
+    if ( !on || !isdefined( b.zone ) )
+        return;
+
+    g = df_fx_loop( "fx_zmb_lava_crevice_glow_50", b.zone + ( 0, 0, 2 ) );
+
+    if ( isdefined( g ) )
+        b.zone_fx[b.zone_fx.size] = g;
+
+    f = df_fx_loop( df_m2_small_fire_fx(), b.zone + ( 0, 0, 2 ) );
+
+    if ( isdefined( f ) )
+    {
+        b.zone_fx[b.zone_fx.size] = f;
+        level thread df_m2_flame_keep( f );
+    }
+}
+
+// The lit, unfinished grave whose kill zone holds pos, else undefined.
+df_m2_zone_of( pos )
+{
+    if ( !isdefined( level.df_m2_braziers ) )
+        return undefined;
+
+    r = df_m2_zone_radius();
+
+    foreach ( b in level.df_m2_braziers )
+    {
+        if ( isdefined( b ) && b.lit && !b.done && isdefined( b.zone ) && distance2dsquared( pos, b.zone ) < r * r )
+            return b;
+    }
+
+    return undefined;
 }
 
 df_m2_side_watch()
@@ -2489,6 +2572,8 @@ df_m2_grave_timer( b )
 
         b.lit = 0;
         b.count = 0;
+        df_m2_zone_fx( b, 0 ); // owner 2026-09-25: shoot it again for a new zone
+        b.zone = undefined;
         df_m2_set_stage( b, 0 );
         df_cue_fail( df_m2_rim_pos( b ) );
         df_say( "M2_GRAVE_COLD" );
@@ -2563,13 +2648,13 @@ df_m2_on_zombie_death( zombie )
     if ( !isdefined( level.df_m2_braziers ) )
         return;
 
-    best = df_m2_nearest( zombie.origin, 250, 1 );
+    best = df_m2_zone_of( zombie.origin ); // owner 2026-09-25: kills count inside a lit grave's zone (where it was shot from)
     knuckles = isdefined( zombie.damageweapon ) && zombie.damageweapon == "tazer_knuckles_zm";
 
     if ( !isdefined( best ) || knuckles )
     {
-        // the buzz only where a grave could have taken it: an unlit one, or a lit hungry one refusing the knuckles
-        near = isdefined( best ) || isdefined( df_m2_nearest( zombie.origin, 250, 0 ) );
+        // the buzz only for the knuckles inside a zone
+        near = isdefined( best );
 
         if ( near && isdefined( zombie.attacker ) && isplayer( zombie.attacker ) )
         {
@@ -2629,6 +2714,11 @@ df_m2_fill( b, quiet )
 
     b.lit = 1;
     b.done = 1;
+    df_m2_zone_fx( b, 0 );
+
+    // owner 2026-09-25: the grave's fire flies to the hand waiting on the table
+    if ( !is_true( quiet ) && isdefined( level.df_m2_ember_pos ) )
+        level thread df_act2_maxis_trail( df_m2_rim_pos( b ), level.df_m2_ember_pos, 0 );
     b.count = level.df_m2_target;
     top = df_m2_rim_pos( b );
 
@@ -3055,7 +3145,12 @@ df_m2_grave_spots( b )
     if ( isdefined( b.df_spots ) )
         return b.df_spots;
 
-    b.df_spots = df_spawn_spots_near( b.origin, 1200 );
+    centre = b.origin;
+
+    if ( isdefined( b.zone ) )
+        centre = b.zone; // owner 2026-09-25: the waves come at the kill zone (the grave itself stands outside the map)
+
+    b.df_spots = df_spawn_spots_near( centre, 1200 );
     df_debug_print( "DF: m2 " + b.name + ": " + b.df_spots.size + " spawn structs for its waves" );
     return b.df_spots;
 }

@@ -190,15 +190,15 @@ df_dialogue_act2_maxis()
     df_add_line( "ITEM_HAND_MAXIS", "maxis", "The cold left a hand behind. The hand of his switch. Set it on the table." );
 
     // M2 - Fire and Ash
-    df_add_line( "M2_START", "maxis", "The hand on the table wants fire. Four graves in Town still remember it." );
-    df_add_line( "M2_HINT_1", "maxis", "Four graves burn in Town. Take the hand from the table and light it at each." );
-    df_add_line( "M2_HINT_2", "maxis", "Light the hand at a grave in Town. Kill the dead beside it before it cools." );
-    df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. The fire remembers it." );
+    df_add_line( "M2_START", "maxis", "Four graves stand beyond the edge of Town. Shoot one and it wakes." );
+    df_add_line( "M2_HINT_1", "maxis", "The graves are outside Town. Shoot one, then kill the dead where you stood." );
+    df_add_line( "M2_HINT_2", "maxis", "A woken grave wants the dead killed where you shot it. Be quick, it cools." );
+    df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. Its fire runs to the hand." );
     // ITEM_EMBER_MAXIS: the fire hand taken from the table; a grave lights it, then the lit graves want
     // kills beside them, burning or not (dialogue audit v2, M2: the take touches the ladder, so this line
     // carries the second half)
     df_add_line( "ITEM_EMBER_MAXIS", "maxis", "Take the hand to the graves in Town. Light it at each and feed it the dead." );
-    df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. Their fire lives in the hand now. Set it on the table." );
+    df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. Their fire runs home to the hand on the table." );
     df_add_line( "M2_EMBER_LOST", "maxis", "The hand fell with you. It waits on the table again." );
     df_add_line( "M2_KNUCKLES_MAXIS", "maxis", "Nein! His current will not touch my graves. Any weapon but his fists." );
     // M2_POWER_MAXIS: the grid was ON at the end of a round and ONE lit grave forgets its kills

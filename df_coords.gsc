@@ -334,10 +334,12 @@ df_apply_overrides()
     // The four M2 braziers (owner 2026-09-23, feet + look yaw, on the ground): four graves in Town, the
     // owner's [CHEAT] spots (pos x y z | ang 0 yaw 0). Always four, whatever the player count
     // (df_m2_place_braziers).
-    df_coord_override_ground( "DF_BRAZIER_1", ( 1738, 273, -55 ), 236, "brazier" );
-    df_coord_override_ground( "DF_BRAZIER_2", ( 1179, 255, -55 ), 312, "brazier" );
-    df_coord_override_ground( "DF_BRAZIER_3", ( 1693, -978, -55 ), 154, "brazier" );
-    df_coord_override_ground( "DF_BRAZIER_4", ( 473, -275, -61 ), 320, "brazier" );
+    // owner 2026-09-25: the four graves stand OUTSIDE the map around Town (owner spots, !df grab): shot to light, their kill
+    // zone is where the shooter stood (df_act2_maxis df_m2_grave_shot)
+    df_coord_override( "DF_BRAZIER_1", ( 1944, -1040, 124 ), ( 0, 127, 0 ) );
+    df_coord_override( "DF_BRAZIER_2", ( 328, -797, 132 ), ( 0, 297, 0 ) );
+    df_coord_override( "DF_BRAZIER_3", ( 2062, 374, 88 ), ( 0, 259, 0 ) );
+    df_coord_override( "DF_BRAZIER_4", ( 1017, -1067, -54 ), ( 0, 121, 0 ) );
 
     // The four M1 cold-room spawn points inside the Nacht bunker: player spots, no model (df_coord_set above
     // passes undefined and df_coord_override leaves the model alone), read as .origin by df_act2_maxis.
