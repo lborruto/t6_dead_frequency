@@ -321,7 +321,7 @@ df_complete( key, quiet )
     if ( !silent )
         df_step_complete_cue();
 
-    df_debug_print( "DF: step complete " + key + df_step_elapsed_text( key ) );
+    df_debug_print( "DF: step complete " + df_step_label( key ) + df_step_elapsed_text( key ) );
     level notify( "df_" + key + "_done" );
     level notify( "df_step_done", key );
 }
@@ -707,3 +707,19 @@ df_step_finale_reached()
 
     return isdefined( level.df_step_avail_round["finale"] );
 }
+
+// owner 2026-09-25: the player-facing name of a step. step5 is one slot run by side (df_act3_sweep dispatches):
+// "m3" on Maxis (Lights Out), "r3" on Richtofen (Blackout); every other key is its own name.
+df_step_label( key )
+{
+    if ( isdefined( key ) && key == "step5" && isdefined( level.df_side ) )
+    {
+        if ( level.df_side == "maxis" )
+            return "m3";
+
+        return "r3";
+    }
+
+    return key;
+}
+

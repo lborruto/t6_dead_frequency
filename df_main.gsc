@@ -173,7 +173,7 @@ df_debug_cmd_quest( sub, arg )
         case "goto":
             if ( !isdefined( arg ) )
             {
-                self df_out( "Usage: !df goto <step1|step2|step3|step4|r1|r2|m1|m2|step5|step6|step7|finale>" );
+                self df_out( "Usage: !df goto <step1|step2|step3|step4|r1|r2|r3|m1|m2|m3|step6|step7|finale>" );
                 return 1;
             }
 
@@ -988,9 +988,9 @@ df_debug_status()
     foreach ( key in level.df_step_order )
     {
         if ( df_is_done( key ) )
-            done = done + key + " ";
+            done = done + df_step_label( key ) + " ";
         else if ( isdefined( level.df_step_avail_round[key] ) )
-            avail = avail + key + " ";
+            avail = avail + df_step_label( key ) + " ";
 
         if ( isdefined( level.df_step_func[key] ) )
             registered = registered + key + " ";
@@ -1016,6 +1016,25 @@ df_step_index( key )
 // target becomes available. Picks a side automatically when the target needs one.
 df_debug_goto( target )
 {
+    // owner 2026-09-25: m3 / r3 are the side names of the step5 slot (Lights Out / Blackout)
+    want_side = undefined;
+
+    if ( target == "m3" || target == "r3" )
+    {
+        want_side = "maxis";
+
+        if ( target == "r3" )
+            want_side = "rich";
+
+        if ( isdefined( level.df_side ) && level.df_side != want_side )
+        {
+            self df_out( "DF: " + target + " belongs to the " + want_side + " side but " + level.df_side + " is locked in this game (start a fresh game)" );
+            return;
+        }
+
+        target = "step5";
+    }
+
     if ( df_step_index( target ) < 0 )
     {
         self df_out( "DF: unknown step " + target );
@@ -1053,6 +1072,12 @@ df_debug_goto( target )
     // Set before any notify: runners stay parked in df_wait_prereq until the jump is finished, so
     // intermediate steps are never started for a frame and then skipped.
     level.df_goto_busy = 1;
+
+    if ( isdefined( want_side ) && !isdefined( level.df_side ) )
+    {
+        df_set_side( want_side );
+        self df_out( "DF: side set to " + level.df_side + " for " + df_step_label( target ) );
+    }
 
     if ( isdefined( level.df_step_side[target] ) && ( !isdefined( level.df_side ) || level.df_side != level.df_step_side[target] ) )
     {

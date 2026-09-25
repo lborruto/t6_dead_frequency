@@ -73,7 +73,7 @@ Everything below must already be there. Missing = the biggest bug of this build.
   clip blocks, 64 tall).
 - Tower: `!df tp DF_BLACKOUT_1..3`: three power switches stand near the table under the tower, lever ON, on BOTH
   sides from boot (console `DF: blackout 3 power switch(es) standing ON`). Press F: nothing yet (Richtofen's
-  Step 5 arms them).
+  M3 / R3 arms them).
 - Lamps: walk to one lamp of the printed set: one small electric spark at the bulb every 6 s, no colour, not green.
   `!df fire lamps` lists 3 lamps `set 1 state off`. None of them is diner or townbridge; one is the lamp nearest the tower.
 - Bus parts: the ladder lies at the Depot (-7313 5441), the hatch at the Diner (-3537 -7214). `!df fire busparts`
@@ -211,7 +211,7 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
   (once per 20 s), console `r2 <you> hit lamp X without the knuckles (<weapon>)`, no spool.
 - "Press F to take the spool" (`spool taken (1 in hand, 0 placed)`); spools STACK, carry all three; at the table "Press F
   to place the spools": clink + spark at the relay slot, `3 spool(s) placed, 3/3`, `r2 antenna array 3/3` (NO glows on
-  the mast for the spools), `step complete r2`, R2_DONE, the sixth step glow on the relay, Step 5 opens. Every lamp of
+  the mast for the spools), `step complete r2`, R2_DONE, the sixth step glow on the relay, M3 / R3 opens. Every lamp of
   the set ends filled with its beam off. Nobody holding a Jet Gun: A2_JETGUN_RICH ("Before the end you will need a Jet Gun").
 - Act 2 reward at once: `act 2 reward given (rich): side reward + Max Ammo at the table`, Richtofen's reward line, blue
   runners start climbing the tower next to the white one. Place a turret (`!gun turret_zm`) with no turbine: it fires.
@@ -292,7 +292,7 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
 - Wrong: paste the `m2 brazier_n ...` lines, the `spawn structs` count, and what killed the zombie.
 
 ## 5. Act 3 (shared; what differs per side is marked)
-**Step 5 Lights Out (Maxis)**. Skips: `!df fire s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again), `!df goto step6`.
+**M3 / R3 Lights Out (Maxis)**. Skips: `!df fire s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again), `!df goto step6`.
 - S5 START waits until the end-of-Act-2 lines are over (at most 90 s). Console `DF: s5 lights out: 3 lamps hum with
   his power, a claymore kill within 150 puts one out, 3 dark to win` (also with 4 set lamps in a full lobby, need
   4; fewer only if the set itself is smaller). Every set lamp is state "filled": a steady bulb glow, no sparks, no
@@ -319,7 +319,7 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
   `DF: s5 setup: 3 lamps dark`.
 - Wrong: paste every `DF: s5 ...` line and which lamp.
 
-**Step 5 Blackout (Richtofen)**. Skips: `!df fire blackout_off` (all three switches OFF, a running step keeps
+**M3 / R3 Blackout (Richtofen)**. Skips: `!df fire blackout_off` (all three switches OFF, a running step keeps
 going), `!df fire blackout_on` (all three ON, completes the step if it is open), `!df goto step6`.
 - The three DF_BLACKOUT switches stand ON from boot on both sides (console `DF: blackout 3 power switch(es)
   standing ON`); Maxis's side never touches them.
@@ -349,7 +349,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   (RICH storm cloud + rumble / MAXIS smoke column), a bolt + thunder (RICH) or a fire burst + ignite, NO thunder crack (MAXIS) at the
   spot, `s6 strike at DF_ORB_SPAWN`, and the ROCK lies on the ground there, glint + light shaft on it. The spot is the
   one drawn at boot (`orb landing spot DF_ORB_SPOT_n ...`): the diner, Town or the power station, on EITHER side
-  (`!df tp DF_ORB_SPOT_1..3`). The Step 5 lamps go dark. Console lists ONE node: RICH `s6 node 0 core core` (the
+  (`!df tp DF_ORB_SPOT_1..3`). The M3 / R3 lamps go dark. Console lists ONE node: RICH `s6 node 0 core core` (the
   sparking block on the power station bridge), MAXIS `s6 node 0 hearth cabin hearth` (the fireplace of the hunter's
   cabin in the woods, `!df tp DF_CABIN_HEARTH`): shaft + column + hum on it (RICH the Avogadro hum, MAXIS a fire
   crackle), MAXIS also a small glow in the fireplace opening.
@@ -479,10 +479,10 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   not ahead of the current step <key>, goto only moves forward`, `<step> belongs to the <side> side but <side> is locked
   in this game (start a fresh game)`. A jump that hangs is aborted after 20 s: `goto <step> did not finish in 20 s,
   aborted (goto flag cleared)`; paste it.
-- `!df goto r1` / `m1` locks the side itself (`side set to rich for r1`, `orb spawn for side ...`). `!df goto step5` and
+- `!df goto r1` / `m1` locks the side itself (`side set to rich for r1`, `orb spawn for side ...`). `!df goto m3` (Maxis) / `!df goto r3` (Richtofen) and
   later with no side: `no side locked, defaulting to rich (use !df side maxis first to test Maxis)`; type `!df side
   maxis` FIRST for a Maxis test (it cannot be changed afterwards).
-- `!df goto step5` RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
+- `!df goto m3` (Maxis) / `!df goto r3` (Richtofen) RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
   (steady glow, no sparks), six step glows on the relay mast, `act 2 reward given silently (goto)` (no Max Ammo, no
   line). MAXIS: ONE hand on the table (M2's replaced M1's at the same pose), the charged fire hand
   resting there with its small flame (no prompt), four graves STILL STANDING, spent, dark, each with a scorched
@@ -497,7 +497,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - Scavenger: pick up a real jet gun part: it goes to the pool (top-left notice), TAB shows the squares. Any console
   error naming `zm_scavenger` or `epod_key`? The pinned ladder / hatch must still be buildable as vanilla.
 - Co-op only, when you have a second player: Richtofen's blue lines that carry team information reach everyone (including
-  the finale's wrong-power line and closing lines); the Step 5 "one lamp each" line appears; a downed player is
+  the finale's wrong-power line and closing lines); the M3 / R3 "one lamp each" line appears; a downed player is
   teleported into Nacht with the team and can be revived there; the Step 7 after-hold waves rise near a random living
   player; a carrier who leaves drops the relay (back on the table after 60 s), the M2 hand (back on the table at once)
   or the M1 hand (at the tower return point).

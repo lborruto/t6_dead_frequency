@@ -222,27 +222,27 @@ overheat). Maxis: every lamp is powered, so portals and denizen burrows work wit
 
 ## Act 3 - Convergence (shared; the actions differ per side)
 
-<details><summary><b>Step 5 - Blackout (Richtofen) / Lights Out (Maxis)</b> (click to reveal)</summary>
+<details><summary><b>R3 - Blackout (Richtofen) / M3 - Lights Out (Maxis)</b> (click to reveal)</summary>
 
 
-Richtofen and Maxis no longer share Step 5: each side gets its own puzzle.
+Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
 
-- RICHTOFEN - Blackout: the moment Step 5 opens, Maxis cuts the grid. The three power switches standing near
+- RICHTOFEN - Blackout: the moment R3 opens, Maxis cuts the grid. The three power switches standing near
   the tower (there since the start of the game, always ON until now) flip OFF, one spark each. Walk up to a dark
   switch and press F once within reach: the lever rolls back ON with a click, then a hum - no hold, no timer.
   Turning a switch back ON pulls a short wave of sprinting zombies at it. A switch refuses you while the map's
   main power itself is off ("Power ON first, Samuel! A switch on a dead grid is a toy."). At the end of every
   round with at least one switch still dark, Maxis knocks one lit switch back off ("Another of his switches
-  falls. The dark is patient."). Get all three ON at the same time and Step 5 is done. There are always three
+  falls. The dark is patient."). Get all three ON at the same time and R3 is done. There are always three
   switches, whatever the lobby size.
-- MAXIS - Lights Out: the moment Step 5 opens, Richtofen feeds his power into three lamps of the same set as
+- MAXIS - Lights Out: the moment M3 opens, Richtofen feeds his power into three lamps of the same set as
   before - each one hums with a steady bulb glow. Only the dead can break his light: a lamp goes dark when a
   zombie dies to a CLAYMORE (sold at the Farm wall buy) within 150 units of its base. Kill it there any other
   way and the lamp does not care - Maxis tells you why, once for the whole game ("Not your hand. His light must
   fall at the step of the dead. A claymore."). Every lamp you put out costs him a little ("One lamp is dark. His
   voice is thinner already."), and at the end of every round while a lamp still hums, Richtofen relights one dark
   lamp again ("He has relit one of them. Put it out again."). Put out THREE lamps at once (every lamp if the set
-  is smaller) and Step 5 is done - no hold, no timer, nothing to lose by taking your time.
+  is smaller) and M3 is done - no hold, no timer, nothing to lose by taking your time.
 
 </details>
 
@@ -254,7 +254,7 @@ bursts and its fire flies off. Three seconds of build-up over the tower, then a 
 drawn once at the start of the game: the Diner, Town or the Power station.
 It falls there as a small ROCK. Look for the glint and the light beam pointing at it from the tower. Press F to
 take it (no lamp portals while carrying; on Maxis the strike is a fire burst, no thunder). Left untouched for 3 minutes, it flies to the front of the table by
-itself. Every charged node also gets a beam from the tower and a light column, and the Step 5 lamps go dark.
+itself. Every charged node also gets a beam from the tower and a light column, and the M3 lamps go dark.
 
 Charge the rock (the draw is heard as a rising sound):
 
