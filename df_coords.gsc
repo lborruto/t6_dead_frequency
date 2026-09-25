@@ -339,7 +339,7 @@ df_apply_overrides()
     df_coord_override( "DF_BRAZIER_1", ( 1944, -1040, 124 ), ( 0, 127, 0 ) );
     df_coord_override( "DF_BRAZIER_2", ( 328, -797, 132 ), ( 0, 297, 0 ) );
     df_coord_override( "DF_BRAZIER_3", ( 2062, 374, 88 ), ( 0, 259, 0 ) );
-    df_coord_override( "DF_BRAZIER_4", ( 1017, -1067, -54 ), ( 0, 121, 0 ) );
+    df_coord_override( "DF_BRAZIER_4", ( -86, 224, -36 ), ( 0, 43, 0 ) );
 
     // The four M1 cold-room spawn points inside the Nacht bunker: player spots, no model (df_coord_set above
     // passes undefined and df_coord_override leaves the model alone), read as .origin by df_act2_maxis.
