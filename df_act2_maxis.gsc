@@ -286,6 +286,10 @@ df_m1_should_runaway( player )
 // (zm_transit.gsc:935 is_player_in_screecher_zone). After M1: nobody is prey near the table or a lit brazier.
 df_m1_in_screecher_zone( player )
 {
+    // owner 2026-09-25: a rider carried into the tower's safety box stays on (the box only stops NEW latches there)
+    if ( isdefined( level.df_m1_mode ) && level.df_m1_mode == "latch" && isdefined( player.screecher ) )
+        return true;
+
     if ( isdefined( level.df_m1_mode ) && level.df_m1_mode == "room" && !is_true( player.isonbus ) && df_m1_in_room( player.origin, 900 ) )
         return true;
 
