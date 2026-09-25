@@ -337,16 +337,53 @@ df_bus_piece_move( piece, idx, label )
 }
 
 // ---- Galvaknuckles at 3000 (owner 2026-09-11) --------------------------------------------------
-// The wall-buy reads level.zombie_weapons[weapon].cost at every prompt and purchase (_zm_weapons get_weapon_cost).
+// owner 2026-09-25: they still cost 6000: the Galvaknuckles are a MELEE wall buy, priced by
+// _zm_weap_tazer_knuckles::init (cost = level.tazer_cost, else 6000) into the wall stub (stub.cost, and
+// stub.hint_parm2 for the prompt, _zm_melee_weapon.gsc prepare_stub) and level._melee_weapons; the old write to
+// level.zombie_weapons[...].cost was never read. level.tazer_cost is set at once (in time if the map inits the
+// weapon after us), then every copy of the price is patched as soon as it exists.
 df_knuckles_price()
 {
     level endon( "end_game" );
 
-    while ( !isdefined( level.zombie_weapons ) || !isdefined( level.zombie_weapons["tazer_knuckles_zm"] ) )
-        wait 0.5;
+    level.tazer_cost = 3000;
 
-    level.zombie_weapons["tazer_knuckles_zm"].cost = 3000;
-    df_debug_print( "DF: Galvaknuckles cost 3000 (was " + 6000 + ")" );
+    for ( tries = 0; tries < 60; tries++ )
+    {
+        patched = 0;
+
+        if ( isdefined( level._melee_weapons ) )
+        {
+            foreach ( mw in level._melee_weapons )
+            {
+                if ( isdefined( mw ) && isdefined( mw.weapon_name ) && mw.weapon_name == "tazer_knuckles_zm" )
+                    mw.cost = 3000;
+            }
+        }
+
+        foreach ( s in getstructarray( "tazer_upgrade", "targetname" ) )
+        {
+            if ( !isdefined( s.trigger_stub ) )
+                continue;
+
+            s.trigger_stub.cost = 3000;
+
+            if ( isdefined( s.trigger_stub.hint_parm2 ) )
+                s.trigger_stub.hint_parm2 = 3000;
+
+            patched++;
+        }
+
+        if ( patched > 0 )
+        {
+            df_debug_print( "DF: Galvaknuckles cost 3000 (was 6000), " + patched + " wall buy(s) patched" );
+            return;
+        }
+
+        wait 0.5;
+    }
+
+    df_debug_print( "DF: Galvaknuckles wall buy not found, the price stays vanilla" );
 }
 
 // Console picture of the bus parts: the shared pool and where each piece stands (before the pin, and on demand).
