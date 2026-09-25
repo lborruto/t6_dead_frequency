@@ -770,6 +770,72 @@ df_fin_perks_player( perks, reason )
     }
 
     self df_out( "finale perks: " + ( perks.size - missing.size ) + "/" + perks.size + " given, missing: " + text );
+    self df_fin_perks_extra();
+    self thread df_fin_perks_keep( perks );
+}
+
+// owner 2026-09-25: "ALL perks available in the BO2 engine". Three more perks work on TranZit although the map
+// has no machine for them, because their effect lives in the engine and the core scripts: Deadshot (engine aim),
+// Mule Kick (_zm_weapons weapon limit reads hasperk) and PhD Flopper (_zm.gsc damage override reads
+// specialty_flakjacket). They are set with setperk only: give_perk would call set_perk_clientfield, whose HUD
+// clientfields TranZit never registers (_zm_perks.gsc:3093, only for the map's own machines), so they show no
+// perk icon. Electric Cherry, Vulture Aid and Who's Who cannot be given: their code and assets are not in TranZit.
+df_fin_perks_extra()
+{
+    extras = [];
+    extras[extras.size] = "specialty_deadshot";
+    extras[extras.size] = "specialty_additionalprimaryweapon";
+    extras[extras.size] = "specialty_flakjacket";
+
+    foreach ( perk in extras )
+    {
+        if ( self hasperk( perk ) )
+            continue;
+
+        self setperk( perk );
+        df_debug_print( "DF: finale extra perk " + perk + " set on " + self.name + " (no HUD icon on TranZit)" );
+    }
+}
+
+// owner 2026-09-25: the gift outlives the power. Vanilla pauses every perk when its machine loses power
+// (_zm_power.gsc:633 perk_power_off -> _zm_perks::perk_pause, then the "<machine>_off" notify); a player who got
+// the finale perks gets the paused ones straight back (the same restore as _zm_perks::perk_unpause :2673, for
+// this player only). Before the finale nothing changes: perks go down with the power as in vanilla.
+// self = player. One watcher per player.
+df_fin_perks_keep( perks )
+{
+    self endon( "disconnect" );
+    level endon( "end_game" );
+
+    if ( is_true( self.df_fin_perks_kept ) )
+        return;
+
+    self.df_fin_perks_kept = 1;
+
+    while ( true )
+    {
+        level waittill_any( "juggernog_off", "revive_off", "sleight_off", "doubletap_off", "marathon_off", "tombstone_off" );
+        wait 0.05;
+
+        if ( !isdefined( self.disabled_perks ) )
+            continue;
+
+        foreach ( perk in perks )
+        {
+            if ( !is_true( self.disabled_perks[perk] ) )
+                continue;
+
+            self.disabled_perks[perk] = 0;
+            self maps\mp\zombies\_zm_perks::set_perk_clientfield( perk, 1 );
+            self setperk( perk );
+
+            if ( issubstr( perk, "specialty_scavenger" ) )
+                self.hasperkspecialtytombstone = 1;
+
+            self maps\mp\zombies\_zm_perks::perk_set_max_health_if_jugg( perk, 0, 0 );
+            df_debug_print( "DF: finale perk " + perk + " kept on " + self.name + " (power off)" );
+        }
+    }
 }
 
 // self = player. Alive and not in last stand (_zm_laststand::player_is_in_laststand).

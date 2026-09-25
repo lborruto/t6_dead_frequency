@@ -35,6 +35,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   finding new prop candidates.
 
 ### Changed
+- R1 is punished properly: a wrong Simon press starts a new sequence from one spark, and a failed
+  capture needs the bus battery in all four boxes AND the Simon again before a new key card comes.
+- Finale gift: the perks stay on after a power-off (vanilla pauses them; before the finale they
+  still go down with the power), plus Deadshot, Mule Kick and PhD Flopper (no HUD icon on TranZit).
 - Step 2 "Salvage" is merged into Step 3 "Ride the Line": one step covers collecting the parts,
   building the relay on the bus roof and the ride. Parts and spots are unchanged; its hints
   follow the build first, then the ride. `!df goto step2` is an alias of `step3`; the relay
@@ -95,7 +99,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Table fx under the tower and the Step 4 preview light.
 
 ### Testers and modders
-- Debug: `!df setpos`, `!df who`, `!df goto m3`, `!df goto r3`.
+- Debug: `!df setpos`, `!df who`, `!df goto m3`, `!df goto r3`, `!df fire r1_fail`.
 - Internal: effect attach points and table slot poses moved into data registries
   (`df_fx_point_def`, `df_table_slot_def`); composer/picker tooling updated to read and export
   from them (relay, table, card/orb/lantern poses, power-switch and grave anchors). These are

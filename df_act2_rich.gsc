@@ -235,23 +235,30 @@ df_r1_run()
     while ( true )
     {
         // wait for a press (or the debug shortcut) while unlocked
-        level waittill_either( "df_fuse_pressed", "df_debug_simon_solved" );
+        what = level waittill_any_return( "df_fuse_pressed", "df_debug_simon_solved", "df_r1_force_fail" );
 
         if ( is_true( level.df_r1_locked ) )
             continue;
 
-        if ( is_true( level.df_debug_simon ) || is_true( level.df_r1_simon_done ) )
+        // owner 2026-09-25 ("!df fire r1_fail"): the fail path at once, without a capture
+        if ( what == "df_r1_force_fail" )
+        {
+            df_cue_fail( df_coord( "DF_SOCKET" ).origin + ( 0, 0, 30 ) );
+            df_say( "R1_RICH_FAIL" );
+            df_r1_fail_reset();
+            continue;
+        }
+
+        if ( is_true( level.df_debug_simon ) )
         {
             level.df_debug_simon = 0;
-            solved = 1; // audit v3 #5: a Simon solved once stays solved; a failed capture costs the battery trip only
+            solved = 1;
         }
         else
             solved = df_simon_play();
 
         if ( !solved )
             continue;
-
-        level.df_r1_simon_done = 1;
 
         // solved: the boxes stop being a puzzle and spark until the capture is decided
         df_r1_arm( 0 );
@@ -279,18 +286,25 @@ df_r1_run()
             break;
         }
 
-        foreach ( fuse in level.df_fuses )
-            df_rich_spark_set( fuse, fuse.led_origin, 0 );
-
-        // owner 2026-09-23 (B7): the inserted card leaves table slot 1 with the failed capture, so the next
-        // solve does not show two key cards (the barn one and the stale table one)
-        df_r1_card_table_remove();
-
-        df_r1_lock_until_refilled();
-        level thread df_r1_refilled_kick(); // the loop resumes by itself: no Simon to replay
+        df_r1_fail_reset();
     }
 
     df_r1_finish();
+}
+
+// owner 2026-09-25: a failed capture (too slow, or killed away from the tower) is punished: the card on the
+// table goes, the boxes go dark and locked until the bus battery charged all four, and then the Simon must be
+// played again from the start (a press on a box starts it; a new key card only comes with a new solve).
+df_r1_fail_reset()
+{
+    foreach ( fuse in level.df_fuses )
+        df_rich_spark_set( fuse, fuse.led_origin, 0 );
+
+    // owner 2026-09-23 (B7): the inserted card leaves table slot 1 with the failed capture, so the next
+    // solve does not show two key cards (the barn one and the stale table one)
+    df_r1_card_table_remove();
+    df_r1_lock_until_refilled();
+    df_step_phase( "r1", undefined ); // the Simon hints again
 }
 
 // The four boxes (df_model "fuse" at DF_FUSE_1..4, angles already kind-adjusted by df_coords) with a
@@ -635,8 +649,8 @@ df_fuse_blink( fuse, seconds )
 }
 
 // Classic Simon: the sequence grows by one spark each round and is replayed from the start; the
-// players repeat it by pressing the boxes. Repeats are allowed (1, 2, 1 ...). Wrong press: buzzer and
-// the SAME sequence again (audit 5, like Moon). Returns 1 at the final length (level.df_simon_final,
+// players repeat it by pressing the boxes. Repeats are allowed (1, 2, 1 ...). Wrong press (owner 2026-09-25:
+// punished): buzzer, the fail cue, and a NEW sequence from one spark. Returns 1 at the final length (level.df_simon_final,
 // df_scaled "simon_len"), 0 when abandoned (20 s without input).
 df_simon_play()
 {
@@ -651,10 +665,13 @@ df_simon_play()
         seq[seq.size] = df_simon_pick( seq );
         result = df_simon_round( seq, final_len );
 
-        while ( result == "wrong" )
+        if ( result == "wrong" )
         {
-            wait 1.2;
-            result = df_simon_round( seq, final_len );
+            df_cue_fail( df_r1_boxes_center() + ( 0, 0, 40 ) );
+            df_debug_print( "DF: simon wrong, a new sequence from one spark" );
+            seq = [];
+            wait 1.5;
+            continue;
         }
 
         if ( result == "gone" )
@@ -700,7 +717,7 @@ df_simon_round( seq, final_len )
         if ( pressed != seq[i] )
         {
             df_simon_buzzer( level.df_fuses[pressed] );
-            df_debug_print( "DF: simon wrong at " + ( i + 1 ) + ", replay" );
+            df_debug_print( "DF: simon wrong at " + ( i + 1 ) );
             return "wrong";
         }
 
@@ -1468,7 +1485,7 @@ df_r1_lock_until_refilled()
 
     level.df_r1_locked = 0;
     df_r1_arm( 1 );
-    df_debug_print( "DF: r1 unlocked, the key card comes back" );
+    df_debug_print( "DF: r1 unlocked, play the Simon again (a press on a box starts it)" );
 }
 
 df_r1_all_refilled()
@@ -1912,7 +1929,27 @@ df_r1_debug_hooks()
 
     while ( true )
     {
-        msg = level waittill_any_return( "df_debug_r1_captured", "df_debug_r1_sounds", "df_debug_r1_soul", "df_debug_r1_card" );
+        msg = level waittill_any_return( "df_debug_r1_captured", "df_debug_r1_sounds", "df_debug_r1_soul", "df_debug_r1_card", "df_debug_r1_fail" );
+
+        // owner 2026-09-25: "!df fire r1_fail" = the fail path now (a running capture fails; otherwise the boxes
+        // lock at once): the battery appears on the bus dashboard
+        if ( msg == "df_debug_r1_fail" )
+        {
+            if ( is_true( level.df_r1_locked ) )
+                df_debug_print( "DF: r1 already locked, the battery is out" );
+            else if ( is_true( level.df_r1_summoned ) )
+            {
+                level.df_r1_timed_out = 1;
+                level notify( "df_r1_capture_timeout" );
+                df_debug_print( "DF: r1 capture failed by debug" );
+            }
+            else if ( isdefined( level.df_card ) )
+                df_debug_print( "DF: r1 the key card is out: insert it first, then fire r1_fail" );
+            else
+                level notify( "df_r1_force_fail" );
+
+            continue;
+        }
 
         if ( msg == "df_debug_r1_captured" )
         {
@@ -2385,9 +2422,3 @@ df_r2_punch_debug()
 
 // After the battery has charged the four boxes the run loop waits for a box press; with the Simon kept solved
 // (audit v3 #5) the card comes back by itself.
-df_r1_refilled_kick()
-{
-    level endon( "end_game" );
-    wait 0.2;
-    level notify( "df_fuse_pressed" );
-}

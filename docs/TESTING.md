@@ -531,8 +531,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   "Press F to take the battery" within 100 (`battery taken`, notice "0/4"). Walk to the barn: "Press F to charge the box"
   at every empty panel (within 70): glow + sparks + clink, `box n charged k/4`, NO deny buzz or EMP thump on these
   presses (nor on the fourth), the battery STAYS in hand; at the fourth `battery consumed, all four boxes charged`,
-  NavCard chime + runner, `r1 unlocked, the key card comes back`, and the key card arrives again by itself (`key card at
-  ...`, no Simon replay). ONE bus trip. Go down while carrying: `battery dropped` at your feet (linked to the bus if
+  NavCard chime + runner, `r1 unlocked, play the Simon again (a press on a box starts it)`: the Simon from the start, then a new key
+  card. ONE bus trip. `!df fire r1_fail` forces this path (fails a running capture, else locks at once). Go down while carrying: `battery dropped` at your feet (linked to the bus if
   you were on it), pick it up again; left untaken 60 s it flies home by itself (`dropped battery untouched for 60 s,
   back on the bus`, owner 2026-09-25). `!df
   fire r1_soul` charges one box without the trip, `!df souls` all four.

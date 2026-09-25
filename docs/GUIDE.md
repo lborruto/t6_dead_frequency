@@ -107,7 +107,7 @@ there and plug it in.
 
 Four power boxes hang on the walls of the barn. They stay quiet until you press one: that starts a Simon game,
 one box sparks, then two, then three, and so on. After each sequence press the same boxes in the same order (F on each). A correct press clicks; a
-wrong press buzzes and the same sequence replays. Twenty seconds without a press abandons the round; press a
+wrong press buzzes, the fail thump sounds and a NEW sequence starts from one spark. Twenty seconds without a press abandons the round; press a
 box to start again. The final sequence is 6 long (7 with 3 or 4 players).
 
 Solved: an arpeggio, every box sparks, and the KEY CARD arrives by a strike on the barn wall. Take it and press F
@@ -124,8 +124,8 @@ far away.
 
 If it fails, the card leaves the table and the boxes go dark and lock. A single BATTERY appears on the bus
 dashboard: take it, ride to the barn, press F at each of the four boxes (glow, sparks, clink). The battery stays
-in hand and is consumed at the fourth box; a new key card then arrives by itself (strike on the barn wall),
-with no Simon to replay. One bus trip, no kills needed. While the boxes are locked, ending a round with the
+in hand and is consumed at the fourth box. Then the Simon must be played again from the start (press a box),
+and a new key card only comes with the new solve. One bus trip, no kills needed. While the boxes are locked, ending a round with the
 power OFF empties one charged box again (Richtofen complains).
 
 Done: the four boxes hold his charge. Step 6's node is the sparking transformer block at the Power station.
