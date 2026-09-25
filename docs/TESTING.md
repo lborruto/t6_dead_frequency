@@ -230,7 +230,7 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
   (`battery at lamp X`); Richtofen names the first one. "Press F to take the battery" within 100 (`battery taken (n in
   hand, k inserted)`, notice "Battery (n/3)"): they stack. At the table (within 150) "Press F to insert a battery":
   ONE per press (`battery inserted by <you>, k/3`), clink + spark at the relay slot, and the battery stands on the
-  ground under the table with a small blue spark loop. Knife the post instead (or any gun melee): deny buzz +
+  ground under the table, sparking now and then like the power switch. Knife the post instead (or any gun melee): deny buzz +
   "Bare steel? No." (once per 20 s), console `r2 <you> hit lamp X without the knuckles (<weapon>)`, no battery.
 - Last battery in: `step complete r2`, R2_DONE, the fifth step glow on the relay, the notice goes, M3 / R3 opens.
   Every lamp of

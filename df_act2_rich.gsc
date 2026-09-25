@@ -2459,12 +2459,22 @@ df_r2_table_battery_show( i )
     b.model = spawn( "script_model", pos );
     b.model setmodel( df_model( "r2_battery" ) );
     b.model.angles = df_model_angles( "r2_battery", yaw );
-    b.fx = df_fx_loop( "fx_zmb_tranzit_spark_blue_sm_loop", pos + ( 0, 0, 12 ) );
-
-    if ( isdefined( b.fx ) )
-        level thread df_fx_keepalive( b.fx );
-
     level.df_r2_table_bats[i] = b;
+    level thread df_r2_table_battery_spark( b, pos + ( 0, 0, 10 ) );
+}
+
+// owner 2026-09-25: "just a spark, the same as the power switch turned ON, in a loop": vanilla's switch_sparks
+// one-shot on the battery every 3-5 s (a looping fx was a whole electric column). switch_sparks lingers a while
+// (see df_simon_click), so the pause is long enough that two never stack.
+df_r2_table_battery_spark( b, pos )
+{
+    level endon( "end_game" );
+
+    while ( isdefined( b.model ) )
+    {
+        df_fx_once( "switch_sparks", pos );
+        wait randomfloatrange( 3, 5 );
+    }
 }
 
 // Debug / goto: every battery counts as inserted; the ones in the world (or carried) go away.
