@@ -502,6 +502,16 @@ df_lamp_state_set( lamp, state )
     lamp.state = state;
     bulb = df_lamp_bulb_pos( lamp );
 
+    // owner 2026-09-25: M3 "Lights Out" put out: back to vanilla exactly (the map's own light by the real power, nothing of ours,
+    // no idle marker)
+    if ( state == "vanilla" )
+    {
+        df_lamp_glow_set( lamp, 0 );
+        df_lamp_vanilla_light( lamp, 1 );
+        df_debug_print( "DF: lamp " + lamp.name + " -> vanilla" );
+        return;
+    }
+
     if ( state == "off" )
     {
         df_lamp_vanilla_light( lamp, 1 );
@@ -558,12 +568,6 @@ df_lamp_state_set( lamp, state )
         lamp.beam = df_beam_start( bulb );
         df_lamp_hum_set( lamp, "zmb_avogadro_loop", undefined );
     }
-    else if ( state == "dark" )
-    {
-        // owner 2026-09-25: M3 "Lights Out" put out: the vanilla light off, nothing of ours, black
-        df_lamp_exploder_set( lamp, 0 );
-        df_lamp_glow_set( lamp, 0 );
-    }
     else if ( state == "possessed" )
     {
         // owner 2026-09-25: M3 "Lights Out": Richtofen's power in the lamp, easy to spot in the fog: a big looping
@@ -597,18 +601,39 @@ df_lamp_clear( lamp )
     if ( isdefined( lamp.fx ) )
     {
         foreach ( ent in lamp.fx )
-            df_fx_stop( ent );
+            df_lamp_fx_kill( ent );
     }
 
     lamp.fx = [];
     df_lamp_exploder_set( lamp, 0 );
-    df_fx_stop( lamp.spark );
+    df_lamp_fx_kill( lamp.spark );
     lamp.spark = undefined;
     df_fx_stop( lamp.blink_fx );
     lamp.blink_fx = undefined;
     df_lamp_hum_set( lamp, undefined, undefined );
     df_beam_stop( lamp.beam );
     lamp.beam = undefined;
+}
+
+// owner 2026-09-25: a looping glow / spark on a deleted carrier kept showing on the client (the owner saw the M3 lamps keep
+// their glow and spark once put out). The carrier is first sent far below the map, where its effect goes with
+// it, and deleted a moment later. Static lamp effects only (a moving trail would draw a streak).
+df_lamp_fx_kill( ent )
+{
+    if ( !isdefined( ent ) )
+        return;
+
+    ent unlink();
+    ent.origin = ent.origin - ( 0, 0, 20000 );
+    ent thread df_lamp_fx_delete_later();
+}
+
+df_lamp_fx_delete_later()
+{
+    wait 0.2;
+
+    if ( isdefined( self ) )
+        self delete();
 }
 
 // Puts every set lamp in `state` (unpicked set: picks it).

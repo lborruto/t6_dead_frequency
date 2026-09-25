@@ -11,7 +11,7 @@
 //   Replaces the old tune + turbine sweep (the turbine is his electricity; the owner wanted the fire side to break
 //   the lamps instead).
 // Lamp looks come only from df_lamp_state_set (df_lamps.gsc): "possessed" = humming with his power (a big
-// looping electric spark, a blue glow, his hum: it is Richtofen's light), "dark" = the vanilla light off, black.
+// looping electric spark, a blue glow, his hum: it is Richtofen's light), "vanilla" = put out, the lamp exactly as the map has it.
 #include common_scripts\utility;
 #include maps\mp\_utility;
 #include maps\mp\zombies\_zm_utility;
@@ -139,7 +139,7 @@ df_s5_lamp_set( lamp, dark, quiet )
     lamp.df_s5_dark = dark;
 
     if ( dark )
-        df_lamp_state_set( lamp, "dark" );
+        df_lamp_state_set( lamp, "vanilla" );
     else
         df_lamp_state_set( lamp, "possessed" );
 
@@ -150,9 +150,14 @@ df_s5_lamp_set( lamp, dark, quiet )
 
     if ( dark )
     {
-        df_fx_burst( "fx_zmb_tranzit_fire_med", bulb, 0.6 );
-        df_fx_burst( "fx_zmb_ash_rising_md", bulb, 1.5 );
-        df_snd_near( "zmb_phdflop_explo", lamp.origin, 900 );
+        // owner 2026-09-25: his electricity escapes: a blue snap at the bulb and a spark trail flying back to his tower
+        df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", bulb );
+        playsoundatposition( "zmb_zombie_arc", bulb );
+        top = df_tower_top();
+
+        if ( isdefined( top ) )
+            level thread df_soul_fly( bulb, top );
+
         return;
     }
 
