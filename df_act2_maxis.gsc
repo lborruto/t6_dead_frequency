@@ -1788,18 +1788,34 @@ df_m2_place_braziers()
     level thread df_m2_side_watch();
 }
 
-// The tombstones belong to Maxis's side: when the fork locks Richtofen they go (owner 2026-09-11).
 df_m2_side_watch()
 {
     level endon( "end_game" );
     level waittill( "df_side_locked", side );
 
-    if ( side != "rich" )
-        return;
-
-    df_m2_retire_braziers();
+    if ( side == "maxis" )
+        df_m2_graves_wake();
+    else
+        df_m2_retire_braziers();
 }
 
+// Maxis locked: every standing, unfinished grave shows its small flame (the stage is re-applied).
+df_m2_graves_wake()
+{
+    if ( !isdefined( level.df_m2_braziers ) )
+        return;
+
+    foreach ( b in level.df_m2_braziers )
+    {
+        stage = b.stage;
+        b.stage = -1;
+        df_m2_set_stage( b, stage );
+    }
+
+    df_debug_print( "DF: Maxis side locked, the four graves show their flame" );
+}
+
+// Richtofen locked: the graves stay as scenery (owner 2026-09-25): fx and sound go, models and clips stay.
 df_m2_retire_braziers()
 {
     if ( !isdefined( level.df_m2_braziers ) )
@@ -1812,19 +1828,9 @@ df_m2_retire_braziers()
 
         b.fx = [];
         df_m2_crackle_stop( b );
-
-        if ( isdefined( b.model ) )
-            b.model delete();
-
-        if ( isdefined( b.clip ) )
-            b.clip delete();
-
-        if ( isdefined( b.clip_top ) )
-            b.clip_top delete();
     }
 
-    level.df_m2_braziers = [];
-    df_debug_print( "DF: Richtofen side locked, the four tombstones are gone" );
+    df_debug_print( "DF: Richtofen side locked, the four graves stay dark" );
 }
 
 // Height of the bowl's rim above the anchor = the TOP of the registry model, measured (df_coords
@@ -1900,6 +1906,13 @@ df_m2_set_stage( b, stage )
     // owner 2026-09-23: EVERY standing tombstone carries the one small flame, lit or not (it showed on the lit one
     // only); a lit one also crackles; a spent one is gone (df_m2_fill deletes the model and leaves the scorched glow)
     if ( is_true( b.done ) )
+    {
+        df_m2_crackle_stop( b );
+        return;
+    }
+
+    // owner 2026-09-25: the graves stand from boot on both sides; the small flame belongs to the Maxis side only
+    if ( !isdefined( level.df_side ) || level.df_side != "maxis" )
     {
         df_m2_crackle_stop( b );
         return;
@@ -2438,7 +2451,7 @@ df_m2_fill( b, quiet )
     b.count = level.df_m2_target;
     top = df_m2_rim_pos( b );
 
-    // the stone is spent: a small burst, the model goes, a scorched glow marks the spot (cosmetic: no Step 6 node).
+    // owner 2026-09-25: the stone is spent: a small burst, the model stays, its flame goes, a scorched glow marks the spot (cosmetic: no Step 6 node).
     // stage -1 first so an unlit (stage 0) stone filled by a skip still loses its flame
     b.stage = -1;
     df_m2_set_stage( b, 0 );
@@ -2447,15 +2460,6 @@ df_m2_fill( b, quiet )
     {
         playsoundatposition( "zmb_explo_sweet", top );
     }
-
-    if ( isdefined( b.model ) )
-        b.model delete();
-
-    if ( isdefined( b.clip ) )
-        b.clip delete();
-
-    if ( isdefined( b.clip_top ) )
-        b.clip_top delete();
 
     g = df_fx_loop( "fx_zmb_lava_crevice_glow_50", b.origin + df_fx_point( "brazier_ember" ) );
 

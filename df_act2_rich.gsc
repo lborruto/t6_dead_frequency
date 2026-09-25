@@ -314,26 +314,35 @@ df_r1_spawn_fuses()
         fuse.model setmodel( df_model( "fuse" ) );
         fuse.model.angles = c.angles;
         fuse.trig = df_spawn_use_trigger( c.origin, 56, 90, "" );
-        df_rich_glow_set( fuse, fuse.led_origin, "fx_zmb_tranzit_light_glow_xsm" );
         level.df_fuses[i] = fuse;
     }
 
     level thread df_rich_side_watch();
 }
 
-// The Simon boxes belong to Richtofen's side: when the fork locks Maxis they go (owner 2026-09-11: seeing the
-// other side's props is confusing). Before the fork everything physical exists, as the owner wants.
+// owner 2026-09-25: the boxes exist from boot for the whole game on both sides; only their look follows the side
 df_rich_side_watch()
 {
     level endon( "end_game" );
     level waittill( "df_side_locked", side );
 
-    if ( side != "maxis" )
+    if ( side == "rich" )
+    {
+        df_r1_boxes_wake();
         return;
+    }
 
     df_r1_retire_boxes();
 }
 
+// Richtofen locked: the faint boot glow comes on (R1 then drives the sparks and the Simon).
+df_r1_boxes_wake()
+{
+    foreach ( fuse in level.df_fuses )
+        df_rich_glow_set( fuse, fuse.led_origin, "fx_zmb_tranzit_light_glow_xsm" );
+}
+
+// Maxis locked: the boxes stay as scenery (owner 2026-09-25): fx and triggers go, the models stay.
 df_r1_retire_boxes()
 {
     if ( !isdefined( level.df_fuses ) )
@@ -343,16 +352,15 @@ df_r1_retire_boxes()
     {
         df_fx_stop( fuse.glow );
         fuse.glow = undefined;
+        df_rich_spark_set( fuse, fuse.led_origin, 0 );
 
         if ( isdefined( fuse.trig ) )
             fuse.trig delete();
 
-        if ( isdefined( fuse.model ) )
-            fuse.model delete();
+        fuse.trig = undefined;
     }
 
-    level.df_fuses = [];
-    df_debug_print( "DF: Maxis side locked, the four Simon boxes are gone" );
+    df_debug_print( "DF: Maxis side locked, the four boxes stay dark" );
 }
 
 // R2: a player standing under a hungry lamp pulls the dead to it (owner 2026-09-11: "zombies take a while to
