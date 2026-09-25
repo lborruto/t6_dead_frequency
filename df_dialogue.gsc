@@ -191,13 +191,13 @@ df_dialogue_act2_maxis()
 
     // M2 - Fire and Ash
     df_add_line( "M2_START", "maxis", "The hand on the table wants fire. Four graves in Town still remember it." );
-    df_add_line( "M2_HINT_1", "maxis", "Four graves stand in Town. Take the hand from the table and touch each." );
-    df_add_line( "M2_HINT_2", "maxis", "Light a grave in Town. Kill the dead beside it before it cools. Then the next." );
+    df_add_line( "M2_HINT_1", "maxis", "Four graves burn in Town. Take the hand from the table and light it at each." );
+    df_add_line( "M2_HINT_2", "maxis", "Light the hand at a grave in Town. Kill the dead beside it before it cools." );
     df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. The fire remembers it." );
     // ITEM_EMBER_MAXIS: the fire hand taken from the table; a grave lights it, then the lit graves want
     // kills beside them, burning or not (dialogue audit v2, M2: the take touches the ladder, so this line
     // carries the second half)
-    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "Take the hand to the graves in Town. Wake each one and feed it the dead." );
+    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "Take the hand to the graves in Town. Light it at each and feed it the dead." );
     df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. Their fire lives in the hand now. Set it on the table." );
     df_add_line( "M2_EMBER_LOST", "maxis", "The hand fell with you. It waits on the table again." );
     df_add_line( "M2_KNUCKLES_MAXIS", "maxis", "Nein! His current will not touch my graves. Any weapon but his fists." );

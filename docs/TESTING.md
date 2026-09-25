@@ -260,7 +260,7 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
   NO fire on your body and NO damage while it is uncharged, `m2 fire hand taken from the table by <you> (5 hp/s while
   carried; it stays in hand for the whole step)` (the console text is older than the rule: no burn yet), Maxis names it
   once (ITEM_EMBER_MAXIS "Take the hand to the graves in Town..."). Lamp portal: deny, refused.
-- Within 100 of an unlit grave: "Press F to light the grave". One press: fire whoosh, the grave starts to CRACKLE (its
+- Within 100 of an unlit grave: "Press F to light the hand". One press: fire whoosh, the grave starts to CRACKLE (its
   small flame stays), a clink, the hand STAYS in your hand: `m2 brazier_n lit by <you> (1/4 lit, 3 to go, you keep
   the fire hand)`. Any order, any number lit at once. Console `m2 brazier_n: N spawn structs for its waves`.
 - A lit grave starts its wave (`m2 wave ON at brazier_n`): two sprinting zombies every 2 s from the Town spawn structs

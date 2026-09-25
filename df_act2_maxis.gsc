@@ -2167,7 +2167,7 @@ df_m2_ember_poll()
                     continue;
                 }
 
-                df_m2_prompt_set( player, "Press [{+activate}] to light the grave" );
+                df_m2_prompt_set( player, "Press [{+activate}] to light the hand" );
 
                 if ( player df_press_use() )
                     df_m2_light( b, player );

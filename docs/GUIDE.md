@@ -186,7 +186,7 @@ The hand M1 left on the table is the one you need now. Press F to take it (it do
 it stays in hand for the whole step.
 
 Four tombstones stand in Town, each with a small flame. Carry the hand there (the bus is fine; the lamp
-portals refuse you) and press F on any of them to light it (any order, as many as you like); a lit grave
+portals refuse you) and press F on any of them to light the hand at it (any order, as many as you like); a lit grave
 crackles. Lighting a grave starts a wave of sprinting zombies at it that ends when the grave is full. Kill 5
 zombies near a lit grave (5 / 5 / 6 / 7, fixed when M2 opens), burning or not (a Galvaknuckle kill does not
 count): every counted kill bursts, its fire flies into the grave with a clink. Full: the tombstone stays standing,
