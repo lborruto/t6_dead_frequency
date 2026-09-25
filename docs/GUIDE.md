@@ -160,15 +160,16 @@ loses its battery. When R2 completes every lamp of the set counts as full.
 
 ## Act 2 - Maxis (keep the power OFF)
 
-<details><summary><b>M1 - The Cold Room (the tower, then Nacht)</b> (click to reveal)</summary>
+<details><summary><b>M1 - The Cold Room (the tower, then the woods)</b> (click to reveal)</summary>
 
 
 Go into the fog and let a denizen jump on your head. The first time it happens Maxis speaks. Walk to the table
 with the denizen still on you: it dies in ash and an orange hole opens in front of the table. Walk INTO the
-hole (no F): you are in the Nacht der Untoten bunker.
+hole (no F): you are in the woods behind the hunter's cabin. While you are there, no vanilla denizen
+comes near: only the cold room's own rise. Walk out of the area on foot and the woods are a normal fog zone again.
 
-Cold room: 60 s solo (75 / 90 / 100). Denizens rise two at a time, at random spots of the bunker away from
-you; kill 6 (9 / 12 / 15). Downed players come along and can be revived inside. Timeout: everyone is sent back
+Cold room: 60 s solo (75 / 90 / 100). Denizens rise two at a time, at the spot farthest from
+you (three spots); kill 6 (9 / 12 / 15). Downed players come along and can be revived inside. Timeout: everyone is sent back
 to the tower; get a denizen on your head again and repeat.
 
 Success: a HAND (the hand of the power switch) arrives by a strike where the last denizen died. You have 30 s

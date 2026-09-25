@@ -180,7 +180,7 @@ df_dialogue_act2_maxis()
     df_add_line( "M1_HINT_2", "maxis", "Carry a little one to the table. Clear the hole. Set the hand on the table." );
     // M1_EVENT: the first denizen latches onto a player after M1 opens (event hint, audit #6)
     df_add_line( "M1_EVENT", "maxis", "Do not kill it. Let it ride. Carry it to the table under the Spire. Quickly!" );
-    df_add_line( "M1_PORTAL", "maxis", "The old bunker in the corn, where the dead first rose. One steps in, all go." );
+    df_add_line( "M1_PORTAL", "maxis", "A door to the woods behind the hunter's cabin. One steps in, all of you go." );
     df_add_line( "M1_PORTAL", "rich", "Do not go in there, Samuel. Actually, do. I could use the laugh." );
     df_add_line( "M1_MAXIS_FAIL", "maxis", "Too slow. The cold does not wait. Bring another one to the table." );
     df_add_line( "M1_DONE", "maxis", "It is keyed. The signal knows us now. The hand still wants fire." );

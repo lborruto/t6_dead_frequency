@@ -181,6 +181,7 @@ df_m1_skip_cleanup()
     if ( is_true( level.df_m1_phase ) )
         df_m1_phase_teardown();
 
+    df_m1_zone_end();
     df_m1_portal_remove();
     df_m1_skull_clear_world();
     level.df_m1_mode = undefined;
@@ -605,7 +606,7 @@ df_m1_wait_portal_use()
 
 // ---- cold room -------------------------------------------------------------------------
 
-// Bunker centre = the middle of the four Nacht spawn anchors.
+// Cold room centre = the middle of the four DF_NACHT_SPAWN anchors (the woods behind the hunter's cabin since owner 2026-09-25).
 df_m1_room_center()
 {
     if ( isdefined( level.df_m1_room ) )
@@ -657,15 +658,12 @@ df_m1_cold_room( who )
     level.df_m1_mode = "room";
     level.df_m1_last_kill_pos = undefined;
 
-    // vanilla's denizen director is paused (we spawn our own, _zm_ai_screecher.gsc:82 zombie_ai_limit_screecher)
-    // and the solo "near miss" escape is spent (:253-262)
-    level.df_m1_saved_limit = level.zombie_ai_limit_screecher;
-    level.zombie_ai_limit_screecher = 0;
-    level.df_m1_saved_near_miss = level.near_miss;
-    level.near_miss = 2;
-
     df_m1_room_fx_start();
     df_m1_teleport_players_in();
+    // owner 2026-09-25: the woods are an open denizen zone: df_m1_zone_start pauses vanilla's denizens there (only ours rise)
+    // until the players are sent back or all walk out of the zone
+    // (started once the players stand there, so the walk-out watch never fires during the teleport)
+    df_m1_zone_start();
     df_death_listen_add( "m1", ::df_m1_on_zombie_death );
     level thread df_m1_timer( seconds );
     level thread df_sys_clock_run( gettime() + int( seconds * 1000 ), "df_m1_phase_end", "df_skip_m1" );
@@ -708,6 +706,40 @@ df_m1_phase_teardown()
     foreach ( ai in df_m1_denizens_alive() )
         ai dodamage( ai.health + 666, ai.origin );
 
+    // the denizen cap stays with the zone (df_m1_zone_end: the return teleport, walking out, or a skip)
+}
+
+// owner 2026-09-25: while the players are in the woods behind the cabin (an open fog zone of vanilla's), vanilla's denizen
+// director is paused (zombie_ai_limit_screecher 0, _zm_ai_screecher.gsc:82; the solo near-miss escape spent,
+// :253-262) and the vanilla denizens already there die quietly: only ours rise. The zone ends on the return
+// teleport, on a skip, or the moment no player in the match stands within level.df_m1_zone_radius.
+df_m1_zone_start()
+{
+    if ( is_true( level.df_m1_zone_on ) )
+        return;
+
+    level.df_m1_zone_on = 1;
+    level.df_m1_zone_radius = 1500;
+    level.df_m1_saved_limit = level.zombie_ai_limit_screecher;
+    level.zombie_ai_limit_screecher = 0;
+    level.df_m1_saved_near_miss = level.near_miss;
+    level.near_miss = 2;
+
+    foreach ( ai in df_m1_denizens_alive() )
+        ai dodamage( ai.health + 666, ai.origin );
+
+    level thread df_m1_zone_watch();
+    df_debug_print( "DF: m1 no-denizen zone ON (" + level.df_m1_zone_radius + " around the woods behind the cabin)" );
+}
+
+df_m1_zone_end()
+{
+    if ( !is_true( level.df_m1_zone_on ) )
+        return;
+
+    level.df_m1_zone_on = 0;
+    level notify( "df_m1_zone_end" );
+
     if ( isdefined( level.df_m1_saved_limit ) )
         level.zombie_ai_limit_screecher = level.df_m1_saved_limit;
 
@@ -716,6 +748,33 @@ df_m1_phase_teardown()
 
     level.df_m1_saved_limit = undefined;
     level.df_m1_saved_near_miss = undefined;
+    df_debug_print( "DF: m1 no-denizen zone OFF, vanilla denizens are back" );
+}
+
+// Walking out ends the zone as if the players were sent back.
+df_m1_zone_watch()
+{
+    level endon( "end_game" );
+    level endon( "df_m1_zone_end" );
+
+    while ( true )
+    {
+        wait 0.5;
+        inside = 0;
+
+        foreach ( player in getplayers() )
+        {
+            if ( df_m1_in_match( player ) && df_m1_in_room( player.origin, level.df_m1_zone_radius ) )
+                inside = 1;
+        }
+
+        if ( !inside )
+        {
+            df_debug_print( "DF: m1 every player left the woods on foot" );
+            df_m1_zone_end();
+            return;
+        }
+    }
 }
 
 // Cold cue: a low fog patch on the floor at each Nacht anchor while the hunt runs (fx_zmb_fog_closet,
@@ -768,7 +827,7 @@ df_m1_teleport_players_in()
     }
 
     playsoundatposition( "zmb_screecher_portal_arrive", df_m1_room_center() );
-    df_debug_print( "DF: m1 " + i + " player(s) sent to the bunker" );
+    df_debug_print( "DF: m1 " + i + " player(s) sent to the woods behind the cabin" );
 }
 
 // Everyone in the bunker (standing or downed) comes back to DF_TOWER_RETURN (48-unit spread) with a burst there.
@@ -793,6 +852,7 @@ df_m1_return_players()
 
     playsoundatposition( "zmb_screecher_portal_arrive", c.origin );
     level thread df_m1_return_burst( c.origin );
+    df_m1_zone_end();
     df_debug_print( "DF: m1 " + i + " player(s) returned to the tower" );
 }
 

@@ -92,7 +92,7 @@ Everything below must already be there. Missing = the biggest bug of this build.
     !df tp DF_BRAZIER_1   tombstone on the ground (also 2..4); sunk? floating?
     !df tp DF_CARD_SPAWN  key card preview upright on the barn wall, clear of panel 4
     !df tp DF_PORTAL      the M1 hole spot in front of the table (7623 -457 -207)
-    !df tp DF_NACHT_SPAWN_1  a denizen spawn in the Nacht bunker (also 2..4: 13673 -337, 13861 -327, 13643 -541, 13886 -522)
+    !df tp DF_NACHT_SPAWN_1  a denizen spawn in the woods behind the cabin (also 2..4: 13673 -337, 13861 -327, 13643 -541, 13886 -522)
     !df tp DF_ORB_SPOT_1  the diner landing spot (-5991 -7686 34); SPOT_2 Town (900 130 -39); SPOT_3 power station
                           (11720 8491 -575): the rock preview on the ground at each, off the road?
     !df dump              one [SPOT] line per anchor + [MODEL] lines

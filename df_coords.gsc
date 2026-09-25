@@ -340,10 +340,11 @@ df_apply_overrides()
     // passes undefined and df_coord_override leaves the model alone), read as .origin by df_act2_maxis.
     // owner anchor map 2026-09-22: they were four points 40 apart around one spot, now spread over the room;
     // owner 2026-09-23: moved again to these four spots.
-    df_coord_override( "DF_NACHT_SPAWN_1", ( 13673, -337, -188 ), ( 0, -74, 0 ) );
-    df_coord_override( "DF_NACHT_SPAWN_2", ( 13861, -327, -188 ), ( 0, -106, 0 ) );
-    df_coord_override( "DF_NACHT_SPAWN_3", ( 13643, -541, -188 ), ( 0, -13, 0 ) );
-    df_coord_override( "DF_NACHT_SPAWN_4", ( 13886, -522, -188 ), ( 0, -167, 0 ) );
+    // owner 2026-09-25: the cold room moved from the Nacht bunker to the woods behind the hunter's cabin (owner spots)
+    df_coord_override( "DF_NACHT_SPAWN_1", ( 5630, 8158, 13 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_2", ( 5384, 8189, -189 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_3", ( 5141, 8342, 13 ), ( 0, 1, 0 ) );
+    df_coord_override( "DF_NACHT_SPAWN_4", ( 5347, 8351, -189 ), ( 0, 1, 0 ) );
 }
 
 // Owner paste format: a raw [SPOT] / [PLACE] line whose position is a FLOOR spot, for a kind whose model
