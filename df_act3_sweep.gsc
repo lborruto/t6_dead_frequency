@@ -43,6 +43,7 @@
 #include scripts\zm\zm_transit\df_steps;
 #include scripts\zm\zm_transit\df_coords;
 #include scripts\zm\zm_transit\df_lamps;
+#include scripts\zm\zm_transit\df_act3_blackout;
 
 df_act3_sweep_init()
 {
@@ -119,6 +120,13 @@ df_s5_run()
     level endon( "end_game" );
     level endon( "df_skip_step5" );
 
+    // owner 2026-09-25: Step 5 is by side: Richtofen runs Blackout (df_act3_blackout.gsc), Maxis the lamps below
+    if ( isdefined( level.df_side ) && level.df_side == "rich" )
+    {
+        df_bo_run();
+        return;
+    }
+
     df_s5_config();
 
     if ( !df_s5_collect_lamps() )
@@ -180,6 +188,12 @@ df_s5_finish()
 // "!df goto" past step5: `need` set lamps marked anchored (anchored look, no silent power).
 df_s5_setup()
 {
+    if ( isdefined( level.df_side ) && level.df_side == "rich" )
+    {
+        df_bo_setup();
+        return;
+    }
+
     df_s5_config();
 
     if ( !df_s5_collect_lamps() )

@@ -33,7 +33,7 @@ my $repo  = dirname( $tools );
 my @ORDER = qw(
     df_main.gsc df_compat.gsc df_systems.gsc df_steps.gsc df_dialogue.gsc df_coords.gsc df_lamps.gsc
     df_scav.gsc df_catalog.gsc df_place.gsc df_act1.gsc df_act2_rich.gsc df_act2_maxis.gsc
-    df_act3_sweep.gsc df_act3_vacuum.gsc df_act3_hold.gsc df_finale.gsc df_audition.gsc
+    df_act3_sweep.gsc df_act3_blackout.gsc df_act3_vacuum.gsc df_act3_hold.gsc df_finale.gsc df_audition.gsc
 );
 
 # every df_*.gsc of the repo must be in @ORDER: a source left out compiles fine alone and fails at load with

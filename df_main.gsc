@@ -15,6 +15,7 @@
 #include scripts\zm\zm_transit\df_act2_rich;
 #include scripts\zm\zm_transit\df_act2_maxis;
 #include scripts\zm\zm_transit\df_act3_sweep;
+#include scripts\zm\zm_transit\df_act3_blackout;
 #include scripts\zm\zm_transit\df_act3_vacuum;
 #include scripts\zm\zm_transit\df_act3_hold;
 #include scripts\zm\zm_transit\df_finale;
@@ -69,6 +70,7 @@ df_boot()
     df_act2_rich_init();
     df_act2_maxis_init();
     df_act3_sweep_init();
+    df_act3_blackout_init();
     df_act3_vacuum_init();
     df_act3_hold_init();
     df_finale_init();

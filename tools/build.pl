@@ -50,6 +50,7 @@ my @ORDER = qw(
     df_act2_rich.gsc
     df_act2_maxis.gsc
     df_act3_sweep.gsc
+    df_act3_blackout.gsc
     df_act3_vacuum.gsc
     df_act3_hold.gsc
     df_finale.gsc
