@@ -132,7 +132,9 @@ df_place_follow()
 
     if ( self.df_place_snap )
     {
-        trace = bullettrace( eye, eye + forward * 2500, 0, self );
+        // owner 2026-09-25: the trace ignores the held prop itself (it hit the preview, pulled it toward the eye, missed
+        // it next frame: the prop jumped back and forth); the trace starts at the eye, so the player is never hit
+        trace = bullettrace( eye, eye + forward * 2500, 0, self.df_place_ent );
         pos = trace["position"];
         normal = ( 0, 0, 1 );
 
