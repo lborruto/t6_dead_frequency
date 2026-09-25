@@ -1295,7 +1295,9 @@ df_m1_skull_drop( ground )
     level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, 14 ) );
     level.df_m1_skull setmodel( df_model( "skull" ) );
     level.df_m1_skull thread df_m1_floor_hand_spin();
-    level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow_xsm", ground + ( 0, 0, 14 ) );
+    // owner 2026-09-25: the tiny xsm glow was invisible in the fog: the full light glow on the hand plus the key glint
+    level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", ground + ( 0, 0, 14 ) );
+    level.df_m1_skull_glint = df_fx_loop( "fx_zmb_tranzit_key_glint", ground + ( 0, 0, 18 ) );
     playsoundatposition( "zmb_buildable_piece_add", ground );
     level thread df_m1_skull_poll();
     df_debug_print( "DF: m1 hand on the floor at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", one press takes it" );
@@ -1523,6 +1525,8 @@ df_m1_skull_remove_floor()
         level.df_m1_skull delete();
 
     df_fx_stop( level.df_m1_skull_fx );
+    df_fx_stop( level.df_m1_skull_glint );
+    level.df_m1_skull_glint = undefined;
     level.df_m1_skull = undefined;
     level.df_m1_skull_fx = undefined;
 }
