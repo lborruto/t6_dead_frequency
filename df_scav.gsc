@@ -180,7 +180,7 @@ df_scav_icon( kind )
     switch ( kind )
     {
         case "receiver":
-            return "zm_hud_icon_jetgun_wires"; // the wire coil (owner 2026-09-09)
+            return "zm_hud_icon_sq_powerbox"; // owner 2026-09-25: the power box (the coil is the fuse box again)
         case "spool":
             return "zm_hud_icon_spool";
         case "battery":

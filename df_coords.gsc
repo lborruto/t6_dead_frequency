@@ -1484,9 +1484,9 @@ df_models_init_items()
     // receiver: the COIL that arrives when Step 1 is solved (audit 9, the relay's third part; the name is from
     // the old phone handset). The wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the
     // same model R2's spools use.
-    // owner 2026-09-23: the model is the wire bundle again (was the power box; so_zclassic_zm_transit ALWAYS,
-    // 25 x 7 x 25, base pivot). The small tilt below is the owner's composer pose of 2026-09-22 (kept).
-    df_model_def( "receiver", "p6_zm_buildable_jetgun_wires", 0, -10, 14 ); // owner composer 2026-09-22; roll sign checked in game 2026-09-23 (the engine rolls the other way than a right-hand turn about forward)
+    // owner 2026-09-25: the power box again (the EE fuse box, p6_zm_buildable_sq_electric_box; the wire bundle
+    // of 2026-09-23 is gone). The small tilt below is the owner's composer pose of 2026-09-22 (kept).
+    df_model_def( "receiver", "p6_zm_buildable_sq_electric_box", 0, -10, 14 ); // owner composer 2026-09-22; roll sign checked in game 2026-09-23 (the engine rolls the other way than a right-hand turn about forward)
 
     // spool: the wire spool a filled lamp drops in R2 (audit 9). The jet gun wire bundle piece
     // (so_zclassic_zm_transit, ALWAYS, zm_transit_buildables.gsc jetgun pieces), 25 x 7 x 25: a coil of cable.
