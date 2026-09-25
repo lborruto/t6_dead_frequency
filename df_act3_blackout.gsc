@@ -55,8 +55,8 @@ df_bo_spawn()
         // owner 2026-09-25: absolute angles stored once, so df_bo_set rotates TO a fixed pose instead of BY a
         // relative amount (repeated relative rotates could drift the lever off true ON/OFF)
         base = df_model_angles( "pswitch_lever", s.yaw );
-        s.off_angles = base + df_bo_pose( "df_bo_lever_off", ( 0, 0, -180 ) );
-        s.on_angles = base + df_bo_pose( "df_bo_lever_on", ( 0, 0, -90 ) );
+        s.off_angles = base + df_bo_pose( "df_bo_lever_off", ( 0, 0, 90 ) );
+        s.on_angles = base + df_bo_pose( "df_bo_lever_on", ( 0, 0, 0 ) );
         s.lever.angles = s.on_angles; // ON
         s.on = 1;
 

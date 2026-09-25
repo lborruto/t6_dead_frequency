@@ -344,6 +344,10 @@ df_apply_overrides()
     // owner anchor map 2026-09-22: they were four points 40 apart around one spot, now spread over the room;
     // owner 2026-09-23: moved again to these four spots.
     // owner 2026-09-25: the cold room moved from the Nacht bunker to the woods behind the hunter's cabin (owner spots)
+    // owner 2026-09-25: the three R3 Blackout power switches, placed by the owner (!df grab)
+    df_coord_override( "DF_BLACKOUT_1", ( 13810, -196, -188 ), ( 0, 359, 0 ) );
+    df_coord_override( "DF_BLACKOUT_2", ( 829, -1482, -44 ), ( 0, 90, 0 ) );
+    df_coord_override( "DF_BLACKOUT_3", ( 11668, 8524, -575 ), ( 0, 90, 0 ) );
     df_coord_override( "DF_NACHT_SPAWN_1", ( 5630, 8158, 13 ), ( 0, 1, 0 ) );
     df_coord_override( "DF_NACHT_SPAWN_2", ( 5384, 8189, -189 ), ( 0, 1, 0 ) );
     df_coord_override( "DF_NACHT_SPAWN_3", ( 5141, 8342, 13 ), ( 0, 1, 0 ) );
@@ -1423,7 +1427,7 @@ df_models_init()
     // owner 2026-09-25: Blackout (Richtofen Step 5): vanilla's power switch without its hand. The lever sits on the
     // body at its offset; ON = the lever rolled -90 from this pose (zm_transit_power.gsc:56), OFF = this pose.
     df_model_def( "pswitch_body", "p6_zm_buildable_pswitch_body", 0, 0, 0 );
-    df_model_def( "pswitch_lever", "p6_zm_buildable_pswitch_lever", 0, 0, 0, ( 0, 0, 40 ) ); // owner 2026-09-25: yaw back to 0 (the 180 turned it upside down); ON / OFF poses are dvars (df_act3_blackout df_bo_pose) panel
+    df_model_def( "pswitch_lever", "p6_zm_buildable_pswitch_lever", 0, 0, 0, ( 0, -9, 46.25 ) ); // owner 2026-09-25: exactly vanilla's built switch (map ents: body 12237.4 8512 -749.9 at 0 0 0, lever 12237.4 8503 -703.65 at 0 0 90 = OFF, zm_transit_power.gsc rotateroll -90 = ON)
     df_models_init_items();
 }
 
