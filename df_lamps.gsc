@@ -558,6 +558,8 @@ df_lamp_state_set( lamp, state )
         lamp.beam = df_beam_start( bulb );
         df_lamp_hum_set( lamp, "zmb_avogadro_loop", undefined );
     }
+    else if ( state == "dark" )
+        df_lamp_exploder_set( lamp, 0 ); // owner 2026-09-25: Maxis Step 5 "Lights Out": the vanilla light off, nothing of ours
     else if ( state == "final" )
         df_lamp_exploder_set( lamp, 1 );
     else if ( state != "drained" )

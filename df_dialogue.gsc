@@ -24,7 +24,7 @@
 //   tagged coop = 1 (4th arg) is
 //   dropped in solo by df_say ("one lamp each").
 //   Event keys added by the audit pass (2026-09-08), listed with their step: R1_RICH_CHAMBER, M1_EVENT,
-//   S5_ANCHOR_TURBINE_MAXIS, S6_NOJETGUN_RICH / _MAXIS,
+//   S6_NOJETGUN_RICH / _MAXIS,
 //   S7_AVOGADRO_RICH, A2_REWARD_RICH / _MAXIS, FIN_WORLD_RICH / _MAXIS, ITEM_RECEIVER, ITEM_BATTERY_RICH,
 //   ITEM_SPOOL_RICH, ITEM_EMBER_MAXIS, ITEM_HAND_MAXIS (tools/audit_A.md says who calls each; renamed from
 //   ITEM_SKULL_MAXIS, owner 2026-09-25), and
@@ -210,48 +210,39 @@ df_dialogue_act2_maxis()
     df_add_line( "M2_DONE", "rich", "Bonfires. He has reduced you to bonfires, Samuel." );
 }
 
-// Act 3 Step 5 (shared key family, by side; owner 2026-09-25). MAXIS: "Frequency Sweep" (unchanged,
-// df_act3_sweep.gsc), three lamps the tower picks and marks hum; a running TURBINE within 200 of the
-// lamp base anchors it (the grid is dark, the turbine gives the lamp the power the grid does not); every
-// set lamp anchored wins. RICHTOFEN: "Blackout" (df_act3_blackout.gsc), he flips three switches under the
-// obelisk OFF; a single F press flips one back ON (refused while the grid itself is off,
-// BO_NOPOWER_RICH) and spawns a wave at that switch; at each end of round Maxis knocks one ON switch back
-// OFF (BO_OFF_MAXIS). All three ON at once wins (D5_DONE / D5_DONE_RICH).
-// Story (audit section 7): the lamps are Richtofen's old antenna; the switches are his grid's mains. The
-// coop START lines say "one lamp/switch each".
-// S5_ANCHOR_TURBINE_MAXIS: said once per game, the first time a tuned lamp waits (Maxis, live).
-// owner 2026-09-25: Task 6 removed the dead Richtofen lamp/Galvaknuckles branch from df_act3_sweep.gsc
-// (df_s5_is_rich and everything it gated); S5_ANCHOR_DENIZEN_RICH and S5_NOFISTS_RICH went with it.
+// Act 3 Step 5, by side (owner 2026-09-25; df_act3_sweep.gsc dispatches).
+// RICHTOFEN "Blackout" (df_act3_blackout.gsc): Maxis flips three switches under the obelisk OFF; one F press
+// flips one back ON (refused while the grid is off, BO_NOPOWER_RICH) and sends a wave at it; at each end of
+// round Maxis knocks one ON switch OFF again (BO_OFF_MAXIS). All three ON wins (D5_DONE_RICH).
+// MAXIS "Lights Out" (df_act3_sweep.gsc): three lamps hum with Richtofen's power; a lamp goes dark only when a
+// zombie dies to a CLAYMORE (Farm wall buy) at its base, any other kill there does nothing (LO_NOTHAND_MAXIS,
+// once); each dark lamp says LO_DARK_MAXIS; at each end of round Richtofen relights one (LO_RELIGHT). All three
+// dark wins (D5_DONE_MAXIS). The coop START lines say "one switch / lamp each".
 df_dialogue_act3_sweep()
 {
-    // owner 2026-09-25: Blackout (df_act3_blackout.gsc)
+    // Blackout (Richtofen)
     df_add_line( "S5_START_RICH", "rich", "Maxis cut three switches under the obelisk, Samuel! Flip them all ON!" );
     df_add_line( "S5_START_RICH", "rich", "Split up, Samuel. One switch each, and keep the lights burning.", 1 );
     df_add_line( "S5_START_RICH", "maxis", "His switches fall dark. Let them stay dark. Let him feel the fog." );
-    df_add_line( "S5_START_MAXIS", "maxis", "The Spire needs three points. The lamps in the fog have begun to hum." );
-    df_add_line( "S5_START_MAXIS", "maxis", "You are several. One lamp each; the fog rewards those who spread out.", 1 );
-    df_add_line( "S5_START_MAXIS", "rich", "Street lights, Samuel! He has you tuning STREET LIGHTS! Hahaha! Pathetic." );
-    // plain S5_HINT_1 (D5_HINT alias, !df say before the fork): the sided texts word for word, no own string
-    df_add_line( "S5_HINT_1", "maxis", "Hold on at a humming lamp until it settles. Then it waits. It will need power." );
+    // Lights Out (Maxis)
+    df_add_line( "S5_START_MAXIS", "maxis", "He feeds three lamps in the fog. His voice hums in them. Put them out." );
+    df_add_line( "S5_START_MAXIS", "maxis", "You are several. One lamp each, and let the dead do the work.", 1 );
+    df_add_line( "S5_START_MAXIS", "rich", "My lamps, Samuel! He wants them dark? Over my... well, over yours." );
+    // plain S5_HINT_1 (!df say before the fork): the sided texts word for word, no own string
+    df_add_line( "S5_HINT_1", "maxis", "Claymores are sold at the Farm. Plant one at the foot of a humming lamp." );
     df_add_line( "S5_HINT_1", "rich", "Three switches under the obelisk, Samuel. One press each, lights on." );
     df_add_line( "S5_HINT_1_RICH", "rich", "Three switches under the obelisk, Samuel. One press each, lights on." );
-    df_add_line( "S5_HINT_1_MAXIS", "maxis", "Hold on at a humming lamp until it settles. Then it waits. It will need power." );
+    df_add_line( "S5_HINT_1_MAXIS", "maxis", "Claymores are sold at the Farm. Plant one at the foot of a humming lamp." );
     df_add_line( "S5_HINT_2_RICH", "rich", "Power ON, then press each dark switch under the obelisk. All three at once!" );
-    df_add_line( "S5_HINT_2_MAXIS", "maxis", "A running turbine at a humming lamp, then hold at it until it ticks." );
-    // S5_ANCHOR_TURBINE_MAXIS: on the Maxis path a running turbine at the set lamp is the anchor (owner 2026-09-09)
-    df_add_line( "S5_ANCHOR_TURBINE_MAXIS", "maxis", "It drifts. A door is not an anchor. A turbine at its foot. Quickly!" );
-    // D5_ANCHOR / D5_FAIL: plain keys, reached only by !df say before the fork or by the (Maxis-only,
-    // live) lamp anchor/fail path once side-locked; the rich half and the _RICH keys are unreachable on
-    // the Richtofen side now and no .gsc calls them, so they were cut (owner 2026-09-25).
-    df_add_line( "D5_ANCHOR", "maxis", "That one holds. The others still drift. Listen again." );
-    df_add_line( "D5_ANCHOR_MAXIS", "maxis", "That one holds. The others still drift. Listen again." );
-    df_add_line( "D5_FAIL", "maxis", "The clock ran out. What is anchored stays. Loose lamps want the dead first." );
-    df_add_line( "D5_FAIL_MAXIS", "maxis", "The clock ran out. What is anchored stays. Loose lamps want the dead first." );
+    df_add_line( "S5_HINT_2_MAXIS", "maxis", "A claymore at the post, then let the dead walk into it. Three lamps dark." );
+    df_add_line( "LO_NOTHAND_MAXIS", "maxis", "Not your hand. His light must fall at the step of the dead. A claymore." );
+    df_add_line( "LO_DARK_MAXIS", "maxis", "One lamp is dark. His voice is thinner already." );
+    df_add_line( "LO_RELIGHT", "maxis", "He has relit one of them. Put it out again." );
+    df_add_line( "LO_RELIGHT", "rich", "Back ON, my lovely lamp! Try harder, Maxis!" );
     df_add_line( "D5_DONE", "rich", "All three ON! The obelisk drinks, Samuel. Now my card wants to let go!" );
-    df_add_line( "D5_DONE", "maxis", "Every anchor holds. It cannot drift. Something small must carry the charge." );
+    df_add_line( "D5_DONE", "maxis", "Three lamps dark. His voice is gone. Something small must carry the charge." );
     df_add_line( "D5_DONE_RICH", "rich", "All three ON! The obelisk drinks, Samuel. Now my card wants to let go!" );
-    df_add_line( "D5_DONE_MAXIS", "maxis", "Every anchor holds. It cannot drift. Something small must carry the charge." );
-    // owner 2026-09-25: Blackout (df_act3_blackout.gsc)
+    df_add_line( "D5_DONE_MAXIS", "maxis", "Three lamps dark. His voice is gone. Something small must carry the charge." );
     df_add_line( "BO_OFF_MAXIS", "maxis", "Another of his switches falls. The dark is patient." );
     df_add_line( "BO_OFF_MAXIS", "rich", "One fell again? Maxis sulks every round. Flip it back ON, schnell!" );
     df_add_line( "BO_NOPOWER_RICH", "rich", "Power ON first, Samuel! A switch on a dead grid is a toy." );

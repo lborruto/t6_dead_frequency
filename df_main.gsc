@@ -227,7 +227,7 @@ df_debug_cmd_quest( sub, arg )
             return 1;
 
         case "scale":
-            self df_out( "players " + df_player_count() + " | lamp_souls " + df_scaled( "lamp_souls" ) + " | nodes " + df_scaled( "nodes" ) + " | sweep_time " + df_scaled( "sweep_time" ) );
+            self df_out( "players " + df_player_count() + " | lamp_souls " + df_scaled( "lamp_souls" ) + " | nodes " + df_scaled( "nodes" ) );
             self df_out( "hold_time " + df_scaled( "hold_time" ) + " | orb_hp " + df_scaled( "orb_hp" ) + " | s7_period " + df_scaled( "s7_period" ) + " | s7_cap rich " + df_scaled( "s7_cap_rich" ) + " maxis " + df_scaled( "s7_cap_maxis" ) );
             return 1;
 

@@ -50,8 +50,6 @@ df_init_scaling()
     df_scale_row( "cold_room_kills", 6, 9, 12, 15 ); // M1 denizens
     df_scale_row( "brazier_burns", 4, 5, 6, 7 ); // audit (was 3/4/5/6): M2 kills per lit grave (burning or not since 2026-09-23)
     df_scale_row( "nodes", 3, 3, 3, 4 ); // owner: spec says 1/2/3/4; always three R2 lamps, four with a full lobby (Step 6 is ONE node per side since 2026-09-23)
-    df_scale_row( "sweep_rounds", 2, 1, 1, 1 ); // spec row, unused (see sweep_time)
-    df_scale_row( "sweep_time", 360, 300, 270, 240 ); // audit (owner 300/240/210/180): Step 5 countdown in seconds from the first anchor (Maxis side; Richtofen runs Blackout instead, df_act3_blackout.gsc)
     df_scale_row( "hold_time", 75, 90, 105, 120 ); // audit v2 section 6 (owner 2026-09-09 had 75/95/115/135): Step 7 wave seconds
     df_scale_row( "hold_kills", 40, 55, 70, 85 ); // Step 7 kills inside the zone (spec row; the hold file defends an orb instead)
     df_scale_row( "orb_hp", 3000, 4200, 5400, 6600 ); // audit v3 co-op: the sprinter cap grows faster than the old hp did // owner 2026-09-09: was 2000..3200 // audit (was a fixed 2000): Step 7 orb hit points (level.df_s7_cfg_orb_hp in df_act3_hold)
