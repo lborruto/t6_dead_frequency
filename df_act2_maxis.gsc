@@ -143,7 +143,7 @@ df_m1_wait_placed()
     if ( isdefined( level.df_m1_skull_table ) )
         return;
 
-    df_debug_print( "DF: m1 waiting for the hand on table slot 1 (carry it within 150 of the table, one press)" );
+    df_debug_print( "DF: m1 waiting for the lantern on table slot 1 (carry it within 150 of the table, one press)" );
     level waittill( "df_m1_skull_placed" );
 }
 
@@ -1311,7 +1311,7 @@ df_m1_skull_wait_take( seconds )
         wait 0.1;
 
     if ( !isdefined( level.df_m1_skull_carrier ) )
-        df_debug_print( "DF: m1 hand not taken in " + seconds + " s, it comes along to the tower" );
+        df_debug_print( "DF: m1 lantern not taken in " + seconds + " s, it comes along to the tower" );
 }
 
 // A hand still lying on the floor after the return moves to the tower return point (48 units left of where
@@ -1323,7 +1323,7 @@ df_m1_skull_follow_return()
 
     c = df_coord( "DF_TOWER_RETURN" );
     df_m1_skull_drop( df_ground( c.origin + anglestoright( c.angles ) * -48 ) );
-    df_debug_print( "DF: m1 hand lies at the tower return point, take it to the table" );
+    df_debug_print( "DF: m1 lantern lies at the tower return point, take it to the table" );
 }
 
 // The hand lies on the floor under a glint (fx_zmb_tranzit_light_glow at df_fx_point "skull_glow")
@@ -1331,10 +1331,11 @@ df_m1_skull_follow_return()
 df_m1_skull_drop( ground )
 {
     df_m1_skull_remove_floor();
-    // owner 2026-09-25: it sank half into the floor: it floats 14 above the ground like the rock, turns slowly and
-    // carries a tiny glow on itself
-    level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, 14 ) );
+    // owner 2026-09-25: the lantern stands upright ON the ground (its registry pose: pitch 180 puts the ceiling mount
+    // under it), turns slowly and carries its glow
+    level.df_m1_skull = spawn( "script_model", ground + ( 0, 0, 1 ) );
     level.df_m1_skull setmodel( df_model( "skull" ) );
+    level.df_m1_skull.angles = df_model_angles( "skull", randomint( 360 ) );
     level.df_m1_skull thread df_m1_floor_hand_spin();
     // owner 2026-09-25: the tiny xsm glow was invisible in the fog: the full light glow on the hand plus the key glint
     level.df_m1_skull_fx = df_fx_loop( "fx_zmb_tranzit_light_glow", level.df_m1_skull.origin );
@@ -1348,7 +1349,7 @@ df_m1_skull_drop( ground )
         level.df_m1_skull_glint linkto( level.df_m1_skull );
     playsoundatposition( "zmb_buildable_piece_add", ground );
     level thread df_m1_skull_poll();
-    df_debug_print( "DF: m1 hand on the floor at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", one press takes it" );
+    df_debug_print( "DF: m1 lantern on the floor at " + int( ground[0] ) + " " + int( ground[1] ) + " " + int( ground[2] ) + ", one press takes it" );
 }
 
 // self = the floor hand: a slow turn, like the rock on the ground.
@@ -1400,7 +1401,7 @@ df_m1_skull_poll()
                     continue;
                 }
 
-                df_m1_skull_prompt_set( player, "Press [{+activate}] to place the hand" );
+                df_m1_skull_prompt_set( player, "Press [{+activate}] to place the lantern" );
 
                 if ( player df_press_use() )
                     df_m1_skull_place_by( player );
@@ -1418,7 +1419,7 @@ df_m1_skull_poll()
             }
 
             df_m1_skull_room_prompt( player, 0 );
-            df_m1_skull_prompt_set( player, "Press [{+activate}] to take the hand" );
+            df_m1_skull_prompt_set( player, "Press [{+activate}] to take the lantern" );
 
             if ( player df_press_use() )
                 df_m1_skull_take( player );
@@ -1444,7 +1445,7 @@ df_m1_skull_room_prompt( player, show )
             return;
 
         player.df_m1_skull_room_prompt = 1;
-        player df_prompt_puzzle( 1, "Take the hand before the cold closes" );
+        player df_prompt_puzzle( 1, "Take the lantern before the cold closes" );
         return;
     }
 
@@ -1485,7 +1486,7 @@ df_m1_skull_take( player )
     df_scav_carry_set( "skull", 1, 1, player );
     level thread df_m1_skull_monitor( player );
     df_touch( "m1" );
-    df_debug_print( "DF: m1 hand taken by " + player.name + ", carry it to the table (slot 1, one press within 150)" );
+    df_debug_print( "DF: m1 lantern taken by " + player.name + ", carry it to the table (slot 1, one press within 150)" );
 }
 
 // It leaves the player's hand (placed, dropped, skip): flag off, notice cleared.
@@ -1540,7 +1541,7 @@ df_m1_skull_monitor( player )
         {
             df_m1_skull_release( undefined );
             df_m1_skull_drop( df_ground( df_coord( "DF_TOWER_RETURN" ).origin ) );
-            df_debug_print( "DF: m1 hand carrier left, the hand lies at the tower return point" );
+            df_debug_print( "DF: m1 lantern carrier left, the lantern lies at the tower return point" );
             return;
         }
 
@@ -1553,7 +1554,7 @@ df_m1_skull_monitor( player )
             df_m1_skull_release( player );
             df_m1_skull_drop( ground );
             df_cue_fail( ground );
-            df_debug_print( "DF: m1 hand dropped (" + player.name + " went down), take it again" );
+            df_debug_print( "DF: m1 lantern dropped (" + player.name + " went down), take it again" );
             return;
         }
     }
@@ -1563,7 +1564,7 @@ df_m1_skull_monitor( player )
 df_m1_skull_place_by( player )
 {
     df_m1_skull_release( player );
-    df_debug_print( "DF: m1 hand placed by " + player.name );
+    df_debug_print( "DF: m1 lantern placed by " + player.name );
     df_m1_skull_place_table( 0 );
 }
 
@@ -1600,7 +1601,7 @@ df_m1_skull_place_table( quiet )
     // owner 2026-09-23: no glow on the hand (one glow per step on the relay); the placing snap only
     if ( !is_true( quiet ) )
         df_cue_table_place( pos );
-    df_debug_print( "DF: m1 hand on the table, slot 1 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
+    df_debug_print( "DF: m1 lantern on the table, slot 1 (" + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) + ")" );
 
     if ( !is_true( quiet ) )
         level thread df_act2_maxis_trail( pos + ( 0, 0, 200 ), pos );
@@ -1625,7 +1626,7 @@ df_m1_debug_skull( player )
 {
     if ( isdefined( level.df_m1_skull_table ) )
     {
-        df_debug_print( "DF: m1 hand already on the table" );
+        df_debug_print( "DF: m1 lantern already on the table" );
         return;
     }
 
@@ -1678,7 +1679,7 @@ df_m2_run()
     level.df_m2_ember_charged = 0;
     df_m2_ember_spawn_table();
     // owner 2026-09-25: no AVAILABLE glint over the table (nothing of ours on the table)
-    df_debug_print( "DF: m2 the hand waits on the table; shoot a grave outside Town to light it, kill " + level.df_m2_target + " zombies within " + df_m2_zone_radius() + " of where you shot from; four graves = the fire hand" );
+    df_debug_print( "DF: m2 the lantern waits on the table; shoot a grave outside Town to light it, kill " + level.df_m2_target + " zombies within " + df_m2_zone_radius() + " of where you shot from; four graves = the burning lantern" );
 
     while ( !df_m2_all_done() || !is_true( level.df_m2_ember_returned ) )
         level waittill( "df_m2_check" );
@@ -1836,7 +1837,7 @@ df_m2_debug_hook()
             df_m2_ember_spawn_table( 1 );
 
         level.df_m2_ember_returned = 1;
-        df_debug_print( "DF: m2 graves spent and fire hand returned by debug" );
+        df_debug_print( "DF: m2 graves spent and burning lantern returned by debug" );
         level notify( "df_m2_check" );
     }
 }
@@ -2332,7 +2333,7 @@ df_m2_ember_poll()
                 {
                     if ( distancesquared( player.origin, df_coord( "DF_SOCKET" ).origin ) <= 150 * 150 )
                     {
-                        df_m2_prompt_set( player, "Press [{+activate}] to set the fire hand on the table" );
+                        df_m2_prompt_set( player, "Press [{+activate}] to set the burning lantern on the table" );
 
                         if ( player df_press_use() )
                             df_m2_ember_return( player );
@@ -2351,7 +2352,7 @@ df_m2_ember_poll()
                     continue;
                 }
 
-                df_m2_prompt_set( player, "Press [{+activate}] to light the hand" );
+                df_m2_prompt_set( player, "Press [{+activate}] to light the lantern" );
 
                 if ( player df_press_use() )
                     df_m2_light( b, player );
@@ -2366,7 +2367,7 @@ df_m2_ember_poll()
                 continue;
             }
 
-            df_m2_prompt_set( player, "Press [{+activate}] to take the hand" );
+            df_m2_prompt_set( player, "Press [{+activate}] to take the lantern" );
 
             if ( player df_press_use() )
                 df_m2_ember_take( player );
@@ -2406,7 +2407,7 @@ df_m2_ember_take( player )
     player thread df_m2_ember_carry();
     level thread df_m2_ember_monitor( player );
     df_touch( "m2" );
-    df_debug_print( "DF: m2 hand taken from the table by " + player.name + " (no burn until the four graves are ash; it stays in hand for the whole step)" );
+    df_debug_print( "DF: m2 lantern taken from the table by " + player.name + " (no burn until the four graves are ash; it stays in hand for the whole step)" );
 
     if ( is_true( level.df_m2_ember_said ) )
         return;
@@ -2488,7 +2489,7 @@ df_m2_ember_monitor( player )
             df_fx_stop( fx );
             df_scav_carry_clear( "ember" );
             df_m2_ember_spawn_table();
-            df_debug_print( "DF: m2 the fire hand carrier left, it waits on the table again" );
+            df_debug_print( "DF: m2 the burning lantern carrier left, it waits on the table again" );
             level notify( "df_m2_check" );
             return;
         }
@@ -2499,7 +2500,7 @@ df_m2_ember_monitor( player )
             df_cue_fail( player.origin );
             df_m2_ember_spawn_table();
             df_say( "M2_EMBER_LOST" );
-            df_debug_print( "DF: m2 fire hand lost (" + player.name + " went down), it waits on the table again" );
+            df_debug_print( "DF: m2 burning lantern lost (" + player.name + " went down), it waits on the table again" );
             return;
         }
     }
@@ -2913,7 +2914,7 @@ df_m2_ember_spawn_table( resting )
         }
     }
 
-    df_debug_print( "DF: m2 the hand is on the table (charged " + is_true( level.df_m2_ember_charged ) + ")" );
+    df_debug_print( "DF: m2 the lantern is on the table (charged " + is_true( level.df_m2_ember_charged ) + ")" );
 }
 
 df_m2_ember_table_remove()
@@ -2984,6 +2985,7 @@ df_m2_ember_charged()
 
     if ( is_true( level.df_m2_ember_on_table ) )
     {
+        df_say( "M2_EMBER_CHARGED" ); // owner 2026-09-25: the four fires reach the lantern on the table
         df_m2_ember_return( undefined );
         return;
     }
@@ -3001,10 +3003,9 @@ df_m2_ember_charged()
         }
     }
 
-    if ( carried )
-        df_say( "M2_EMBER_CHARGED" );
+    df_say( "M2_EMBER_CHARGED" ); // owner 2026-09-25: always (the lantern never leaves the table now)
 
-    df_debug_print( "DF: m2 all four graves spent, the fire hand is charged: return it to the table (one press within 150)" );
+    df_debug_print( "DF: m2 all four graves spent, the burning lantern is charged: return it to the table (one press within 150)" );
 }
 
 // The charged fire hand goes back on the table (it rests there until Step 6), the carrier's hand is empty, M2 completes (df_m2_run).
@@ -3018,7 +3019,7 @@ df_m2_ember_return( player )
     socket = df_coord( "DF_SOCKET" ).origin;
     df_cue_table_place( level.df_m2_ember_pos ); // owner 2026-09-23: the one placing snap, no fire burst or ash
     playsoundatposition( "zmb_buildable_complete", socket );
-    df_debug_print( "DF: m2 the charged fire hand is back in the table" );
+    df_debug_print( "DF: m2 the charged burning lantern is back in the table" );
     level notify( "df_m2_check" );
 }
 

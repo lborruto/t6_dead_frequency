@@ -1446,7 +1446,10 @@ df_models_init_items()
     // the table front. Rest 14 / top +9 (df_model_rest_z / df_model_top_z). Table slot 1 keeps its value.
     // owner 2026-09-25 (the hand arc): the M1 item is the HAND of the power switch (M1 drops it, it waits on the table, M2 carries it to the
     // graves and it comes back as the fire hand): same model and table pose as kind "ember"
-    df_model_def( "skull", "p6_zm_buildable_pswitch_hand", -16, 0, -8.5, ( -6, -12, 48 ) );
+    // owner 2026-09-25: the M1 / M2 relic is MAXIS'S LANTERN, a dead red cage lamp (p_lights_cagelight02_red_off, zm_transit, 6 x 8 x 6).
+    // It is a CEILING lamp: its pivot is the mount on top and the cage hangs 7.6 below. Pitch 180 turns it upright,
+    // mount down, so it stands on the table top (offset z 44 = the bench top in the table frame) and on the ground.
+    df_model_def( "skull", "p_lights_cagelight02_red_off", 180, 0, 0, ( -6, -12, 44 ) );
 
     // receiver: the COIL that arrives when Step 1 is solved (audit 9, the relay's third part; the name is from
     // the old phone handset). The wire coil, p6_zm_buildable_jetgun_wires (owner 2026-09-09, "bobine"), the
@@ -1463,7 +1466,7 @@ df_models_init_items()
     // the power switch hand piece p6_zm_buildable_pswitch_hand (zm_transit, 9 x 8 x 9) with a tiny flame.
     // Offset = its place in the TABLE's frame from the table origin (z from the floor; default = slot 2 on the top),
     // df_table_point; the owner poses it in the Prop Composer ("Table, Maxis loaded").
-    df_model_def( "ember", "p6_zm_buildable_pswitch_hand", -16, 0, -8.5, ( -6, -12, 48 ) ); // owner composer 2026-09-23
+    df_model_def( "ember", "p_lights_cagelight02_red_off", 180, 0, 0, ( -6, -12, 44 ) ); // owner 2026-09-25: the lantern (see "skull")
 }
 
 // =========================================================================================
@@ -1516,7 +1519,7 @@ df_fx_points_init()
     // ---- the things that sit on the table
     df_fx_point_def( "card_barn_glint", "card_barn", ( 0, 0.5, 0.5 ) ); // the glint on the floating barn card
     df_fx_point_def( "skull_glow", "skull", ( 0, 0, 20 ) );         // base: the floor spot the skull was dropped on
-    df_fx_point_def( "hand_fire", "ember", ( -0.5, -0.5, 0.5 ) );          // owner 2026-09-23: the tiny flame on the fire hand        // owner composer 2026-09-22
+    df_fx_point_def( "hand_fire", "ember", ( 0, 0, 4 ) ); // owner 2026-09-25: the fire inside the lantern's cage (upright: 0..7.6 up)          // owner 2026-09-23: the tiny flame on the fire hand        // owner composer 2026-09-22
 
     // ---- the barn fuse boxes and the Step 6 nodes
     df_fx_point_def( "fuse_led", "fuse", ( 0, 0, 5 ) );             // owner composer 2026-09-22; the LED face: glow, spark and Simon flash

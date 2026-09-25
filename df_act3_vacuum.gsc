@@ -1979,7 +1979,7 @@ df_s6_ember_burst( pos )
     df_say( "S6_EMBER_MAXIS" );
 
     df_s6_trail_fly( "fx_zmb_tranzit_fire_med", from, pos );
-    df_debug_print( "DF: s6 the fire hand burst on the table, its fire flew to the landing spot" );
+    df_debug_print( "DF: s6 the burning lantern burst on the table, its fire flew to the landing spot" );
 }
 
 // Richtofen Step 6 opening (owner 2026-09-23): the key card on table slot 1 (level.df_card_table, df_act2_rich)

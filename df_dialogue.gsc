@@ -177,29 +177,29 @@ df_dialogue_act2_maxis()
     // M1 - The Cold Room
     df_add_line( "M1_START", "maxis", "The signal needs a key. The fog is full of small, angry keys." );
     df_add_line( "M1_HINT_1", "maxis", "The little ones want the relay. Let one cling to you and walk it to the Spire." );
-    df_add_line( "M1_HINT_2", "maxis", "Carry a little one to the table. Clear the hole. Set the hand on the table." );
+    df_add_line( "M1_HINT_2", "maxis", "Carry a little one to the table. Clear the hole. Set the lantern on the table." );
     // M1_EVENT: the first denizen latches onto a player after M1 opens (event hint, audit #6)
     df_add_line( "M1_EVENT", "maxis", "Do not kill it. Let it ride. Carry it to the table under the Spire. Quickly!" );
     df_add_line( "M1_PORTAL", "maxis", "A door to the woods behind the hunter's cabin. One steps in, all of you go." );
     df_add_line( "M1_PORTAL", "rich", "Do not go in there, Samuel. Actually, do. I could use the laugh." );
     df_add_line( "M1_MAXIS_FAIL", "maxis", "Too slow. The cold does not wait. Bring another one to the table." );
-    df_add_line( "M1_DONE", "maxis", "It is keyed. The signal knows us now. The hand still wants fire." );
+    df_add_line( "M1_DONE", "maxis", "It is keyed. The signal knows us now. The lantern still wants fire." );
     // ITEM_HAND_MAXIS (renamed from ITEM_SKULL_MAXIS, owner 2026-09-25): the frozen hand (still the
     // zombie_skull model) appears after the denizen kills; the take cue, called from df_m1_skull_appear
     // instead of the table placement (dialogue audit v2 #8; M1_DONE covers the placement)
-    df_add_line( "ITEM_HAND_MAXIS", "maxis", "The cold left a hand behind. The hand of his switch. Set it on the table." );
+    df_add_line( "ITEM_HAND_MAXIS", "maxis", "The cold left a lantern behind. Dead, and red. Set it on the table." );
 
     // M2 - Fire and Ash
     df_add_line( "M2_START", "maxis", "Four graves stand beyond the edge of Town. Shoot one and it wakes." );
     df_add_line( "M2_HINT_1", "maxis", "The graves are outside Town. Shoot one, then kill the dead where you stood." );
     df_add_line( "M2_HINT_2", "maxis", "A woken grave wants the dead killed where you shot it. Be quick, it cools." );
-    df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. Its fire runs to the hand." );
+    df_add_line( "M2_MAXIS_BRAZIER", "maxis", "Good. That grave is spent. Its fire runs to the lantern." );
     // ITEM_EMBER_MAXIS: the fire hand taken from the table; a grave lights it, then the lit graves want
     // kills beside them, burning or not (dialogue audit v2, M2: the take touches the ladder, so this line
     // carries the second half)
-    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "Take the hand to the graves in Town. Light it at each and feed it the dead." );
-    df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. Their fire runs home to the hand on the table." );
-    df_add_line( "M2_EMBER_LOST", "maxis", "The hand fell with you. It waits on the table again." );
+    df_add_line( "ITEM_EMBER_MAXIS", "maxis", "The lantern waits on the table. The graves will feed it." );
+    df_add_line( "M2_EMBER_CHARGED", "maxis", "All four are ash. Their fire sleeps in the lantern now." );
+    df_add_line( "M2_EMBER_LOST", "maxis", "The lantern fell with you. It waits on the table again." );
     df_add_line( "M2_KNUCKLES_MAXIS", "maxis", "Nein! His current will not touch my graves. Any weapon but his fists." );
     // M2_POWER_MAXIS: the grid was ON at the end of a round and ONE lit grave forgets its kills
     // (df_act2_maxis df_m2_power_penalty; dialogue audit v2 section 3)
@@ -262,12 +262,12 @@ df_dialogue_act3_vacuum()
     df_add_line( "S6_START_RICH", "maxis", "He has you carrying his batteries now. Follow his light, if you must." );
     df_add_line( "S6_START_MAXIS", "maxis", "The hunter's cabin in the woods keeps a fire. The rock must drink from it." );
     // S6_EMBER_MAXIS: the fire hand on the table bursts and its fire flies off to where the rock will fall (df_s6_ember_burst)
-    df_add_line( "S6_EMBER_MAXIS", "maxis", "The hand gives its fire to the sky. It falls far away, as a rock. Find it." );
+    df_add_line( "S6_EMBER_MAXIS", "maxis", "The lantern gives its fire to the sky. It falls far away, as a rock." );
     // S6_CARD_RICH: the key card on the table discharges, its storm falls as the rock (df_act3_vacuum, owner 2026-09-23)
     df_add_line( "S6_CARD_RICH", "rich", "The card calls the storm down! It fell as a rock. Diner, Town or plant!" );
     df_add_line( "S6_START_MAXIS", "rich", "A ROCK, Samuel! He wants you to carry a rock! Oh, I could not make this up!" );
     df_add_line( "S6_HINT_1_RICH", "rich", "My storm fell as a rock, Samuel. The Diner, Town or the plant. Fetch it!" );
-    df_add_line( "S6_HINT_1_MAXIS", "maxis", "The hand's fire fell as a rock: the Diner, Town or the plant. Find it." );
+    df_add_line( "S6_HINT_1_MAXIS", "maxis", "The lantern's fire fell as a rock: the Diner, Town or the plant. Find it." );
     df_add_line( "S6_HINT_2_RICH", "rich", "Take the rock to the sparking block on the plant bridge. Empty a Jet Gun!" );
     df_add_line( "S6_HINT_2_MAXIS", "maxis", "Carry the rock to the hunter's cabin fireplace. Fire a full Jet Gun into it." );
     df_add_line( "D6_HINT", "rich", "Someone built a big vacuum cleaner, Samuel. Aim it at the sparking block." );
@@ -352,7 +352,7 @@ df_dialogue_finale()
     df_add_line( "FIN_WORLD_MAXIS", "maxis", "The lamps answer to me now. The fog is quiet. The little ones will not return." );
     // residue lines, once, right after FIN_WORLD_* (df_finale df_fin_keepsake): the card / the hand stay on the table
     df_add_line( "ITEM_KEEPSAKE_RICH", "rich", "Keep the card, Samuel. A souvenir of the day you made me very happy." );
-    df_add_line( "ITEM_KEEPSAKE_MAXIS", "maxis", "The hand burnt away for this. Let the Spire remember whose fire it holds." );
+    df_add_line( "ITEM_KEEPSAKE_MAXIS", "maxis", "The lantern burnt out for this. Let the Spire remember whose fire it holds." );
 }
 
 // Old stall hint keys (spec section 7, README, `!df say`) point at the HINT_1 rung of their step.

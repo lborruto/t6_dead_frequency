@@ -220,9 +220,9 @@ df_scav_display_name( kind )
         case "battery":
             return "Battery";
         case "ember":
-            return "Hand";
+            return "Lantern";
         case "skull":
-            return "Hand"; // owner 2026-09-23: a real skull again (was "Stone" on the meteor model)
+            return "Lantern"; // owner 2026-09-23: a real skull again (was "Stone" on the meteor model)
         case "parts":
         case "part_a":
         case "part_b":

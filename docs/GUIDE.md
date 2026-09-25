@@ -198,7 +198,7 @@ disappears, though the grave itself still stands - shoot it again to open a fres
 A kill outside a lit zone, or at a grave that has not been shot, does not count (a buzz tells you). Denizens
 leave you alone inside the kill zone of a lit grave while M2 runs.
 
-All four gone: chime, and the hand waiting on the table becomes the FIRE HAND by itself, burning where it lies
+All four gone: chime, and the hand waiting on the table becomes the BURNING LANTERN by itself, burning where it lies
 - nothing to carry back to the table. That completes M2 and the Act 2 reward drops at once. If nobody in the
 team carries a Jet Gun, Maxis says you will need one before the end.
 
@@ -252,7 +252,7 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
 <details><summary><b>Step 6 - Vacuum (the rock)</b> (click to reveal)</summary>
 
 
-The step opens at the table: RICHTOFEN, the key card discharges and its storm flies off; MAXIS, the fire hand
+The step opens at the table: RICHTOFEN, the key card discharges and its storm flies off; MAXIS, the burning lantern
 bursts and its fire flies off. Three seconds of build-up over the tower, then a strike at one of THREE spots,
 drawn once at the start of the game: the Diner, Town or the Power station.
 It falls there as a small ROCK. Look for the glint and the light beam pointing at it from the tower. Press F to

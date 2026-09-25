@@ -37,7 +37,7 @@ Useful cheats: `!god`, `!points`, `!ammo`, `!kill`, `!round <n>`, `!gun jetgun_z
 tazer_knuckles_zm`; `!df freeze` (ours: every regular zombie stands inert until toggled back, denizens and Avogadro
 untouched, new zombies freeze as they finish rising); `!df jet` / `!df jet watch` (Jet Gun heat values per player);
 `!df who` (why is F doing nothing: prints whether you are drinking / screecher-ridden / in laststand, your current
-weapon, whether you carry the relay / orb / hand / fire hand / battery, and every `trigger_radius_use` within 200
+weapon, whether you carry the relay / orb / hand / burning lantern / battery, and every `trigger_radius_use` within 200
 of you with its distance - paste it when a prompt refuses to show).
 
 ## 0. Load
@@ -110,7 +110,7 @@ the printed line; a live tune of a DF_ORB_SPOT_n makes it this game's landing sp
 [yaw]` (yaw optional, keeps the current one if left off). Grabbing or `setpos`-ing a `DF_BLACKOUT_n` or
 `DF_BRAZIER_n` anchor moves the REAL switch / grave along with it (model, clips, flame), not just the anchor:
 `DF: blackout switches respawned (...)` / `DF: m2 brazier_n moved to ...`. `!df hide` when done. The M1 item is a plain HAND (kind `skull` in the
-code, `p6_zm_buildable_pswitch_hand`, the same model and table pose as the M2 fire hand, kind `ember`); the Step 6 rock
+code, `p_lights_cagelight02_red_off`, the same model and table pose as the M2 burning lantern, kind `ember`); the Step 6 rock
 is the meteor piece (`p6_zm_buildable_sq_meteor`).
 Picking by ear and eye: the picker pages (Sound, Prop, Effect; self-contained HTML built by the generators in `tools/pickers`)
 list the same sets as `!df snd list` / `!df fx list`. In game: `!df snd <n>` / `!df snd next` plays a sound to you at
@@ -250,7 +250,7 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
 - Walk out of the zone on foot (all players clear of the 1000 radius, or the room ends): console `m1 no-denizen
   zone OFF, vanilla denizens are back`.
 - Success: `m1 cold room over: success (6/6)`, the STRIKE where the last one died and the HAND (the power switch hand,
-  `p6_zm_buildable_pswitch_hand`; code kind `skull`, so the console still says skull) lies there with a glint (`m1
+  `p_lights_cagelight02_red_off`; code kind `skull`, so the console still says skull) lies there with a glint (`m1
   skull on the floor at ..., one press takes it`), Maxis (ITEM_HAND_MAXIS): "The cold left a hand behind. The
   hand of his switch. Set it on the table."; 30 s
   window, "Press F to take the hand" within 100 ("Take the hand before the cold closes" for the room only with hints
@@ -259,8 +259,8 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
   placed by itself.
 - Carry it (notice "Hand" with the rock icon, TAB square, no lamp portals, drops at your feet if you go
   down: `m1 hand dropped (<you> went down), take it again`). "Press F to place the hand" within 150 of the table:
-  the clink only (no snap), `m1 hand placed by <you>`, `m1 hand on the table, slot 1 (...)` (it lies at the fire hand's
-  pose, exactly where M2's fire hand will rest; no spin, no glow, no flame), tower cue 12 s (the slow fire pulse at the
+  the clink only (no snap), `m1 hand placed by <you>`, `m1 hand on the table, slot 1 (...)` (it lies at the burning lantern's
+  pose, exactly where M2's burning lantern will rest; no spin, no glow, no flame), tower cue 12 s (the slow fire pulse at the
   top, no lightning), M1_DONE ("...The hand still wants fire."), `step complete m1`.
 - After M1: `m1 side rules on: denizens avoid the graves (M2) and the cabin fireplace (Step 6) within 400, fog spawns doubled` (the tower safety
   volume comes back as well). Stand at the table with a denizen on your
@@ -269,17 +269,17 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
   (timeout), back to the latch`.
 
 **M2 Fire and Ash**. Skips: `!df fire m2_ember` (forces you to hold the hand for debug only: the live game never
-puts it in your hand any more), `m2_light` (next grave lit without a shot), `m2_fill` (all four spent, fire hand
+puts it in your hand any more), `m2_light` (next grave lit without a shot), `m2_fill` (all four spent, burning lantern
 returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
 - M2 opens: M2_START ("Four graves stand beyond the edge of Town. Shoot one and it wakes."), console `m2 the
   hand waits on the table; shoot a grave outside Town to light it, kill 5 zombies within 400 of where you shot
-  from; four graves = the fire hand`. The hand from M1 stays exactly where it lies on the table: no swap, no
+  from; four graves = the burning lantern`. The hand from M1 stays exactly where it lies on the table: no swap, no
   glint, no prompt over it - nobody ever picks it up this step.
 - `!df tp DF_BRAZIER_1..4`: the four graves stand OUTSIDE the map, one to each side of Town; you cannot walk up
   to one. Each carries a `trigger_damage`: ANY bullet on an unlit grave (while M2 is armed) is what lights it.
   An unlit grave shows NOTHING - no flame, no crackle - until it is shot.
 - Shoot an unlit grave: fire whoosh, console `m2 brazier_n lit by <you> (1/4 lit, 3 to go, you keep the fire
-  hand)` (the "you keep the fire hand" tail is a leftover string from the old carry rule - ignore it, nothing is
+  hand)` (the "you keep the burning lantern" tail is a leftover string from the old carry rule - ignore it, nothing is
   in your hand), then `m2 brazier_n shot by <you>, kill zone at X Y (400)`. A LARGE fire catches on the grave
   itself (`df_m2_fire_fx`, default `fx_zmb_tranzit_fire_lrg`) plus a medium fire at its rim (`fx_zmb_tranzit_fire_med`,
   fixed) and it starts to crackle - visible from Town, since the grave stands outside the map now. Separately, a
@@ -307,9 +307,9 @@ returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
   zone fx clear (the zone itself is gone): shoot the SAME grave again to open a fresh zone wherever you are
   standing then, and fill it from zero.
 - All four gone: M2_MAXIS_BRAZIER ("Good. That grave is spent. Its fire runs to the hand.") on the fourth, then
-  at once (the hand was on the table the whole time) console `m2 the charged fire hand is back in the table`, a
+  at once (the hand was on the table the whole time) console `m2 the charged burning lantern is back in the table`, a
   clink (`zmb_buildable_complete`) and the table-place cue (no fire burst, no ash) at the hand's spot: it is now
-  the FIRE HAND, burning where it has lain the whole step. `step complete m2`, M2_DONE ("The ash carries the
+  the BURNING LANTERN, burning where it has lain the whole step. `step complete m2`, M2_DONE ("The ash carries the
   message. Now the fog will answer it." / Richtofen: "Bonfires. He has reduced you to bonfires, Samuel."), tower
   cue 12 s (fire pulse at the top, no lightning), `m2 smoke column at the tower top for 20 s`, act 2 reward at
   once (`act 2 reward given (maxis)`, Max Ammo, Maxis line, orange runners on the tower). Nobody holding a Jet
@@ -395,7 +395,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 **Step 6 Vacuum**. Skips: `!df fire s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver` (finish), `s6_restart`, `orb_aura` (next aura), `!df goto step7`.
 - Step opens at the table: RICH the key card discharges (blue spark + arc crack, a blue runner to the landing spot,
   S6_CARD_RICH, `s6 the key card discharged on the table, its charge flew to the landing spot`; the card stays); MAXIS
-  the fire hand bursts and is gone (fire burst, its fire flies to the landing spot, S6_EMBER_MAXIS, `s6 the fire hand
+  the burning lantern bursts and is gone (fire burst, its fire flies to the landing spot, S6_EMBER_MAXIS, `s6 the burning lantern
   burst on the table, its fire flew to the landing spot`). Then `s6 build-up over the tower, the orb arrives in 3 s`
   (RICH storm cloud + rumble / MAXIS smoke column), a bolt + thunder (RICH) or a fire burst + ignite, NO thunder crack (MAXIS) at the
   spot, `s6 strike at DF_ORB_SPAWN`, and the ROCK lies on the ground there, glint + light shaft on it. The spot is the
@@ -507,7 +507,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - M1, timeout: see 4M. M1, hand carrier down (console says skull): `m1 hand dropped (<you> went down), take it again`. Carrier leaves:
   `m1 hand carrier left, the hand lies at the tower return point`.
 - M2, no carrier to lose any more: the hand never leaves the table this step (see 4M), so there is no "carrier
-  down" or "carrier left" fail path here. `m2 fire hand lost ...` / M2_EMBER_LOST only exist for the debug
+  down" or "carrier left" fail path here. `m2 burning lantern lost ...` / M2_EMBER_LOST only exist for the debug
   `!df fire m2_ember` hold; they should never fire in a real playthrough.
 - M2, power ON at the end of a round: EMP thump at the grave, Maxis's M2_POWER line, `m2 power ON at end of round:
   brazier_n forgets its N dead (Maxis wants the dark)`: ONLY the lit unfinished grave with the most kills goes back to
@@ -537,11 +537,11 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   maxis` FIRST for a Maxis test (it cannot be changed afterwards).
 - `!df goto m3` (Maxis) / `!df goto r3` (Richtofen) RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
   (steady glow, no sparks), six step glows on the relay mast, `act 2 reward given silently (goto)` (no Max Ammo, no
-  line). MAXIS: the hand still lies where M1 left it, now the charged fire hand, burning there (no prompt, nothing
+  line). MAXIS: the hand still lies where M1 left it, now the charged burning lantern, burning there (no prompt, nothing
   swapped in or out - it was never picked up); all four graves (outside the map, unreachable anyway) are GONE -
   `df_m2_fill` deletes each one quietly on a skip too (model, clips, trigger), same as a real fourth kill, just
   without the burst/sound/quake; nothing to see at `!df tp DF_BRAZIER_n` past this point.
-  `!df goto step7` / `finale`: the rock rests on the right slot (no "Rock" notice), the fire hand is gone, tracker
+  `!df goto step7` / `finale`: the rock rests on the right slot (no "Rock" notice), the burning lantern is gone, tracker
   runners on.
 - Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched)` + one line, then at 10 min and every
   6 min; every touch of the step starts the ladder over (HINT_1 4 min after the LAST touch); an event hint earlier
@@ -565,14 +565,14 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   df_beam_fx fx_zmb_tranzit_god_ray_pwr_station` (or `_interior_med`, `mc_towerlight`), fire again. Say which one reads as a beam.
 - Step glows: nine small glows up the relay mast by the end. Too faint / too strong? `set df_step_glow_fx <fx>` before
   loading swaps the glow (default fx_zmb_tranzit_key_glint, dimmer than the old bulb glow).
-- Table pose: the M1 hand and the M2 fire hand lie at the SAME pose on the table (`!df goto m2` then `!df goto
+- Table pose: the M1 hand and the M2 burning lantern lie at the SAME pose on the table (`!df goto m2` then `!df goto
   step5` on Maxis); the M1 one must not spin. Sunk, floating, inside the relay? Say so. Rock rest height: 3 above slot 2 / the ground (`!df fire
   table_demo`, `!df tp DF_ORB_SPOT_n`).
 - Fuse box wall offset: the boxes are 6 off the wall at mid height. In the wall, or a visible gap? Say which box (`!df tp DF_FUSE_n`).
 - Grave flame: a LIT grave carries a large fire at its rim (`set df_m2_fire_fx <fx>` swaps it, default
   `fx_zmb_tranzit_fire_lrg`) plus a fixed medium fire, meant to be seen from Town now the grave stands outside
   the map - is it actually visible at that distance, and does it read as "on fire" rather than just glowing? An
-  UNLIT grave shows nothing at all. The fire hand on the table has its own, smaller flame (`dog_trail_fire`;
+  UNLIT grave shows nothing at all. The burning lantern on the table has its own, smaller flame (`dog_trail_fire`;
   `set df_m2_hand_fx <fx>` swaps it at the next spawn, `character_fire_death_sm` = the old one). Say so.
 - Grave line of sight: is each DF_BRAZIER_n actually visible and hittable (`trigger_damage`) from somewhere a
   player would naturally stand near Town, or does the map geometry block the shot? Is the kill zone's lava glow
