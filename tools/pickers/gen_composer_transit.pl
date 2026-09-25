@@ -123,7 +123,7 @@ $table_front_yaw = defined($table_front_yaw) ? $table_front_yaw + 0 : 0;
 # The card / skull / orb lifts are gone from the callers: each item's own lift is the z of its slot in the
 # registry above (df_table_slot( n ) returns the item's FINAL rest position).
 
-for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a portal spool)) {
+for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a portal spool pswitch_body pswitch_lever)) {
     die "df_model_def for kind \"$kind\" not found in $coords -- needed for a preset\n" unless $model_def{$kind};
 }
 
@@ -158,7 +158,7 @@ printf STDERR "df_coords.gsc: table slots (df_table_slot_def, z from the top %s)
 printf STDERR "df_coords.gsc: %d df_fx_point_def(...) points parsed from df_fx_points_init()\n", scalar @fx_order;
 
 # The preset's own models must be embedded no matter what the size budget below does to the general list.
-my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool);
+my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool pswitch_body pswitch_lever);
 
 # ---- 16 MB page budget: if the embedded glTF payload would push the page over it, drop the largest
 #      glTF files first (never a model any preset needs) and remember how many were dropped. -------------
@@ -570,6 +570,17 @@ add_preset(
     model_part( kind => 'orb', model => $model_def{orb}{name}, pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll} ),
     fx_part( name => 'orb_aura',  parent => 'orb' ),
     fx_part( name => 'orb_glint', parent => 'orb' ),
+);
+
+add_preset(
+    'power_switch', 'Power switch (Blackout)',
+    'Richtofen Step 5: kind "pswitch_body" at (0,0,0) and kind "pswitch_lever" at its df_model_def offset on the body, in the OFF pose '
+      . '(the game rolls the lever -90 for ON). The exported lever line carries the offset in the body frame.',
+    model_part( kind => 'pswitch_body', model => $model_def{pswitch_body}{name}, pitch => $model_def{pswitch_body}{pitch}, roll => $model_def{pswitch_body}{roll} ),
+    model_part( kind => 'pswitch_lever', model => $model_def{pswitch_lever}{name},
+                x => $model_def{pswitch_lever}{ox} // 0, y => $model_def{pswitch_lever}{oy} // 0, z => $model_def{pswitch_lever}{oz} // 40,
+                pitch => $model_def{pswitch_lever}{pitch}, roll => $model_def{pswitch_lever}{roll}, yaw => $model_def{pswitch_lever}{yawoff} // 0,
+                parent => 'pswitch_body' ),
 );
 
 add_preset(
