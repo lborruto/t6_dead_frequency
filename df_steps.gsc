@@ -44,7 +44,7 @@ df_init_scaling()
     df_scale_row( "simon_len_3", 5, 6, 6, 6 );
     df_scale_row( "simon_len", 6, 6, 7, 7 ); // audit: R1 final Simon length (level.df_simon_final in df_act2_rich)
     df_scale_row( "fuse_souls", 6, 8, 10, 12 ); // STALE (audit v2 section 4): R1 refill is one battery per box (target 1), no soul quota; kept for `!df scale`
-    df_scale_row( "lamp_souls", 12, 15, 18, 18 ); // audit v2 #6 (was 12/15/18/20: 4 nodes x 20 = 80 souls at 4 players): R2 per lamp, also Step 5 re-feed lamps
+    df_scale_row( "lamp_souls", 10, 12, 14, 16 ); // design audit 2026-09-25 1.1 (was 12/15/18/18: R2 weighed twice M2) // audit v2 #6 (was 12/15/18/20: 4 nodes x 20 = 80 souls at 4 players): R2 per lamp, also Step 5 re-feed lamps
     df_scale_row( "capture_time", 240, 300, 300, 300 ); // audit (was a fixed 180 s): R1 Avogadro capture window in seconds
     df_scale_row( "cold_room_time", 60, 75, 90, 100 ); // M1 seconds
     df_scale_row( "cold_room_kills", 6, 9, 12, 15 ); // M1 denizens
@@ -126,24 +126,24 @@ df_scaled_step( key, stepkey )
 // finishes, so Step 5 has a single prerequisite whatever the side.
 df_init_steps()
 {
+    // owner 2026-09-25 (design audit 2.1): the old "step2" (Salvage) is merged into step3 (build the relay on the
+    // bus roof, then ride it); `!df goto step2` is an alias of step3 (df_main df_debug_goto).
     level.df_step_order = [];
     level.df_step_order[0] = "step1";
-    level.df_step_order[1] = "step2";
-    level.df_step_order[2] = "step3";
-    level.df_step_order[3] = "step4";
-    level.df_step_order[4] = "r1";
-    level.df_step_order[5] = "r2";
-    level.df_step_order[6] = "m1";
-    level.df_step_order[7] = "m2";
-    level.df_step_order[8] = "step5";
-    level.df_step_order[9] = "step6";
-    level.df_step_order[10] = "step7";
-    level.df_step_order[11] = "finale";
+    level.df_step_order[1] = "step3";
+    level.df_step_order[2] = "step4";
+    level.df_step_order[3] = "r1";
+    level.df_step_order[4] = "r2";
+    level.df_step_order[5] = "m1";
+    level.df_step_order[6] = "m2";
+    level.df_step_order[7] = "step5";
+    level.df_step_order[8] = "step6";
+    level.df_step_order[9] = "step7";
+    level.df_step_order[10] = "finale";
 
     level.df_step_prereq = [];
     level.df_step_prereq["step1"] = [];
-    level.df_step_prereq["step2"] = df_step_keys1( "step1" );
-    level.df_step_prereq["step3"] = df_step_keys1( "step2" );
+    level.df_step_prereq["step3"] = df_step_keys1( "step1" );
     level.df_step_prereq["step4"] = df_step_keys1( "step3" );
     level.df_step_prereq["r1"] = df_step_keys1( "step4" );
     level.df_step_prereq["r2"] = df_step_keys1( "r1" );
@@ -167,7 +167,6 @@ df_init_steps()
     // variant of the locked side and falls back to the plain key.
     level.df_step_dlg = [];
     level.df_step_dlg["step1"] = "S1";
-    level.df_step_dlg["step2"] = "S2";
     level.df_step_dlg["step3"] = "S3";
     level.df_step_dlg["step4"] = "S4";
     level.df_step_dlg["r1"] = "R1";
@@ -198,6 +197,7 @@ df_init_steps()
     level.df_step_hint_ms = []; // gettime() of that event hint
     level.df_step_focus = []; // key -> origin of the AVAILABLE glint (df_step_focus)
     level.df_step_glint = []; // key -> the glint fx ent while it shows (df_step_glint_start / _stop)
+    level.df_step_phase = []; // key -> current sub-goal name for the dialogue keys (df_step_phase), undefined = none
     level.df_side = undefined;
     level.df_quiet_complete = 0;
     level.df_completed = 0; // set by df_finale on success (rewards / stat)
@@ -662,8 +662,19 @@ df_step_hint_key( key, rung )
     return hint;
 }
 
+// owner 2026-09-25 (design audit 5.2): a step's current sub-goal, e.g. df_step_phase( "step3", "BUILD" ) while
+// the relay is not built yet; undefined clears it. df_step_dlg_key then prefers "<P>_<PHASE>_<kind>" keys.
+df_step_phase( key, phase )
+{
+    if ( !isdefined( level.df_step_phase ) )
+        level.df_step_phase = [];
+
+    level.df_step_phase[key] = phase;
+}
+
 // "<P>_<kind>_<SIDE>" when the side is locked and df_dialogue.gsc has that key, else "<P>_<kind>" when it
-// exists, else undefined. P = level.df_step_dlg[key]; SIDE = RICH / MAXIS from level.df_side. Other files
+// exists, else undefined. P = level.df_step_dlg[key]; SIDE = RICH / MAXIS from level.df_side. While the step
+// has a phase (df_step_phase) "<P>_<PHASE>_<kind>[_<SIDE>]" is tried first (e.g. S3_BUILD_HINT_1). Other files
 // may use it for their own keys, e.g. df_step_dlg_key( "step5", "FAIL" ).
 df_step_dlg_key( key, kind )
 {
@@ -671,8 +682,20 @@ df_step_dlg_key( key, kind )
         return undefined;
 
     df_dialogue_init();
-    base = level.df_step_dlg[key] + "_" + kind;
     suffix = df_step_side_suffix();
+
+    if ( isdefined( level.df_step_phase ) && isdefined( level.df_step_phase[key] ) )
+    {
+        base = level.df_step_dlg[key] + "_" + level.df_step_phase[key] + "_" + kind;
+
+        if ( isdefined( suffix ) && isdefined( level.df_lines[base + "_" + suffix] ) )
+            return base + "_" + suffix;
+
+        if ( isdefined( level.df_lines[base] ) )
+            return base;
+    }
+
+    base = level.df_step_dlg[key] + "_" + kind;
 
     if ( isdefined( suffix ) && isdefined( level.df_lines[base + "_" + suffix] ) )
         return base + "_" + suffix;

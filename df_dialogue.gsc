@@ -1,6 +1,7 @@
 // Dead Frequency - dialogue sheet (spec section 7). Data only: the queue, HUD and recipients live in
 // df_systems.gsc (df_say / df_show_line / df_rich_recipient).
-//   Speakers: "maxis" is shown to every player; "rich" only to the Stuhlinger player (solo: the player).
+//   Speakers: "maxis" is shown to every player; "rich" only to the Stuhlinger player (nobody when no Stuhlinger
+//   plays, solo included).
 //   A key may hold several lines; they are queued in order, 6.5 s apart. A lowercase alias is built per
 //   key so "!df say s1_start" works.
 //
@@ -71,8 +72,8 @@ df_dialogue_init()
 // Act 1 "Static" (shared, both patrons). Mechanics (df_act1.gsc): Step 1 four pipes on the ground around
 // the Depot each blink their own number (1-4, random per game); a far light past the fence flashes the
 // order; the pipes are kicked in that order and the coil strikes down near the Depot (puzzle prompts
-// hidden, the lines are the only teacher); Step 2 radio (Diner garage), mast (Farm barn) and coil (Depot) built on
-// the bus roof; Step 3 the relay rides ONE full stop with power on while zombies chew on it
+// hidden, the lines are the only teacher); Step 3 radio (Diner garage), mast (Farm barn) and coil (Depot) built on
+// the bus roof (the old Step 2, merged 2026-09-25), then the relay rides ONE full stop with power on while zombies chew on it
 // (df_a1_stops_needed); Step 4 the relay goes to the table under the tower, the power state locks the side.
 df_dialogue_act1()
 {
@@ -87,18 +88,19 @@ df_dialogue_act1()
     // ITEM_RECEIVER: the solved pipes call the coil down by a strike near the Depot, the relay's third part
     df_add_line( "ITEM_RECEIVER", "maxis", "The sky struck near the Depot. It left a coil of wire. The relay will need it." );
 
-    // Step 2 - Salvage
-    df_add_line( "S2_START", "maxis", "A voice needs a body. Three pieces of one; two wait along the road." );
-    df_add_line( "S2_START", "rich", "A scavenger hunt! Mind the barn, Samuel. Something up in the loft bites." );
-    df_add_line( "S2_HINT_1", "maxis", "A garage and a barn, past the fog. The sky gave you the third." );
-    df_add_line( "S2_HINT_2", "maxis", "Garage radio, barn mast, the coil. Build the relay on the bus roof." );
-    df_add_line( "S2_HINT_2", "rich", "Three parts and a school bus roof, Samuel. Even Maxis could build that." );
+    // Step 3 - Ride the Line (owner 2026-09-25, design audit 2.1: the old Step 2 "Salvage" is merged in). The step
+    // opens with the build: S3_START (was S2_START), the build rungs S3_BUILD_HINT_n (were S2_HINT_n; phase
+    // "BUILD" of df_steps df_step_dlg_key, until the relay stands), D2_DONE + S3_RIDE (was S3_START) at the build,
+    // then the ride rungs S3_HINT_n. One full stop, power on; D3_FAIL covers relay destroyed, EMP, empty bus.
+    df_add_line( "S3_START", "maxis", "A voice needs a body. Three pieces of one; two wait along the road." );
+    df_add_line( "S3_START", "rich", "A scavenger hunt! Mind the barn, Samuel. Something up in the loft bites." );
+    df_add_line( "S3_BUILD_HINT_1", "maxis", "A garage and a barn, past the fog. The sky gave you the third." );
+    df_add_line( "S3_BUILD_HINT_2", "maxis", "Garage radio, barn mast, the coil. Build the relay on the bus roof." );
+    df_add_line( "S3_BUILD_HINT_2", "rich", "Three parts and a school bus roof, Samuel. Even Maxis could build that." );
     df_add_line( "D2_DONE", "rich", "A relay on a school bus. Samuel, you are a genius and I hate it." );
     df_add_line( "D2_DONE", "maxis", "It travels. Good. Now let it listen to the road." );
-
-    // Step 3 - Ride the Line (one full stop, power on; D3_FAIL covers relay destroyed, EMP, empty bus)
-    df_add_line( "S3_START", "maxis", "It is built. Now it needs current, and distance. Both at once." );
-    df_add_line( "S3_START", "rich", "A relay that goes nowhere hears nothing. Lights on, wheels turning, Samuel!" );
+    df_add_line( "S3_RIDE", "maxis", "It is built. Now it needs current, and distance. Both at once." );
+    df_add_line( "S3_RIDE", "rich", "A relay that goes nowhere hears nothing. Lights on, wheels turning, Samuel!" );
     df_add_line( "S3_HINT_1", "maxis", "The grid must hum and the bus must roll. One full stop, and keep it whole." );
     df_add_line( "S3_HINT_2", "maxis", "Power on. Ride one full stop with it. Keep their hands off the roof." );
     df_add_line( "S3_HINT_2", "rich", "One stop, Samuel, lights on, and nobody chewing the roof. Simple." );
@@ -208,7 +210,8 @@ df_dialogue_act2_maxis()
 // Act 3 Step 5, by side (owner 2026-09-25; df_act3_sweep.gsc dispatches).
 // RICHTOFEN "Blackout" (df_act3_blackout.gsc): Maxis flips three switches (Nacht, Town, the plant) OFF; one F press
 // flips one back ON (refused while the grid is off, BO_NOPOWER_RICH) and sends a wave at it; at each end of
-// round Maxis knocks one ON switch OFF again (BO_OFF_MAXIS). All three ON wins (D5_DONE_RICH).
+// round while one is still OFF Maxis knocks EVERY ON switch OFF again (BO_OFF_MAXIS; owner 2026-09-25: all three
+// within one round, was one switch per round). All three ON wins at once (D5_DONE_RICH).
 // MAXIS "Lights Out" (df_act3_sweep.gsc): three lamps hum with Richtofen's power; a lamp goes dark only when a
 // zombie dies to a CLAYMORE (Farm wall buy) at its base, any other kill there does nothing (LO_NOTHAND_MAXIS,
 // once); each dark lamp says LO_DARK_MAXIS; at each end of round Richtofen relights one (LO_RELIGHT). All three
@@ -321,7 +324,8 @@ df_dialogue_act3_hold()
 
 // Finale (df_finale.gsc): hold the relay 2.5 s with the side's power state (Richtofen on, Maxis off);
 // wrong state once per 20 s; then three lines. FIN_START is the intro when the step becomes available.
-// Co-op: a non-Samuel player at the table gets Maxis and the deny buzz; Richtofen stays Samuel's (vanilla rule).
+// Richtofen side: FIN_WRONG_POWER_RICH is Richtofen's, so only Stuhlinger hears it; anyone else pressing with the
+// power off gets the deny buzz alone (vanilla rule).
 df_dialogue_finale()
 {
     df_add_line( "FIN_START_RICH", "rich", "It is ready. Lights on, hand on the relay, and it is mine. Ours. Mine." );
@@ -355,7 +359,7 @@ df_dialogue_finale()
 df_dialogue_aliases()
 {
     df_add_alias( "D1_HINT", "S1_HINT_1" );
-    df_add_alias( "D2_HINT", "S2_HINT_1" );
+    df_add_alias( "D2_HINT", "S3_BUILD_HINT_1" );
     df_add_alias( "D3_HINT", "S3_HINT_1" );
     df_add_alias( "D4_HINT", "S4_HINT_1" );
     df_add_alias( "R1_HINT", "R1_HINT_1" );

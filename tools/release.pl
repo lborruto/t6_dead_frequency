@@ -127,7 +127,7 @@ VERIFY IT LOADED
   2. In the game, open chat and type:   !df status
      Expected answer on screen and in the console:
        DF $version | side none | players 1 | round 1 ...
-       registered: step1 step2 step3 step4 r1 r2 m1 m2 step5 step6 step7 finale
+       registered: step1 step3 step4 r1 r2 m1 m2 step5 step6 step7 finale
   3. No red script error and no "duplicate function" / "COM_ERROR" popup while the map loads.
   If nothing answers: the file is in the wrong folder (check step 2 of INSTALL), or df_debug is 0.
   With df_debug 0 the mod still runs normally; the chat commands are only for testing.

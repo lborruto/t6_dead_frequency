@@ -20,11 +20,13 @@ A few things that are true for the whole quest:
   belongs to Maxis, and nothing on Maxis's side looks or sounds electric. Before you pick a side the world is
   electric.
 - Every fixed object the quest ever uses - the four barn fuse boxes, the four Town graves and the three power
-  switches under the tower - stands in the world from the moment you load in, on both sides, and none of them is
+  switches around the map - stands in the world from the moment you load in, on both sides, and none of them is
   ever removed. Only the look follows your side and the step: a fuse box only glows once Richtofen is locked, a
   grave only flames once Maxis is locked, and a spent grave stays standing, cold, once its flame goes out.
 - The table under the tower never lights up: what you put on it just clinks. The lasting look is on the relay's
   mast (one small glow per finished step).
+- Richtofen talks to the Stuhlinger player only, as in vanilla (his subtitles and his recorded lines alike):
+  without Stuhlinger in the game Richtofen stays silent. Maxis is heard by everyone.
 - The vanilla Easter Egg is off. The NavCard and its table still work as usual.
 
 Player-count scaling is written as solo (2 / 3 / 4 players).
@@ -51,23 +53,20 @@ When all four are lit the bus dashboard pulses, Maxis and Richtofen speak, and t
 
 </details>
 
-<details><summary><b>Step 2 - Salvage (the fog)</b> (click to reveal)</summary>
+<details><summary><b>Step 3 - Ride the Line (build the relay, then ride it with the power ON)</b> (click to reveal)</summary>
 
+
+There is no Step 2 any more: collecting the parts and building the relay is the first half of this step.
 
 Two more parts lie in the fog from round 1 and can be taken at any time, even before Step 1:
 
 - the RADIO, in the garage next to the Diner (behind the mystery box);
 - the MAST, a tall standing post, on the upper floor of the Farm barn.
 
-With all three parts, get on the bus roof: "Hold F to build the relay". Three seconds later the relay stands on
-the roof (radio, coil box, mast). With only two parts there is no build prompt.
+Once Step 3 is open, with all three parts, get on the bus roof: "Hold F to build the relay". Three seconds later
+the relay stands on the roof (radio, coil box, mast). With only two parts there is no build prompt.
 
-</details>
-
-<details><summary><b>Step 3 - Ride the Line (power ON)</b> (click to reveal)</summary>
-
-
-Turn the power on (Power station). Ride the bus with the relay on its roof for ONE full trip from one stop to
+Then turn the power on (Power station). Ride the bus with the relay on its roof for ONE full trip from one stop to
 the next. While it rides, zombies rise along the road every few seconds and climb on to chew the relay; a low
 relay honks. If they destroy it, the three parts drop back onto the roof: take them and rebuild, then ride
 again. The trip is lost (relay kept) if the bus is EMP'd, if nobody is on the bus for 6 seconds, or if the power
@@ -105,8 +104,8 @@ there and plug it in.
 <details><summary><b>R1 - Summon the Storm (Farm barn)</b> (click to reveal)</summary>
 
 
-Four power boxes hang on the walls of the barn. The step is a Simon game: one box sparks, then two, then three,
-and so on. After each sequence press the same boxes in the same order (F on each). A correct press clicks; a
+Four power boxes hang on the walls of the barn. They stay quiet until you press one: that starts a Simon game,
+one box sparks, then two, then three, and so on. After each sequence press the same boxes in the same order (F on each). A correct press clicks; a
 wrong press buzzes and the same sequence replays. Twenty seconds without a press abandons the round; press a
 box to start again. The final sequence is 6 long (7 with 3 or 4 players).
 
@@ -137,16 +136,16 @@ Done: the four boxes hold his charge. Step 6's node is the sparking transformer 
 
 Since round 1 three of the fog street lamps have shown a small spark every few seconds (four with a full lobby;
 one of them is always the lamp nearest the tower). These "set" lamps now turn hungry: a hum, a spark every 2 s.
-Kill zombies close to a hungry lamp's post: 12 kills each solo (15 / 18 / 18), fixed when R2 opens. Standing
+Kill zombies close to a hungry lamp's post: 10 kills each solo (12 / 14 / 16), fixed when R2 opens. Standing
 near a hungry lamp pulls two zombies to you every few seconds (up to 12 around you), so you do not have to go
 looking.
 
 A full lamp stops sparking and keeps a steady glow, and Richtofen tells you to punch the post. Buy the
-GALVAKNUCKLES (Diner roof, through the hatch, 3000 points) and melee the post with them: the wire SPOOL arrives
-by a strike at the lamp's foot. A knife or any other melee is refused ("Bare steel? No.").
+GALVAKNUCKLES (Diner roof, through the hatch, 3000 points) and melee the post with them: the wire SPOOL leaves the
+lamp and flies to the table by itself as a spark trail, and lands in place with a clink ("Wire spool 1/3"). Nothing
+to carry. A knife or any other melee is refused ("Bare steel? No.").
 
-Take every spool (they stack in hand) and press F at the table to place them all. Every spool placed = R2 done,
-and the Act 2 reward drops at once (see below). If nobody in the team carries a Jet Gun, Richtofen says you will
+Every lamp's spool on the table = R2 done, and the Act 2 reward drops at once (see below). If nobody in the team carries a Jet Gun, Richtofen says you will
 need one before the end.
 
 Richtofen side rules from here on: Avogadro returns every round (not while Step 6 is open); turrets work
@@ -196,7 +195,7 @@ kill sends a red trail and rising embers off the body, flying to the burning gra
 bursts into fire and ash and a small tremor, then is simply gone - nothing left standing. A lit grave has 90
 seconds to be filled (you hear the clock, dry ticks at the end): if not, its fire goes out and its zone
 disappears, though the grave itself still stands - shoot it again to open a fresh zone and fill it from zero.
-A kill outside a lit zone, or at a grave that has not been shot, does not count (a buzz tells you). Denizens
+A kill outside a lit zone, or at a grave that has not been shot, simply does not count (no sound). Denizens
 leave you alone inside the kill zone of a lit grave while M2 runs.
 
 All four gone: chime, and the lantern waiting on the table becomes the BURNING LANTERN by itself, burning where it lies
@@ -234,19 +233,20 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
   click, then a hum and an electric burst at the lever - no hold, no timer. Turning a switch back ON pulls a
   short wave of sprinting zombies at it. A switch refuses you while the map's
   main power itself is off ("Power ON first, Samuel! A switch on a dead grid is a toy."). At the end of every
-  round with at least one switch still dark, Maxis knocks one lit switch back off ("Another of his switches
-  falls. The dark is patient."). Get all three ON at the same time and R3 is done. There are always three
-  switches, whatever the lobby size.
-- MAXIS - Lights Out: the moment M3 opens, Richtofen feeds his power into three lamps of the same set as
-  before - each one hums with a big electric spark, a blue glow and his hum. Only the dead can break his light:
+  round with at least one switch still dark, Maxis knocks EVERY lit switch back off: all three must be ON
+  within ONE round (they stand far apart: split up in co-op, or plan the route solo). The moment the third
+  one goes ON, R3 is done. There are always three switches, whatever the lobby size.
+- MAXIS - Lights Out: the moment M3 opens, Richtofen feeds his power into the lamps of the same set as
+  before (three, four with a full lobby) - each one hums with a big electric spark, a blue glow and his hum. Only the dead can break his light:
   a zombie dying to a CLAYMORE (sold at the Farm wall buy, or one already planted there) within 250 units of a
   humming lamp's base snaps his power off it - a blue spark flies away toward the tower and the lamp goes back
   to exactly the light the map gave it, nothing of his left on it. Kill it there any other
   way and the lamp does not care - Maxis tells you why, once for the whole game ("Not your gun. His light must
   fall at the step of the dead. A claymore."). Every lamp you put out costs him a little ("One lamp is dark. His
   voice is thinner already."), and at the end of every round while a lamp still hums, Richtofen relights one dark
-  lamp again ("He has relit one of them. Put it out again."). Put out THREE lamps at once (every lamp if the set
-  is smaller) and M3 is done - no hold, no timer, nothing to lose by taking your time.
+  lamp again ("He has relit one of them. Put it out again."). With a full lobby the set has four lamps and all
+  four hum. Put out THREE lamps at once (every lamp if the set is smaller) and M3 is done (a fourth lamp still
+  humming goes out with the win) - no hold, no timer, nothing to lose by taking your time.
 
 </details>
 
@@ -254,7 +254,9 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
 
 
 The step opens at the table: RICHTOFEN, the key card discharges and its storm flies off; MAXIS, the burning lantern
-bursts and its fire flies off. Three seconds of build-up over the tower, then a strike at one of THREE spots,
+bursts and its fire flies off. Everyone notices, wherever they are: the screen shakes for every player and a
+loud crack is heard (Richtofen: thunder; Maxis: a fire blast). The trail first climbs high above the tower,
+then curves down toward where it will land, so watch the sky. Three seconds of build-up over the tower, then a strike at one of THREE spots,
 drawn once at the start of the game: the Diner, Town or the Power station.
 It falls there as a small ROCK. Look for the glint and the light beam pointing at it from the tower. Press F to
 take it (no lamp portals while carrying; on Maxis the strike is a fire burst, no thunder). Left untouched for 3 minutes, it flies to the front of the table by
@@ -285,7 +287,7 @@ whichever is nearer.
 HOLD F for 1.5 s at the table ("power the relay"). The rock leaves its slot and hovers under the tower for 75 s
 solo (90 / 105 / 120) while the Easter Egg song plays. Fast zombies keep rising around the tower and run at the
 rock. Your job is to keep it alive and to STAY AT THE TOWER: 10 s of cumulative absence from the tower area
-fails the step (a horn and a warning from your patron at 5 s; 5 s continuously back inside resets the count).
+fails the step (a horn and a warning from your patron at 5 s - on Richtofen only Stuhlinger hears the warning; 5 s continuously back inside resets the count).
 A player who is down inside the area still counts as there.
 
 Guard it up close: while a living player stands right next to the rock, every hit does half damage and the

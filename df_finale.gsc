@@ -1074,33 +1074,32 @@ df_fin_tracker_apply( key )
 }
 
 // owner 2026-09-23: ONE glow per finished step on the table, climbing the plugged relay mast from bottom to top
-// (df_coords relay_step_glow_1..9: step1, step2, step3, step4, r1/m1, r2/m2, step5, step6, step7), so the relay
-// ends fully lit instead of every item stacking its own light. Steps done before the relay stands on the table
-// (1-3) light the moment it is plugged (df_fin_step_glow_wait). 0 = not a glow step.
+// (df_coords relay_step_glow_1..8: step1, step3, step4, r1/m1, r2/m2, step5, step6, step7; owner 2026-09-25: eight
+// since the old step2 merged into step3), so the relay ends fully lit instead of every item stacking its own light.
+// Steps done before the relay stands on the table (1-2) light the moment it is plugged (df_fin_step_glow_wait).
+// 0 = not a glow step.
 df_fin_step_glow_index( key )
 {
     switch ( key )
     {
         case "step1":
             return 1;
-        case "step2":
-            return 2;
         case "step3":
-            return 3;
+            return 2;
         case "step4":
-            return 4;
+            return 3;
         case "r1":
         case "m1":
-            return 5;
+            return 4;
         case "r2":
         case "m2":
-            return 6;
+            return 5;
         case "step5":
-            return 7;
+            return 6;
         case "step6":
-            return 8;
+            return 7;
         case "step7":
-            return 9;
+            return 8;
     }
 
     return 0;
@@ -1120,7 +1119,7 @@ df_fin_step_glow( key )
         return;
 
     // the R2 relay array lights were R2's progress; once R2 is done its step glow says it
-    if ( i == 6 && isdefined( level.df_r2_array_fx ) )
+    if ( i == 5 && isdefined( level.df_r2_array_fx ) )
     {
         foreach ( fx in level.df_r2_array_fx )
             df_fx_stop( fx );

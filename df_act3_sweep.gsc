@@ -7,7 +7,8 @@
 //     dark when a zombie dies to a CLAYMORE (claymore_zm, sold at the Farm wall buy) within
 //     level.df_s5_kill_radius of its base. Any other kill there does nothing (Maxis says why once,
 //     LO_NOTHAND_MAXIS). At every end of round while a lamp still hums, Richtofen relights ONE dark lamp
-//     (LO_RELIGHT), the mirror of Maxis's knock in Blackout. All three dark at once: the step is done.
+//     (LO_RELIGHT), the mirror of Maxis's knock in Blackout. Three dark at once: the step is done (level.df_s5_need =
+//     3; with 4 players the set has 4 lamps and ALL of them hum, any three win and the 4th goes out with the win).
 //   Replaces the old tune + turbine sweep (the turbine is his electricity; the owner wanted the fire side to break
 //   the lamps instead).
 // Lamp looks come only from df_lamp_state_set (df_lamps.gsc): "possessed" = humming with his power (a big
@@ -77,6 +78,15 @@ df_s5_run()
         level waittill( "df_s5_check" );
 
     df_s5_stop();
+
+    // owner 2026-09-25 (design audit 6.4): with a full lobby the whole 4-lamp set hums but three dark win; the
+    // lamp still humming goes out with the win instead of humming for the rest of the game
+    foreach ( lamp in level.df_s5_lamps )
+    {
+        if ( !is_true( lamp.df_s5_dark ) )
+            df_s5_lamp_set( lamp, 1 );
+    }
+
     df_say( "D5_DONE" );
     df_debug_print( "DF: s5 " + level.df_s5_need + " lamps dark, step done" );
     df_complete( "step5" );

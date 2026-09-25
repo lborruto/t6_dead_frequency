@@ -11,8 +11,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     (250 units, any claymore weapon name); Richtofen relights one lamp per round. A put-out lamp
     reverts to vanilla exactly, sending its electricity back to the tower.
   - R3: three vanilla-style power switches at Nacht, Town and the power plant. Each switch turned
-    ON sends a sprint wave at it; at the end of every round Maxis knocks one ON switch OFF. One
-    press of F within range turns it back ON (refused while the grid is off).
+    ON sends a sprint wave at it. All three must be ON within one round: at the end of every
+    round with a switch still OFF, Maxis knocks every ON switch back OFF; the third ON wins at
+    once. One press of F within range turns a switch ON (refused while the grid is off).
   - `!df goto m3` / `!df goto r3` jump to the step5 slot by side name.
 - M2: four graves stand outside the map around Town, drawn at random from eight spots each game.
   Shoot a grave to light it (90 s each, all four can burn at once); its kill zone opens where
@@ -25,15 +26,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   while players are inside, ending on the return teleport, a skip, or walking out.
 - Step 6 Maxis: the rock charges at the hunter's cabin fireplace (hold the rock and fire the Jet
   Gun until it overheats, as Richtofen's plant bridge block); denizens leave players alone near it.
-- Dropped quest items can no longer be lost: the key card, battery, spool and lantern ride the bus
+- Dropped quest items can no longer be lost: the key card, battery and lantern ride the bus
   when their carrier goes down on it, and fly home after 60 s untaken (card to the barn wall,
-  battery to the dashboard, spool to its lamp, lantern to the tower).
+  battery to the dashboard, lantern to the tower).
 - `!df setpos <KEY> x y z [yaw]` moves any named anchor straight to world coordinates (switches
   and graves follow a moved anchor); `!df who` diagnoses blocked interactions.
 - TranZit prop gallery tool (every always-loaded model, sorted by size, with a 3D viewer) for
   finding new prop candidates.
 
 ### Changed
+- Step 2 "Salvage" is merged into Step 3 "Ride the Line": one step covers collecting the parts,
+  building the relay on the bus roof and the ride. Parts and spots are unchanged; its hints
+  follow the build first, then the ride. `!df goto step2` is an alias of `step3`; the relay
+  mast shows eight step glows instead of nine.
+- R2: lamp quota lowered to 10 / 12 / 14 / 16 kills (was 12 / 15 / 18 / 18), and a punched
+  full lamp's wire spool now flies to the table by itself - no pickup, carry or table trip.
+- R3 Blackout: the three switches must all be ON within one round (see Added).
+- Step 6: the rock's release is seen and heard by the whole team - a screen shake and a loud
+  crack for every player, and the trail climbs high above the tower before it curves down to
+  the landing spot.
 - Step 7: relay-powering hold shortened to 1.5 s; finale hold at the table is 2.5 s.
 - Galvaknuckles wall buy now actually costs 3000 (was silently still 6000; the fix touches
   `level.tazer_cost`, the wall stub and `level._melee_weapons`).
@@ -48,6 +59,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Maxis Step 7: no denizens at the tower while the relay holds.
 
 ### Fixed
+- Richtofen is heard only by the Stuhlinger player, recordings included: his Step 4 lock line
+  played in 3D at the table, audible to everyone nearby.
+- Lights Out with four players: all four set lamps hum and three put out win; the fourth now
+  goes out with the win instead of humming for the rest of the game.
 - Claymore kills at a Lights Out lamp count (the game reports them as weapon "none"); a splash
   kill counts only right after a nearby claymore detonates.
 - A grave could miss the shot: it now takes bullets on its trigger, its model and two bullet

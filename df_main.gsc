@@ -148,7 +148,7 @@ df_debug_help()
 {
     self df_out( "!df commands (chat, needs `set df_debug 1`; every answer is also a [DF] console line):" );
     self df_out( "  status | who | scale | help | side rich|maxis" );
-    self df_out( "  goto <step1..step4|r1|r2|r3|m1|m2|m3|step5|step6|step7|finale>" );
+    self df_out( "  goto <step1|step3|step4|r1|r2|r3|m1|m2|m3|step5|step6|step7|finale> (step2 = step3)" );
     self df_out( "  say <LINE_KEY> | hints on|off (prompts) | texthints on|off (spoken ladder) | fire <name> | simon | souls | stat rich|maxis|none" );
     self df_out( "  power on|off | side_fx [stop] | avogadro | cue avail|tick|subgoal|fail|deny|trail|done | vox <alias>" );
     self df_out( "  show [KEY] | hide | tp <KEY> | dump | pos | aim [KEY] | lift <KEY> <up> | move <KEY> <fwd> <right> <up> | ang <KEY> <pitch> <yaw> <roll>" );
@@ -174,7 +174,7 @@ df_debug_cmd_quest( sub, arg )
         case "goto":
             if ( !isdefined( arg ) )
             {
-                self df_out( "Usage: !df goto <step1|step2|step3|step4|r1|r2|r3|m1|m2|m3|step6|step7|finale>" );
+                self df_out( "Usage: !df goto <step1|step3|step4|r1|r2|r3|m1|m2|m3|step5|step6|step7|finale> (step2 = step3)" );
                 return 1;
             }
 
@@ -419,7 +419,7 @@ df_debug_vox( alias )
         return;
     }
 
-    level thread df_rich_vox( alias, undefined );
+    level thread df_rich_vox( alias );
     self df_out( "DF: rich vox " + alias + " to Samuel (silence = alias unknown or a Richtofen line already playing)" );
 }
 
@@ -1045,6 +1045,10 @@ df_step_index( key )
 // target becomes available. Picks a side automatically when the target needs one.
 df_debug_goto( target )
 {
+    // owner 2026-09-25 (design audit 2.1): step2 (Salvage) is merged into step3, the old key still works
+    if ( target == "step2" )
+        target = "step3";
+
     // owner 2026-09-25: m3 / r3 are the side names of the step5 slot (Lights Out / Blackout)
     want_side = undefined;
 

@@ -6,8 +6,9 @@
 //                          fourth). The boxes then keep a steady glow; Step 6's node on this side is the
 //                          DF_CORE transformer block (df_r1_export_nodes; the boxes only if it is missing).
 //   R2 "Souls on the Line": N lamp posts (N = df_scaled "nodes") each swallow a quota of zombie souls
-//                          (spec 5, R2); each filled lamp drops a WIRE SPOOL; the spools carried to the table
-//                          build the antenna array and complete the step (audit 9, ITEM_SPOOL_RICH).
+//                          (spec 5, R2); a Galvaknuckle punch on a filled lamp frees a WIRE SPOOL that flies to
+//                          the table by itself (owner 2026-09-25); the spools build the antenna array and
+//                          complete the step (audit 9, ITEM_SPOOL_RICH).
 // Owner design (2026-09-07): sparks are the only Simon indicator. Classic growing sequence, replayed on a
 // wrong press (audit 5). Each box keeps its own sound.
 // Owner rule (2026-09-08): everything physical exists from game start: the boxes spawn at boot
@@ -375,7 +376,7 @@ df_r1_retire_boxes()
 
 // R2: a player standing under a hungry lamp pulls the dead to it (owner 2026-09-11: "zombies take a while to
 // spawn"). Every 3 s, per player within 450 of an unfilled set lamp: two regular zombies rise from the zone spawn
-// structs within 600 of that lamp, while fewer than 20 zombies live and the engine has free actors. They hunt
+// structs within 600 of that lamp, while fewer than 12 zombies live within 1200 of that player and the engine has free actors. They hunt
 // normally. Off with the step.
 df_r2_lamp_spawner()
 {
@@ -1871,7 +1872,7 @@ df_r1_power_penalty()
 }
 
 // The R2 lamp that pays the penalty: while R2 is open, the fullest lamp with souls; none otherwise.
-// Owner 2026-09-23 (B17): a lamp whose spool is already out (punched, carried or placed) is done for good and
+// Owner 2026-09-23 (B17): a lamp whose spool is already out (punched: it flies to the table) is done for good and
 // never reopens (it kept its beam into Step 5 and stayed punchable while hungry).
 df_r1_penalty_lamp()
 {
@@ -1958,8 +1959,8 @@ df_r1_debug_soul()
 // The lamps are the game's one lamp set (df_lamps.gsc): picked here on the Richtofen side, reused by
 // Step 5 (tuning, penalty). level.df_r2_lamps is the same array (df_main "!df souls" reads it). Every
 // unfilled lamp carries a tower beam (audit: R2 was "run around the fog looking for blue"). A filled lamp
-// drops a wire spool at its base; the step completes when every spool is placed on the table (the
-// antenna array), which is the Step 5 prerequisite. Turrets need no turbine from here on (audit 2.4).
+// frees a wire spool when punched, which flies to the table by itself; the step completes when every spool is on
+// the table (the antenna array), which is the Step 5 prerequisite. Turrets need no turbine from here on (audit 2.4).
 df_r2_run()
 {
     level endon( "end_game" );
@@ -1970,7 +1971,6 @@ df_r2_run()
     level.df_r2_target = df_scaled_step( "lamp_souls", "r2" ); // B12: the count snapshotted when R2 opened
     level.df_r2_spools = 0;
     level.df_r2_spools_need = level.df_r2_lamps.size;
-    level.df_r2_spool_ents = [];
 
     foreach ( lamp in level.df_r2_lamps )
     {
@@ -1984,7 +1984,6 @@ df_r2_run()
     df_death_listen_add( "r2", ::df_r2_on_zombie_death );
     level thread df_r2_skip_cleanup();
     level thread df_r2_debug_hooks();
-    level thread df_r2_spool_loop();
     level thread df_r2_lamp_spawner(); // owner 2026-09-11: the dead come to a player under a hungry lamp
     level thread df_r2_punch_loop();   // owner 2026-09-11 (fists 4): the knuckles free the spool of a full lamp
     df_debug_print( "DF: r2 " + level.df_r2_lamps.size + " lamps, " + level.df_r2_target + " souls each" );
@@ -1999,6 +1998,7 @@ df_r2_run()
 
     df_death_listen_remove( "r2" );
     df_r2_lamps_settle();
+    df_scav_carry_clear( "spool" ); // owner 2026-09-25: the spools are all on the table, the notice goes
     level.equipment_turret_needs_power = 0; // _zm_equip_turret.gsc:224-238 startturretdeploy: no turbine needed
     df_say( "R2_DONE" );
 
@@ -2032,7 +2032,6 @@ df_r2_setup()
 
     level.df_r2_spools_need = level.df_r2_lamps.size;
     level.df_r2_spools = 0;
-    level.df_r2_spool_ents = [];
     df_r2_spools_deliver_all();
     level.equipment_turret_needs_power = 0;
 }
@@ -2157,20 +2156,14 @@ df_r2_fill( lamp )
 }
 
 // ---- wire spools (audit 9, ITEM_SPOOL_RICH) --------------------------------------------------
-// The spool lands on the ground 40 units from the pole towards the tower (out of the post itself) under
-// the pickup glint (df_rich_pickup_place adds fx_zmb_tranzit_light_glow at "pickup_glint"; audit art R2.1).
-// No sound of its own: the lamp's sub-goal cue just played at the bulb. The first spool of the game is
-// announced (ITEM_SPOOL_RICH, audit dialogue 1.4 #2: the line had no caller).
-df_r2_spool_drop( lamp )
+// owner 2026-09-25 (design audit 2.2): a punched full lamp's spool FLIES to the table by itself (the soul trail,
+// df_soul_fly, from the bulb to the relay slot) and is placed there like a delivered spool: no pickup, no carry,
+// no table trip. The punch stays the puzzle. The first spool of the game is announced (ITEM_SPOOL_RICH).
+df_r2_spool_fly( lamp )
 {
-    pos = df_r2_spool_home_pos( lamp );
-    s = spawnstruct();
-    s.lamp = lamp;
-    s.held = 0;
-    df_item_arrival( pos ); // the spool appears by the same strike as every quest item (owner 2026-09-11)
-    s.pick = df_rich_pickup_place( "spool", pos, undefined );
-    s.model = s.pick.model;
-    level.df_r2_spool_ents[level.df_r2_spool_ents.size] = s;
+    level endon( "end_game" );
+    level endon( "df_r2_done" );
+    level endon( "df_skip_r2" );
 
     if ( !is_true( level.df_r2_spool_said ) )
     {
@@ -2178,242 +2171,39 @@ df_r2_spool_drop( lamp )
         df_say( "ITEM_SPOOL_RICH" );
     }
 
-    df_debug_print( "DF: spool at lamp " + lamp.name );
+    df_debug_print( "DF: spool of lamp " + lamp.name + " flies to the table" );
+    df_soul_fly( df_lamp_bulb_pos( lamp ), df_table_slot( 0 ) + ( 0, 0, 30 ) ); // blocks for the flight
+    df_r2_spool_placed( 1 );
 }
 
-// Where a lamp's spool lands: 40 units from the pole towards the tower.
-df_r2_spool_home_pos( lamp )
+// n spools land in the array on the table: the PROGRESS TICK cue at the relay slot (df_cue_tick = piece-add
+// clink + side burst), the array count (df_r2_array_set) and the team notice "Wire spool n/N" for everyone. The
+// step's own sting comes from df_complete when the last one lands.
+df_r2_spool_placed( n )
 {
-    dir = df_coord( "DF_SOCKET" ).origin - lamp.origin;
-    dir = vectornormalize( ( dir[0], dir[1], 0 ) );
-    return df_ground( lamp.origin + dir * 40 + ( 0, 0, 30 ) ) + ( 0, 0, 6 );
-}
-
-// Presses and prompts for the spools (0.05 s: df_press_use is edge-triggered) until the step ends.
-df_r2_spool_loop()
-{
-    level endon( "end_game" );
-    level endon( "df_r2_done" );
-    level endon( "df_skip_r2" );
-
-    table = df_coord( "DF_SOCKET" ).origin;
-
-    while ( true )
-    {
-        wait 0.05;
-
-        foreach ( s in level.df_r2_spool_ents )
-            df_r2_spool_carrier_check( s );
-
-        foreach ( player in getplayers() )
-            df_r2_spool_player_tick( player, table );
-    }
-}
-
-// Carrier down or gone: the spool drops at the carrier's last position.
-df_r2_spool_carrier_check( s )
-{
-    if ( !is_true( s.held ) )
+    if ( level.df_r2_spools >= level.df_r2_spools_need )
         return;
 
-    if ( !isdefined( s.carrier ) || !isplayer( s.carrier ) )
+    level.df_r2_spools = level.df_r2_spools + n;
+
+    if ( level.df_r2_spools > level.df_r2_spools_need )
+        level.df_r2_spools = level.df_r2_spools_need;
+
+    if ( !is_true( level.df_goto_busy ) )
     {
-        df_r2_spool_drop_at( s, s.carrier_pos, undefined );
-        return;
+        df_cue_tick( df_table_slot( 0 ) + ( 0, 0, 30 ), 1 ); // clink + spark burst at the relay slot
+        df_scav_carry_set( "spool", level.df_r2_spools, level.df_r2_spools_need, undefined, "spool" );
     }
 
-    s.carrier_pos = s.carrier.origin;
-
-    if ( s.carrier maps\mp\zombies\_zm_laststand::player_is_in_laststand() )
-        df_r2_spool_drop_at( s, s.carrier.origin, s.carrier );
-}
-
-df_r2_spool_drop_at( s, pos, player )
-{
-    link = undefined;
-
-    if ( df_player_on_bus( player ) )
-        link = level.the_bus; // owner 2026-09-25: dropped on the bus, it rides along
-
-    s.held = 0;
-    s.carrier = undefined;
-    s.pick = df_rich_pickup_place( "spool", df_ground( pos ) + ( 0, 0, 6 ), link );
-    s.model = s.pick.model;
-
-    if ( isdefined( player ) )
-        df_r2_spool_notice( player );
-    else
-        df_scav_carry_clear( "spool" );
-
-    level thread df_r2_spool_home_timer( s, s.model );
-    df_debug_print( "DF: spool dropped" );
-}
-
-// owner 2026-09-25: a dropped spool nobody takes in 60 s flies back to its lamp's landing spot.
-df_r2_spool_home_timer( s, model )
-{
-    level endon( "end_game" );
-    level endon( "df_r2_done" );
-    level endon( "df_skip_r2" );
-
-    if ( !df_drop_wait_home( model ) || is_true( s.held ) || is_true( s.done ) || !isdefined( s.lamp ) )
-        return;
-
-    from = model.origin;
-    home = df_r2_spool_home_pos( s.lamp );
-    df_rich_pickup_remove( s.pick );
-    level thread df_soul_fly( from, home );
-    s.pick = df_rich_pickup_place( "spool", home, undefined );
-    s.model = s.pick.model;
-    df_debug_print( "DF: dropped spool untouched for 60 s, back at lamp " + s.lamp.name );
-}
-
-// Spools carried by `player` (owner 2026-09-09: they stack, like Scavenger's parts).
-df_r2_spools_carried( player )
-{
-    n = 0;
-
-    foreach ( s in level.df_r2_spool_ents )
-    {
-        if ( is_true( s.held ) && isdefined( s.carrier ) && s.carrier == player )
-            n++;
-    }
-
-    return n;
-}
-
-// One player's spool prompts / presses this frame: a free spool within 100 is taken (any number can be
-// carried); with spools in hand, one press within 150 of the table places them ALL.
-df_r2_spool_player_tick( player, table )
-{
-    if ( !is_player_valid( player ) )
-    {
-        player df_prompt( 0, undefined );
-        return;
-    }
-
-    s = df_r2_spool_near( player.origin, 100 );
-
-    if ( isdefined( s ) )
-    {
-        player df_prompt( 1, "Press [{+activate}] to take the spool" );
-
-        if ( player df_press_use() )
-            df_r2_spool_take( s, player );
-
-        return;
-    }
-
-    if ( df_r2_spools_carried( player ) > 0 )
-    {
-        near = distancesquared( player.origin, table ) < 150 * 150;
-        player df_prompt( near, "Press [{+activate}] to place the spools" );
-
-        if ( near && player df_press_use() )
-            df_r2_spool_deliver( player );
-
-        return;
-    }
-
-    player df_prompt( 0, undefined );
-}
-
-// A free spool (lying, not carried) within `radius` of pos, or undefined.
-df_r2_spool_near( pos, radius )
-{
-    foreach ( s in level.df_r2_spool_ents )
-    {
-        if ( isdefined( s.model ) && !is_true( s.held ) && distancesquared( pos, s.model.origin ) < radius * radius )
-            return s;
-    }
-
-    return undefined;
-}
-
-// Pickup: the spool leaves the world and rides with the player; notice = placed + carried of the total.
-// Touches the step (a take proves the player found the mechanic; the ladder stops).
-df_r2_spool_take( s, player )
-{
-    df_touch( "r2" );
-    df_rich_pickup_remove( s.pick );
-    s.model = undefined;
-    s.held = 1;
-    s.carrier = player;
-    s.carrier_pos = player.origin;
-    df_r2_spool_notice( player );
-    player playsound( "zmb_buildable_pickup" );
-    player df_prompt( 0, undefined );
-    df_debug_print( "DF: spool taken (" + df_r2_spools_carried( player ) + " in hand, " + level.df_r2_spools + " placed)" );
-}
-
-// The carry notice / TAB square for this player: placed so far + what they hold, out of the total.
-df_r2_spool_notice( player )
-{
-    n = level.df_r2_spools + df_r2_spools_carried( player );
-
-    if ( n <= 0 )
-    {
-        df_scav_carry_clear( "spool" );
-        return;
-    }
-
-    df_scav_carry_set( "spool", n, level.df_r2_spools_need, player, "spool" );
-}
-
-// Kept for the debug / goto path (df_r2_spools_deliver_all): clears the notice of a carrier.
-df_r2_spool_release( player )
-{
-    df_scav_carry_clear( "spool" );
-    player df_prompt( 0, undefined );
-}
-
-// The spool goes into the array on the table: the PROGRESS TICK cue at the relay slot (df_cue_tick =
-// piece-add clink + side burst) and the array count (df_r2_array_set; no mast glow since P8). The struct leaves the
-// world list. The step's own sting comes from df_complete when the last one lands.
-df_r2_spool_deliver( player )
-{
-    placed = 0;
-
-    foreach ( s in level.df_r2_spool_ents )
-    {
-        if ( !is_true( s.held ) || !isdefined( s.carrier ) || s.carrier != player )
-            continue;
-
-        s.held = 0;
-        s.carrier = undefined;
-        s.done = 1;
-        level.df_r2_spools++;
-        placed++;
-    }
-
-    if ( placed == 0 )
-        return;
-
-    df_r2_spool_notice( player );
-    player df_prompt( 0, undefined );
-    df_cue_tick( df_table_slot( 0 ) + ( 0, 0, 30 ), 1 ); // clink + spark burst at the relay slot
     df_r2_array_set( level.df_r2_spools );
-    df_debug_print( "DF: " + placed + " spool(s) placed, " + level.df_r2_spools + "/" + level.df_r2_spools_need );
+    df_debug_print( "DF: spool placed on the table, " + level.df_r2_spools + "/" + level.df_r2_spools_need );
     level notify( "df_r2_check" );
 }
 
-// Debug / goto: every spool counts as placed; the ones in the world (or carried) go away.
+// Debug / goto: every spool counts as placed.
 df_r2_spools_deliver_all()
 {
-    foreach ( s in level.df_r2_spool_ents )
-    {
-        df_rich_pickup_remove( s.pick );
-        s.model = undefined;
-
-        if ( is_true( s.held ) && isdefined( s.carrier ) && isplayer( s.carrier ) )
-            df_r2_spool_release( s.carrier );
-
-        s.held = 0;
-    }
-
-    level.df_r2_spools = level.df_r2_spools_need;
-    df_r2_array_set( level.df_r2_spools );
-    level notify( "df_r2_check" );
+    df_r2_spool_placed( level.df_r2_spools_need );
 }
 
 // The antenna array on the plugged relay (table slot 0): the act1 owner's stacking hook when present
@@ -2432,8 +2222,8 @@ df_r2_array_set( n )
     df_debug_print( "DF: r2 antenna array " + n + "/" + level.df_r2_spools_need );
 }
 
-// "!df goto" past r2: the listener, beams, spools and carrier state go; the set stays (one set per game)
-// and df_r2_setup, run right after this notify, marks it filled and the array built.
+// "!df goto" past r2: the listener, beams and the spool notice go (a spool in flight dies with the skip); the set
+// stays (one set per game) and df_r2_setup, run right after this notify, marks it filled and the array built.
 df_r2_skip_cleanup()
 {
     level endon( "end_game" );
@@ -2445,26 +2235,12 @@ df_r2_skip_cleanup()
     foreach ( lamp in level.df_r2_lamps )
         df_r2_beam_set( lamp, 0 );
 
-    if ( isdefined( level.df_r2_spool_ents ) )
-    {
-        foreach ( s in level.df_r2_spool_ents )
-        {
-            df_rich_pickup_remove( s.pick );
-
-            if ( is_true( s.held ) && isdefined( s.carrier ) && isplayer( s.carrier ) )
-                df_r2_spool_release( s.carrier );
-        }
-    }
-
-    level.df_r2_spool_ents = [];
-
-    foreach ( player in getplayers() )
-        player df_prompt( 0, undefined );
+    df_scav_carry_clear( "spool" );
 }
 
 // Debug hooks (!df fire <name>):
-//   r2_soul  : one soul into the first unfilled lamp (counter feedback, fill cue, spool drop)
-//   r2_spool : one spool counts as placed on the table without the carry (removes one lying spool)
+//   r2_soul  : one soul into the first unfilled lamp (counter feedback, fill cue)
+//   r2_spool : one spool counts as placed on the table (no punch, no flight)
 df_r2_debug_hooks()
 {
     level endon( "end_game" );
@@ -2497,29 +2273,12 @@ df_r2_debug_hooks()
 
 df_r2_debug_spool()
 {
-    if ( level.df_r2_spools >= level.df_r2_spools_need )
-        return;
-
-    foreach ( s in level.df_r2_spool_ents )
-    {
-        if ( isdefined( s.model ) && !is_true( s.held ) )
-        {
-            df_rich_pickup_remove( s.pick );
-            s.model = undefined;
-            s.done = 1;
-            break;
-        }
-    }
-
-    level.df_r2_spools++;
-    df_r2_array_set( level.df_r2_spools );
-    df_debug_print( "DF: spool placed " + level.df_r2_spools + "/" + level.df_r2_spools_need );
-    level notify( "df_r2_check" );
+    df_r2_spool_placed( 1 );
 }
 
 // ---- fists (owner 2026-09-11, idea 4) ---------------------------------------------------------
 // A full lamp (lamp.spool_ready) gives its spool when a player within 90 of its post melees with the Galvaknuckles:
-// punch fx on the post, the spool drops (df_r2_spool_drop, with the item arrival). Any other melee there: the
+// punch fx on the post, the spool flies to the table (df_r2_spool_fly). Any other melee there: the
 // deny buzz and Richtofen naming the fists, once per 20 s. "!df fire r2_punch" drops every ready spool.
 df_r2_punch_loop()
 {
@@ -2579,8 +2338,8 @@ df_r2_punch_release( lamp, who )
     lamp.spool_ready = 0;
     lamp.spool_dropped = 1;
     df_punch_fx( lamp.origin, df_lamp_bulb_pos( lamp ) );
-    df_r2_spool_drop( lamp );
-    df_debug_print( "DF: r2 lamp " + lamp.name + " punched by " + who + ", the spool is out" );
+    level thread df_r2_spool_fly( lamp );
+    df_debug_print( "DF: r2 lamp " + lamp.name + " punched by " + who + ", the spool flies to the table" );
 }
 
 df_r2_punch_debug()

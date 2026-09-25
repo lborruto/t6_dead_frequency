@@ -170,8 +170,7 @@ df_show_line( e )
     df_debug_print( "DF: line " + name + " -> " + names + "(" + recipients.size + "/" + getplayers().size + ")" );
 }
 
-// Solo: the only player. Co-op: the Stuhlinger player (characterindex 1, set in zm_transit.gsc:1184).
-// Co-op without Stuhlinger: first player, so the story is not lost.
+// The Stuhlinger player (characterindex 1, set in zm_transit.gsc:1184) while he is valid; nobody otherwise.
 // Vanilla rule, strictly (owner 2026-09-11; zm_transit_sq.gsc richtofensay :956): Richtofen speaks to
 // level.rich_sq_player, Stuhlinger, and to nobody else, solo included. No Stuhlinger in the game = Richtofen silent.
 df_rich_recipient()
@@ -384,9 +383,10 @@ df_maxis_vox( alias, origin )
     level.df_maxis_talking = 0;
 }
 
-// Richtofen line: 2D to the Stuhlinger player (df_rich_recipient) like vanilla, or 3D at origin when given.
-// While he speaks 2D the recipient's own character VO is muted (player.dontspeak, zm_transit_sq.gsc:975).
-df_rich_vox( alias, origin )
+// Richtofen line: ALWAYS 2D to the Stuhlinger player (df_rich_recipient) like vanilla, never 3D (owner 2026-09-25:
+// only Stuhlinger hears Richtofen, recordings included; a 3D origin let the whole team hear him at the table).
+// While he speaks the recipient's own character VO is muted (player.dontspeak, zm_transit_sq.gsc:975).
+df_rich_vox( alias )
 {
     level endon( "end_game" );
 
@@ -399,14 +399,9 @@ df_rich_vox( alias, origin )
     if ( df_rich_silent() )
         return;
 
-    if ( !isdefined( player ) && !isdefined( origin ) )
-        return;
-
     level.df_rich_talking = 1;
-    df_sys_vox_play( alias, origin, player );
-
-    if ( isdefined( player ) && !isdefined( origin ) )
-        player.dontspeak = 1;
+    df_sys_vox_play( alias, undefined, player );
+    player.dontspeak = 1;
 
     wait 8;
 
@@ -441,7 +436,8 @@ df_sys_vox_play( alias, origin, player )
 }
 
 // Plays a vanilla vox alias at most once per game (event lines fired from polls or repeats). The patron is
-// read from the alias (vox_maxi_* = Maxis, anything else = Richtofen); origin optional (see the helpers).
+// read from the alias (vox_maxi_* = Maxis, anything else = Richtofen); origin optional for Maxis (3D there), ignored
+// for Richtofen (always 2D to Stuhlinger, df_rich_vox).
 // Does NOT block: it threads the helper itself. Returns 1 the first time, 0 afterwards.
 df_vox_once( alias, origin )
 {
@@ -456,7 +452,7 @@ df_vox_once( alias, origin )
     if ( alias.size >= 9 && getsubstr( alias, 0, 9 ) == "vox_maxi_" )
         level thread df_maxis_vox( alias, origin );
     else
-        level thread df_rich_vox( alias, origin );
+        level thread df_rich_vox( alias );
 
     return 1;
 }

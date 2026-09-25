@@ -48,7 +48,8 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   (`flag_wait( "start_zombie_round_logic" )`, owner 2026-09-25: the wall stubs can spawn after our init) before it
   patches every copy of the price, retrying for up to 30 s), and dumps the state on `!df fire compat`.
 - `df_systems.gsc` - shared systems: the subtitle HUD (`df_say` / `df_show_line`, per-player hud elems destroyed
-  on disconnect), vanilla VO helpers (`df_maxis_vox`, `df_rich_vox`, `df_vox_once`), FX helpers (`df_fx_loop`,
+  on disconnect), vanilla VO helpers (`df_maxis_vox`, `df_rich_vox` - always 2D to Stuhlinger only, never 3D, owner 2026-09-25 -,
+  `df_vox_once`), FX helpers (`df_fx_loop`,
   `df_fx_burst`, `df_side_burst_fx`), the unified cue grammar (`df_cue_tick / _subgoal / _fail / _deny`,
   `df_step_focus`, `df_node_done_trail`), prompts (`df_prompt`, `df_prompt_puzzle` behind `level.df_hints`), the
   spoken-hint switch (`level.df_text_hints`), single press (`df_press_use`), hold-to-use bars, icons, stats, and
@@ -85,7 +86,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   convention; step files never name a model, they call `df_model( kind )`. `df_apply_overrides()` is where `!df grab` output is pasted; overrides
   always win. Also the table (`DF_TABLE`, three slots; `DF_SOCKET` is moved onto it; `df_table_point( offset )`
   for props posed in the table frame: the M1 lantern and the burning lantern, at the same pose), the fx attach points (`df_fx_point_def`,
-  e.g. `relay_step_glow_1..9`), the Step 6 landing-spot draw (once per game at boot) and the curated
+  e.g. `relay_step_glow_1..8`), the Step 6 landing-spot draw (once per game at boot) and the curated
   `df_catalog_models()`.
 - `df_lamps.gsc` - the ONE lamp set per game (3 lamps, 4 with a full lobby, picked at boot from the six lamps
   valid on both sides, diner and townbridge excluded) and every lamp look (`df_lamp_state_set`: off, souls,
@@ -115,15 +116,16 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
 - `df_audition.gsc` - in-game audition of the game's own fx and sounds (`!df fx ...`, `!df snd ...`, the fx grid
   pages) so picks are made by eye and ear. Every fx key is registered server-side by a vanilla script; every
   alias is in the TranZit banks.
-- `df_act1.gsc` - Act 1 "Static" (shared): Step 1 Dead Air (pipes + far signal light), Step 2 Salvage (three
-  parts, relay built on the bus roof with the vanilla build hold), Step 3 Ride the Line (one full stop with power
-  on at departure AND arrival, roof waves, relay hp), Step 4 Plug In (the side preview is console-only since 2026-09-25: no table light, no plug spark, no marker glint; side lock at the table,
+- `df_act1.gsc` - Act 1 "Static" (shared): Step 1 Dead Air (pipes + far signal light), Step 3 Ride the Line
+  (owner 2026-09-25: the old Step 2 Salvage is merged in, `df_a1_build_phase`: three parts, relay built on the bus
+  roof with the vanilla build hold, the ladder on phase "BUILD"; then one full stop with power on at departure AND
+  arrival, roof waves, relay hp; there is no `step2` key, `!df goto step2` is an alias of step3), Step 4 Plug In (the side preview is console-only since 2026-09-25: no table light, no plug spark, no marker glint; side lock at the table,
   graves / boxes stay, only their look changes (owner 2026-09-25); a relay dropped by a carrier who left returns
   to the table after 60 s). Also the portal refusal while carrying and the boot spawn of the fog parts and the table.
 - `df_act2_rich.gsc` - Act 2 Richtofen: R1 Summon the Storm (Simon on the four barn boxes, key card, Avogadro
   capture at the tower, one-battery refill on failure after which the card comes back without a Simon replay; no
-  Avogadro entity = R1 counts as captured), R2 115 on the Line (hungry lamps, Galvaknuckle punch, spools; the set
-  settles filled at R2 end), and the Richtofen side rules (Avogadro every round except while Step 6 is open, turrets
+  Avogadro entity = R1 counts as captured), R2 115 on the Line (hungry lamps, Galvaknuckle punch, the spool flies to the
+  table by itself (`df_r2_spool_fly`, owner 2026-09-25: no carry); the set settles filled at R2 end), and the Richtofen side rules (Avogadro every round except while Step 6 is open, turrets
   without turbine, the power-OFF penalty, which runs from R1 open so its refill-lock branch works).
 - `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt in
   the woods behind the hunter's cabin at the farthest of three rising spots (DF_NACHT_SPAWN_1..3, never twice in
@@ -177,7 +179,8 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   humming lamp still prints its weapon and mod to the console first, so a refused kill can be read. Put out, a lamp
   goes back to state "vanilla" - exactly the map's own light, nothing of ours left on it - with his stolen power
   snapping off as a blue spark and flying to the tower top (`df_soul_fly`); any other kill in range does nothing
-  to the lamp and says LO_NOTHAND_MAXIS once for the game. THREE dark lamps win (`level.df_s5_need`; fewer only with a smaller set).
+  to the lamp and says LO_NOTHAND_MAXIS once for the game. THREE dark lamps win (`level.df_s5_need`; fewer only with a smaller set; with a
+  full lobby all four set lamps hum and the fourth goes out with the win, owner 2026-09-25).
   At every end of round with a lamp still humming, Richtofen relights one dark lamp at random
   (`df_s5_relight_loop`, LO_RELIGHT) - the mirror of Blackout's knock. No timer, no countdown, no soul penalty.
   Debug: `!df fire s5_dark` (every lamp dark at once) / `s5_relight` (every lamp humming again),
@@ -199,11 +202,12 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   and a blue snap (`fx_zmb_tranzit_spark_blue_lg_os`) at the lever - his power coming back), refused while the
   map's main power is off (BO_NOPOWER_RICH, throttled to once per 10 s); each switch turned ON pulls a 20 s
   sprinting wave at it (the M2 grave pattern: 2 every 2 s, cap 8 + 3 per extra player); at every end of round
-  with a switch still OFF, Maxis knocks one lit one back off (BO_OFF_MAXIS). All three ON at once completes the
-  step. No scaling (three switches at every lobby size). Debug: `!df fire blackout_off` / `blackout_on` /
+  with a switch still OFF, Maxis knocks EVERY lit one back off (BO_OFF_MAXIS; owner 2026-09-25: all three within one
+  round, was one per round). The third ON completes the step at once. No scaling (three switches at every lobby size). Debug: `!df fire blackout_off` / `blackout_on` /
   `blackout_respawn`.
 - `df_act3_vacuum.gsc` - Step 6 Vacuum (the item is a "rock" on screen, `orb` in the code): the opening at the
-  table (Richtofen the key card discharges, Maxis the burning lantern bursts), the rock's arrival at the drawn landing
+  table (Richtofen the key card discharges, Maxis the burning lantern bursts), the release (owner 2026-09-25, `df_s6_release_cue`: a shake at every player and a crack 2D to every player; the
+  trail climbs 1800 over the table and curves down, `df_s6_trail_fly`), the rock's arrival at the drawn landing
   spot, the carry, the draw (the same on both sides: ONE node, the Jet Gun or its upgrade fired at it with the rock
   carried until the gun overheats, a plain weapon swap never counts; Richtofen the transformer block `DF_CORE`, Maxis
   the cabin fireplace `DF_CABIN_HEARTH`, aim point `cabin_hearth_node`), the aura, home-flight of a dropped rock (60 s)
@@ -297,7 +301,7 @@ developer 1
 developer_script 1
 set df_debug 1
 ```
-Load TranZit (Original). `!df status` must list `registered: step1 step2 step3 step4 r1 r2 m1 m2 step5 step6 step7 finale`.
+Load TranZit (Original). `!df status` must list `registered: step1 step3 step4 r1 r2 m1 m2 step5 step6 step7 finale`.
 Every `!df` answer is also printed in the console as `[DF] ...`, and every quest event prints a `DF: ...` line
 there: paste those lines when reporting. The full protocol, step by step, is [TESTING.md](TESTING.md).
 
@@ -307,7 +311,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 |---|---|
 | `!df status` | version, side, player count, round, hints state, steps done / available / registered |
 | `!df who` | diagnostic for "why is F doing nothing": prints whether you are drinking / screecher-ridden / in laststand, your current weapon, whether you carry the relay / orb / lantern / battery, and every `trigger_radius_use` within 200 of you with its distance |
-| `!df goto <step>` | mark previous steps done, make `<step>` available (`step1..step4 r1 r2 m1 m2 step5 step6 step7 finale`). Forward only: a step already done or not ahead of the current one is refused, and so is a step of the other side once a side is locked. A jump that does not finish in 20 s is aborted by a watchdog (the goto flag is cleared). Never deletes the boot props (pipes, table, boxes, graves, the three power switches, lamps); the side lock only ever changes their look (glow / flame), never removes them |
+| `!df goto <step>` | mark previous steps done, make `<step>` available (`step1 step3 step4 r1 r2 r3 m1 m2 m3 step5 step6 step7 finale`; `step2` = step3). Forward only: a step already done or not ahead of the current one is refused, and so is a step of the other side once a side is locked. A jump that does not finish in 20 s is aborted by a watchdog (the goto flag is cleared). Never deletes the boot props (pipes, table, boxes, graves, the three power switches, lamps); the side lock only ever changes their look (glow / flame), never removes them |
 | `!df side rich` / `!df side maxis` | lock the side by hand; FINAL, a second, different side is refused (`side X is already locked ...`). Re-copies the landing spot drawn at boot into DF_ORB_SPAWN (console `orb spawn for side X: ...`, no new draw) |
 | `!df say <KEY>` | show a dialogue key (`!df say s1_start` works too) |
 | `!df scale` | print a few scaled values for the current player count |
@@ -432,12 +436,12 @@ The older way (the owner's `cheats_zm.gsc`: `!place <model>`, `!nudge`, `!spot <
 | DF_TV_1..4 | tv = `pb_pole_telephone_bulb` (chimney pipe, 9 tall) | four spots on the ground around the Depot |
 | DF_SIGNAL / DF_SIGNAL_SND | none (a light 70 above DF_SIGNAL, dvar `df_signal_lift`; the hum 20 above DF_SIGNAL_SND, dvar `df_signal_hum`) | past the Depot fence (-6244 5361 -187) / (-6245 5085 -67) |
 | DF_PHONE_1 / DF_PHONE_2 | none | the Depot wall phones; kept as anchors, no role in the quest any more |
-| DF_PART_A / B | part_a `p6_zm_buildable_sq_transceiver` (the radio), part_b `p6_zm_chain_fence_piece_end` (the mast, standing, 117 tall) | Diner garage, behind the box (-4830 -7978 -29) / Farm barn upper floor (8149 -5088 52). The DF_PART_C anchor is gone (2026-09-23); the `part_c` kind stays only as the spool fallback model |
+| DF_PART_A / B | part_a `p6_zm_buildable_sq_transceiver` (the radio), part_b `p6_zm_chain_fence_piece_end` (the mast, standing, 117 tall) | Diner garage, behind the box (-4830 -7978 -29) / Farm barn upper floor (8149 -5088 52). The DF_PART_C anchor is gone (2026-09-23); the `part_c` kind stays only for `!df catalog pick` |
 | DF_COIL_DROP | receiver = `p6_zm_buildable_jetgun_wires` (the wire coil, slightly tilted) | where the coil lands after Step 1 (-6311 5019 -46); move it with `!df move DF_COIL_DROP ...` or `!df grab DF_COIL_DROP` |
 | DF_BUS_ROOF_OFFSET | relay = `p6_zm_buildable_sq_transceiver` + relay_coil = `p6_zm_buildable_sq_electric_box` (+17) + relay_mast = relay_top = `p6_zm_chain_fence_piece_end` (+27), yaw -45: the same three pieces on the roof and on the table | bus roof centre / table slot 0 |
 | DF_FUSE_1..4 | fuse = `p6_zm_buildable_sq_electric_box` (13 x 20 power box, centre at 50, 6 off the wall) | owner 2026-09-25: four owner spots on the Farm barn walls (8825 -5744 105, 8801 -5889 106, 8526 -5889 105, 8518 -5582 106); stand from boot on both sides, no fx until Richtofen locks (a faint LED glow, then R1 drives the sparks and the Simon); Maxis locked = dark scenery, model kept |
 | DF_CARD_SPAWN | card = `p6_zm_keycard` (the strike lands it 36 above the floor under the anchor) | barn wall (8614 -5864 91) |
-| (battery / spool, no anchor) | battery = `p6_zm_buildable_battery`, spool = `p6_zm_buildable_jetgun_wires` | bus dashboard / the foot of a punched lamp |
+| (battery, no anchor) | battery = `p6_zm_buildable_battery` (the `spool` kind, `p6_zm_buildable_jetgun_wires`, is no longer spawned: R2 spools fly to the table as a trail, 2026-09-25) | bus dashboard |
 | DF_BRAZIER_1..4 | brazier = `ch_tombstone1` (the graves, 31 tall, NO player collision - owner 2026-09-25: the old two stacked clips are gone, the graves stand outside the map, unreachable on foot; unlit shows nothing, lit carries a large fire seen from Town; a `trigger_damage` PLUS two ghosted `collision_wall_64x64x10_standard` bullet walls crossed inside the stone (`df_m2_grave_shield_spawn`) are what a SHOT hits to light it) | owner 2026-09-25: OUTSIDE the map around Town; stand from boot on both sides, Richtofen locked = dark scenery, model and shield kept; a spent grave (M2 quota met, `df_m2_fill`) EXPLODES and is deleted outright - trigger, model, both bullet walls - nothing left standing; `!df grab` / `!df setpos` / `!df aim` on the anchor (before that) moves the real grave (model, trigger, bullet walls, flame/crackle) along (`df_m2_grave_move_hook`) | Every game draws four of the eight owner spots below at random (df_coords df_grave_pool_pick; console `m2 grave N drawn at x y z`): (1944 -1040 124, yaw 127), (328 -797 132, yaw 297), (2062 374 88, yaw 259), (-86 224 -36, yaw 43), (2581 -1009 -55, yaw 139), (2610 413 -55, yaw 204), (2812 -264 -62, yaw 218), (799 -1024 -52, yaw 56).
 | DF_BLACKOUT_1..3 | pswitch_body = `p6_zm_buildable_pswitch_body` (the switch body) + pswitch_lever = `p6_zm_buildable_pswitch_lever` (the lever, offset `(0 -9 46.25)` onto the body, exactly the map's own; ON / OFF poses are dvars, `df_bo_lever_on` / `_off`, added to the registry angle) | owner 2026-09-25: three power switches, each at its OWN owner spot (13810 -196 -188, 829 -1482 -44, 11668 8524 -575), no longer side by side under the tower; stand ON from boot on both sides; `!df grab` / `!df setpos` on the anchor respawns the real switch (`df_bo_respawn`) |
 | (M1 lantern, burning lantern, no anchor) | both `p_lights_cagelight02_red_off`, HUD label "Lantern", rock icon `zm_hud_icon_sq_meteor`: the M1 lantern = kind `skull` (the name stays in the code and console), placed at the `ember` table pose, no spin, no flame; the burning lantern = kind `ember`, the same lantern entity M1 left on the table (owner 2026-09-25: never swapped or taken again for M2 - it just becomes the burning lantern in place once the four graves are spent), flame only when charged (fx point `hand_fire`, dvar `df_m2_hand_fx`); posed in the table frame by the `ember` df_model_def offset (`df_table_point`) | on the table for the whole of M1 and M2; the M1 lantern is dropped on the floor where the last denizen died before that |
@@ -456,7 +460,7 @@ Note: the M1 item is Maxis's lantern (since 2026-09-25; `zombie_skull` from 2026
 table_demo` previews relay + coil box + mast, card and rock on the three slots. The table under the tower carries NO fx of
 ours (no Step 4 preview light, no plug spark, no marker glint at Step 4 / the R1 card insert / the finale, no placing
 snap; the burning burning lantern between M2 and Step 6 is the one exception): the lasting look is one glow per finished step up the plugged relay mast (fx points
-`relay_step_glow_1..9` = step1, step2, step3, step4, r1/m1, r2/m2, step5, step6, step7; `df_fin_step_glow`,
+`relay_step_glow_1..8` = step1, step3, step4, r1/m1, r2/m2, step5, step6, step7 (eight since step2 merged into step3); `df_fin_step_glow`,
 dvar `df_step_glow_fx`, default `fx_zmb_tranzit_key_glint`).
 
 ## Lamps
@@ -502,7 +506,7 @@ the source with an `owner pick <date>` comment.
 | step DONE | evt_bridge_collapse_start (the bridge groan) to every player, the only step-done sound |
 | DENY (wrong input) | zmb_sq_navcard_fail to the presser only |
 | FAIL / lost | zmb_bus_emp_shutdown + the side's loss fx |
-| ITEM ARRIVAL | grenade_samantha_steal burst + zmb_avogadro_spawn_3d thunder + a short quake: coil, card, spools, M1 lantern, rock |
+| ITEM ARRIVAL | grenade_samantha_steal burst + zmb_avogadro_spawn_3d thunder + a short quake: coil, card, M1 lantern, rock |
 | ITEM ON THE TABLE | `df_cue_table_place`: the zmb_buildable_piece_add clink only, NO fx (since 2026-09-25 the table under the tower shows nothing of ours): M1 lantern, burning lantern, rock; the relay plug has no spark either (clink + switch-on sound) |
 
 Side family: everything electric (blue sparks) on Richtofen and before the fork, everything fire / ash on Maxis. On
@@ -515,7 +519,7 @@ the Step 7 rock flickers with `lava_burning` when hit (Richtofen keeps `elec_md`
 
 - `scripts\zm\zm_scavenger.gsc` (Project Scavenger v1.9, NickB_05). Disjoint from Dead Frequency: it replaces only
   `_zm_buildables::player_can_take_piece`, we replace only the sidequest functions and the denizen portal use; our
-  parts, coil, battery, spools, the M1 / M2 lantern and rock are our own script_models, so a press can never be taken by both. The
+  parts, coil, battery, the M1 / M2 lantern and rock are our own script_models, so a press can never be taken by both. The
   bus-part pin uses vanilla's own piece functions. HUD: Scavenger draws top-left / top-right while TAB is held; our
   notices sit one row lower and our TAB square right after their fifth. Only risk: it precaches `zom_hud_icon_epod_key`
   (Die Rise); an error naming it is theirs.
@@ -537,7 +541,7 @@ the Step 7 rock flickers with `lava_burning` when hit (Richtofen keeps `elec_md`
    holds for; a future change should either accept that or restore the "stays standing, scorched" look this
    rule originally described. The only things that appear later are quest ITEMS, and **every quest item arrives
    by the shared strike** (`grenade_samantha_steal` burst +
-   `zmb_avogadro_spawn_3d` thunder + a short quake): the coil, the key card, the spools, the M1 lantern, the rock.
+   `zmb_avogadro_spawn_3d` thunder + a short quake): the coil, the key card, the M1 lantern, the rock.
 2. **Cue grammar: one sound = one meaning.** Use the `df_cue_*` helpers, never a raw `playsound` for a quest
    cue; do not reuse a grammar alias for anything else (the table above is the contract).
 3. **No on-screen timers.** Clocks are heard (`df_sys_clock_run`: the tick-tock loop + dry ticks under 30 s).

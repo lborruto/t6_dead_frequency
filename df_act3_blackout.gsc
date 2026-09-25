@@ -4,8 +4,9 @@
 //   DF_BLACKOUT_1..3) stand ON from boot on both sides. When Step 5 opens on Richtofen, Maxis cuts the grid: the three
 //   levers roll OFF. One press of F within 80 of an OFF switch rolls it ON again (vanilla: rotateroll -90 = ON,
 //   +90 = OFF, zmb_switch_flip then zmb_turn_on, zm_transit_power.gsc:56-60), refused while the grid is off. Each switch
-//   turned ON sends a 20 s sprint wave at it; at every end of round while one is OFF, Maxis knocks one ON switch
-//   OFF again. All three ON at once: the step is done. The Maxis side keeps the lamp step (df_act3_sweep.gsc).
+//   turned ON sends a 20 s sprint wave at it. owner 2026-09-25: the three must be ON within ONE round: at every end of
+//   round while one is still OFF, Maxis knocks EVERY ON switch OFF again (was one per round). The third ON wins at
+//   once (df_bo_check). The Maxis side keeps the lamp step (df_act3_sweep.gsc).
 #include common_scripts\utility;
 #include maps\mp\_utility;
 #include maps\mp\zombies\_zm_utility;
@@ -322,7 +323,9 @@ df_bo_near_off( player )
     return undefined;
 }
 
-// At every end of round while a switch is OFF, Maxis knocks one ON switch OFF again.
+// owner 2026-09-25: the switches are far apart (Nacht, Town, the plant), so the constraint is one round: at every
+// end of round while a switch is still OFF, Maxis knocks EVERY ON switch OFF again (a full reset). No round end
+// with nothing ON (nothing to knock) or with all three ON (the run func has already won).
 df_bo_round_knock()
 {
     level endon( "end_game" );
@@ -337,18 +340,14 @@ df_bo_round_knock()
         if ( n == 0 || n == level.df_bo.size )
             continue;
 
-        ons = [];
-
         foreach ( s in level.df_bo )
         {
             if ( s.on )
-                ons[ons.size] = s;
+                level thread df_bo_set( s, 0 );
         }
 
-        s = random( ons );
-        level thread df_bo_set( s, 0 );
         df_say( "BO_OFF_MAXIS" );
-        df_debug_print( "DF: blackout Maxis knocked switch " + ( s.idx + 1 ) + " OFF at the end of the round" );
+        df_debug_print( "DF: blackout round over with " + n + "/" + level.df_bo.size + " ON: Maxis knocked them all OFF (all three within one round)" );
     }
 }
 

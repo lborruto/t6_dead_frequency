@@ -5,8 +5,9 @@
 //   DF_ORB_SPAWN: the landing spot, one of DF_ORB_SPOT_1..3 (diner / Town / power station) drawn once per game
 //   on both sides (df_coords df_orb_spawn_for_side). The opening starts at the table: on Maxis the resting fire
 //   hand bursts (df_s6_ember_burst), on Richtofen the key card on slot 1 discharges (df_s6_card_discharge), and
-//   a trail flies from it to the landing spot; then 3 s of build-up over the tower top and the strike, thunder
-//   (df_s6_orb_arrival) in the side's fx family: Richtofen = Avogadro's storm, his descend bolt, the lightning
+//   a trail climbs 1800 over the tower and curves down to the landing spot, with a shake and a crack for every
+//   player at the release (df_s6_release_cue, owner 2026-09-25); then 3 s of build-up over the tower top and
+//   the strike, thunder (df_s6_orb_arrival) in the side's fx family: Richtofen = Avogadro's storm, his descend bolt, the lightning
 //   orb and the blue one-shot; Maxis = a smoke column at the top (fx_zmb_tranzit_smk_column_lrg when the alias
 //   exists, else three ash columns), then a fire burst and a whoosh: never a blue bolt on the fire side (art
 //   audit #9). The rock rests there afterwards (df_model_offset( "orb_ground" ) above the floor): the one thing
@@ -1983,7 +1984,7 @@ df_s6_ember_burst( pos )
     df_fx_burst( "fx_zmb_tranzit_fire_med", from, 0.8 );
     playsoundatposition( "zmb_phdflop_explo", from );
     df_say( "S6_EMBER_MAXIS" );
-
+    df_s6_release_cue();
     df_s6_trail_fly( "fx_zmb_tranzit_fire_med", from, pos );
     df_debug_print( "DF: s6 the burning lantern burst on the table, its fire flew to the landing spot" );
 }
@@ -2004,13 +2005,38 @@ df_s6_card_discharge( pos )
     // owner 2026-09-25: say the line before the blocking trail fly, not after (df_s6_trail_fly waits for the
     // runner to land, which delayed the cue by 1-4 s)
     df_say( "S6_CARD_RICH" );
+    df_s6_release_cue();
     df_s6_trail_fly( "richtofen_sparks", from, pos );
     df_debug_print( "DF: s6 the key card discharged on the table, its charge flew to the landing spot" );
 }
 
-// A trail of `fxname` flies from 20 over `from` to 200 over `pos` (1-4 s by distance) and goes. Blocking. The ent
-// is kept in level.df_s6_arrival_fx while it flies (owner 2026-09-23: a skip mid-flight left it hanging), so the
-// skip cleanup (df_s6_cleanup -> df_s6_arrival_fx_stop) removes it.
+// owner 2026-09-25: the release is an event the whole team notices wherever it stands: a screen shake at every
+// player's own origin (earthquake is positional, so one per player = map wide) and a loud crack played 2D to every
+// player (playsoundtoplayer = full volume at any distance). Richtofen: Avogadro's thunder crack (zmb_avogadro_spawn_3d,
+// _zm_ai_avogadro.gsc:810); Maxis: the fire whoosh (zmb_phdflop_explo), since the Avogadro crack is Richtofen only
+// on this map (owner rule "fire only on Maxis"). No persistent marker.
+df_s6_release_cue()
+{
+    alias = "zmb_avogadro_spawn_3d";
+
+    if ( df_s6_is_maxis() )
+        alias = "zmb_phdflop_explo";
+
+    foreach ( player in getplayers() )
+    {
+        earthquake( 0.35, 2, player.origin, 400 );
+        player playsoundtoplayer( alias, player );
+    }
+
+    df_debug_print( "DF: s6 release: shake + " + alias + " for every player" );
+}
+
+// A trail of `fxname` rises from 20 over `from` (the table under the tower) to 1800 over it, then curves down to
+// 200 over `pos` (the landing spot) along a quadratic curve whose control point sits over `pos` at the apex height
+// (it leaves the top level and dives), so it can be followed from anywhere on the map (owner 2026-09-25: it used
+// to fly straight and low, 1-4 s). Blocking: 1.5 s up + 2-5 s down by distance. The ent is kept in
+// level.df_s6_arrival_fx while it flies (owner 2026-09-23: a skip mid-flight left it hanging), so the skip
+// cleanup (df_s6_cleanup -> df_s6_arrival_fx_stop) removes it.
 df_s6_trail_fly( fxname, from, pos )
 {
     trail = df_fx_loop( fxname, from + ( 0, 0, 20 ) );
@@ -2022,15 +2048,34 @@ df_s6_trail_fly( fxname, from, pos )
     level.df_s6_arrival_fx = [];
     level.df_s6_arrival_fx[0] = trail;
     wait 0.15;
-    t = distance( from, pos ) / 1500;
 
-    if ( t < 1 )
-        t = 1;
+    apex = from + ( 0, 0, 1800 );
+    land = pos + ( 0, 0, 200 );
+    ctrl = ( land[0], land[1], apex[2] );
+    trail moveto( apex, 1.5 );
+    wait 1.5;
 
-    if ( t > 4 )
-        t = 4;
+    t = distance( apex, land ) / 1200;
 
-    trail moveto( pos + ( 0, 0, 200 ), t );
-    wait( t );
+    if ( t < 2 )
+        t = 2;
+
+    if ( t > 5 )
+        t = 5;
+
+    segs = 10;
+    dt = t / segs;
+
+    for ( i = 1; i <= segs; i++ )
+    {
+        if ( !isdefined( trail ) )
+            return;
+
+        u = i / segs;
+        p = apex * ( ( 1 - u ) * ( 1 - u ) ) + ctrl * ( 2 * ( 1 - u ) * u ) + land * ( u * u );
+        trail moveto( p, dt );
+        wait( dt );
+    }
+
     df_s6_arrival_fx_stop();
 }

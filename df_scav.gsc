@@ -172,7 +172,7 @@ df_scav_disconnect_watch()
 // ------------------------------------------------------------- kinds ----
 
 // Kind -> HUD icon (tools/assets/shaders_zm_transit.txt). Every kind the acts pass (grep df_scav_carry_set):
-// parts (Step 2 relay parts, team count; item part_a / part_b / receiver picks the notice icon), relay (Step 4
+// parts (Step 3 relay parts, team count; item part_a / part_b / receiver picks the notice icon), relay (Step 4
 // carry), card (R1 key card), battery (R1, n/4), spool (R2, n/lamps), skull and ember (M1 / M2, 1/1),
 // orb (Step 6, charges). Unknown kind -> the powerbox.
 df_scav_icon( kind )

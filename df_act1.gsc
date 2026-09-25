@@ -4,9 +4,11 @@
 //                            signal light (DF_SIGNAL) flashes those numbers in the order to press (spec 5, Step 1;
 //                            blinks since 2026-09-11, no phone and no tones). Solved: the COIL (kind "receiver",
 //                            p6_zm_buildable_jetgun_wires) arrives by lightning at DF_COIL_DROP: the 3rd part.
-//   Step 2 "Salvage":        two parts in the fog (radio = part_a, the sq transceiver; mast = part_b, the fence end
-//                            post) + the coil, built into a relay on the bus roof.
-//   Step 3 "Ride the Line":  the relay survives ONE full bus stop with power on while zombies chew it.
+//   Step 3 "Ride the Line":  (owner 2026-09-25, design audit 2.1: the old Step 2 "Salvage" is merged in) two parts in
+//                            the fog (radio = part_a, the sq transceiver; mast = part_b, the fence end post) + the
+//                            coil, built into a relay on the bus roof; then the relay survives ONE full bus stop
+//                            with power on while zombies chew it. There is no step2 key any more (`!df goto step2`
+//                            is an alias of step3).
 //   Step 4 "Plug In":        carry the locked relay to the table under the tower; power state locks the side.
 //
 // History below: the passes as they were written (phone, screens and lattice are gone; the summary above is current).
@@ -34,9 +36,10 @@
 // level.df_socket) replaces the wall breaker panel; the plugged relay stands on its slot 0, the key card (R1)
 // and the orb (Steps 6/7) take slots 1 and 2. See tools/polish_table.md.
 // Audit pass (B-act1, 2026-09-08, tools/audit_design.md + owner rule "everything physical exists from boot"):
-//   - table and the fog parts spawn at boot (df_a1_boot_items); Step 2 / Step 4 only arm them;
+//   - table and the fog parts spawn at boot (df_a1_boot_items); Step 3 / Step 4 only arm them;
 //   - Step 1 phone rings every 45 s until first listened; solving drops the RECEIVER (ITEM_RECEIVER);
-//   - Step 2 needs every part (df_a1_parts_total, notices n/total); a destroyed relay drops them on the roof;
+//   - the build (Step 2 then, Step 3 since 2026-09-25) needs every part (df_a1_parts_total, notices n/total);
+//     a destroyed relay drops them on the roof;
 //   - Step 3 is ONE stop, swing 60, relay hp 800 (audit #9, section 3);
 //   - Step 4 table glows blue (power on) / orange (off) while a carrier is within 400 (audit section 4).
 //   See tools/audit_B.md.
@@ -55,7 +58,6 @@
 df_act1_init()
 {
     df_register_step( "step1", ::df_step1_run, undefined );
-    df_register_step( "step2", ::df_step2_run, ::df_step2_setup );
     df_register_step( "step3", ::df_step3_run, ::df_step3_setup );
     df_register_step( "step4", ::df_step4_run, ::df_step4_setup );
 
@@ -70,7 +72,7 @@ df_act1_init()
 // AVAILABLE cue glint points (df_steps::df_step_focus, art audit change 2) for the objects that exist from boot:
 // Step 1 = the far signal light (DF_SIGNAL, else DF_PHONE_1), Step 4 = the table under the tower (core's glint lives
 // until the relay is lifted off the roof = df_touch; from then on df_step4_socket's own marker takes over, so
-// the table is never double-lit). Step 2 registers none (every part already glints); Step 3's object rides the
+// the table is never double-lit). Step 3 registers none: every part already glints, and its relay rides the
 // bus, so it gets its own linked glint instead (df_a1_relay_glint_set). Registered at init: the glint shows as
 // soon as the step is available and a focus is known.
 df_a1_focus_boot()
@@ -92,7 +94,7 @@ df_a1_focus_boot()
 
 // Owner rule (2026-09-08): everything physical exists from game start so players can look at it, pick it
 // up and get hints before any step is done. This spawns the TABLE under the tower (Step 4 only arms it) and
-// the two fog parts (Step 2 only arms the roof build). The coil is the one thing that appears later: it
+// the two fog parts (Step 3 only arms the roof build). The coil is the one thing that appears later: it
 // arrives when Step 1 is solved.
 df_a1_boot_items()
 {
@@ -223,11 +225,11 @@ df_step1_run()
 // Step 1 solved (or skipped): the COIL arrives (audit section 9, key ITEM_RECEIVER): the relay's last part,
 // struck down by the shared item arrival (df_item_arrival) at DF_COIL_DROP (DF_PHONE_1 when that anchor is
 // missing) and taken like the fog parts. Model kind "receiver" (df_coords registry: the jet gun wires). Cue: the
-// switch flip + a blue spark burst. Step 2 registers no df_step_focus: every part, this one included, already
+// switch flip + a blue spark burst. Step 3 registers no df_step_focus: every part, this one included, already
 // wears the same glint (core: AVAILABLE sound only). Idempotent.
 df_a1_receiver_drop()
 {
-    if ( df_is_done( "step2" ) || ( isdefined( level.df_parts ) && isdefined( level.df_parts[df_a1_receiver_idx()] ) ) )
+    if ( df_is_done( "step3" ) || isdefined( level.df_relay ) || ( isdefined( level.df_parts ) && isdefined( level.df_parts[df_a1_receiver_idx()] ) ) )
         return;
 
     df_a1_parts_boot();
@@ -270,8 +272,8 @@ df_step1_hide_prompts()
     }
 }
 
-// "!df goto" past this step: the pipes stay, their lights go; the coil still drops (Step 2 needs it; a goto
-// past Step 2 deletes it again in df_step2_setup).
+// "!df goto" past this step: the pipes stay, their lights go; the coil still drops (Step 3 needs it; a goto
+// past Step 3 deletes it again in df_a1_build_setup).
 df_step1_skip_cleanup()
 {
     level endon( "end_game" );
@@ -447,19 +449,26 @@ df_step1_dashboard_cue()
 }
 
 // =========================================================================================
-// STEP 2 - Salvage
+// STEP 3 (part 1) - build the relay on the bus roof (the old Step 2 "Salvage", merged 2026-09-25)
 // =========================================================================================
 
-// The parts already lie in the world (df_a1_parts_boot); this arms the roof build site and ends when the
-// relay is built. Three parts: two from the fog plus the coil that arrived at the end of Step 1.
-// Built: Maxis's canon "build complete" line once at the relay (vox_maxi_build_complete_0, zm_transit.gsc:3326),
-// then D2_DONE and the uniform STEP DONE sting (df_complete).
-df_step2_run()
+// The parts already lie in the world (df_a1_parts_boot); Step 3 arms the roof build site (df_a1_build_phase) and
+// rides once the relay is built. Three parts: two from the fog plus the coil that arrived at the end of Step 1.
+
+// owner 2026-09-25 (design audit 2.1): the build half of Step 3 (was the whole of Step 2). Blocks until the relay
+// stands on the roof. Built: Maxis's canon "build complete" line once at the relay (vox_maxi_build_complete_0,
+// zm_transit.gsc:3326), then D2_DONE and S3_RIDE (the ride's opening); no STEP DONE sting, the step goes on.
+// The ladder speaks the build rungs (S3_BUILD_HINT_n, phase "BUILD" of df_step_dlg_key) until the relay is built.
+df_a1_build_phase()
 {
     level endon( "end_game" );
 
+    if ( isdefined( level.df_relay ) )
+        return;
+
     df_a1_parts_boot();
-    level thread df_step2_roof_site();
+    df_step_phase( "step3", "BUILD" );
+    level thread df_a1_roof_site();
 
     level waittill( "df_relay_built" );
 
@@ -467,7 +476,7 @@ df_step2_run()
         df_vox_once( "vox_maxi_build_complete_0", level.df_relay.origin + ( 0, 0, 30 ) );
 
     df_say( "D2_DONE" );
-    df_complete( "step2" );
+    df_say( "S3_RIDE" );
 }
 
 // Parts the relay needs: 2 fog parts + the receiver (steps audit v2 #7 CUT: was 4; the cornfield-edge part
@@ -484,7 +493,7 @@ df_a1_receiver_idx()
 }
 
 // Boot (owner rule): the two fog parts (radio in the Diner garage, mast in the Farm barn), their glints and
-// triggers exist from game start; a part taken before Step 2 opens still counts (the team inventory is
+// triggers exist from game start; a part taken before Step 3 opens still counts (the team inventory is
 // level-wide). The skip listener starts here for the same reason. Idempotent.
 df_a1_parts_boot()
 {
@@ -494,9 +503,9 @@ df_a1_parts_boot()
     df_coords_refresh_dynamic();
     level.df_parts = [];
     level.df_parts_collected = 0;
-    df_step2_spawn_part( 0, "DF_PART_A", "radio" );
-    df_step2_spawn_part( 1, "DF_PART_B", "mast" );
-    level thread df_step2_skip_cleanup();
+    df_a1_spawn_part( 0, "DF_PART_A", "radio" );
+    df_a1_spawn_part( 1, "DF_PART_B", "mast" );
+    level thread df_a1_parts_skip_cleanup();
 }
 
 // Item kind of part idx: part_a / part_b / receiver (df_scav notice icon, df_coords model registry).
@@ -512,7 +521,7 @@ df_a1_part_kind( idx )
 }
 
 // One part at its anchor (df_coord key): see df_a1_part_place.
-df_step2_spawn_part( idx, key, name )
+df_a1_spawn_part( idx, key, name )
 {
     c = df_coord( key );
     df_a1_part_place( idx, c.origin, c.angles[1], name );
@@ -540,7 +549,7 @@ df_a1_part_place( idx, pos, yaw, name )
 df_part_watch( part )
 {
     level endon( "end_game" );
-    level endon( "df_skip_step2" );
+    level endon( "df_skip_step3" );
 
     while ( true )
     {
@@ -549,7 +558,7 @@ df_part_watch( part )
         if ( !isplayer( who ) || !is_player_valid( who ) )
             continue;
 
-        // audit v3 #2: taking a part is not the unknown of Step 2 (the roof is), so it does not touch the ladder;
+        // audit v3 #2: taking a part is not the unknown of the build (the roof is), so it does not touch the ladder;
         // the touch is the build attempt on the roof
         df_a1_part_taken( part, who, "taken" );
         return;
@@ -590,11 +599,10 @@ df_a1_part_taken( part, who, verb )
 // the bus's own roof trigger (level.roof_trig, kept on the bus by vanilla) and draw our own prompt.
 // Building is the vanilla 3 s build hold (df_a1_build_hold_on: builder hands, loop sound, dust, no bar);
 // the df_prompt "Hold to build" is shown only while nobody is building.
-df_step2_roof_site()
+df_a1_roof_site()
 {
     level endon( "end_game" );
-    level endon( "df_skip_step2" );
-    level endon( "df_skip_step3" ); // also started by a broken relay in Step 3
+    level endon( "df_skip_step3" );
 
     while ( !isdefined( level.the_bus ) || !isdefined( level.roof_trig ) )
         wait 1;
@@ -618,7 +626,7 @@ df_step2_roof_site()
             if ( !on_roof || !player usebuttonpressed() )
                 continue;
 
-            df_touch( "step2" );
+            df_touch( "step3" );
             player df_act1_prompt( 0, undefined, "roof_build" );
 
             if ( !player df_a1_build_hold_on( level.roof_trig, undefined, 260, 3 ) )
@@ -627,7 +635,7 @@ df_step2_roof_site()
             foreach ( p in getplayers() )
                 p df_act1_prompt( 0, undefined, "roof_build" );
 
-            df_step2_build_relay();
+            df_a1_build_relay();
             level notify( "df_relay_built" );
             return;
         }
@@ -638,7 +646,7 @@ df_step2_roof_site()
 // surface under the roof trigger, riding the bus. Cues: assemble dust (building_dust, _zm_buildables.gsc:28),
 // one blue burst (zm_transit_fx.gsc:123), a PROGRESS TICK (df_cue_tick: zmb_buildable_piece_add + small burst);
 // the build-complete sound is played on the builder by the build hold, the STEP DONE sting by df_complete.
-df_step2_build_relay()
+df_a1_build_relay()
 {
     bus = level.the_bus;
     top = level.roof_trig.origin;
@@ -651,6 +659,7 @@ df_step2_build_relay()
     relay = df_a1_relay_spawn( pos, bus.angles[1] ); // upright, front along the bus
     relay linkto( bus );
     level.df_relay = relay;
+    df_step_phase( "step3", undefined ); // owner 2026-09-25: the build is over, the ladder speaks the ride again
 
     level.df_relay_fx = undefined;
     level.df_relay_hp = 800; // audit section 3 (was 1000): with one stop the chewing must be able to matter
@@ -674,7 +683,7 @@ df_step2_build_relay()
 
 // "!df goto" past this step: fabricate the relay without collecting parts; whatever parts still lie in
 // the world (boot parts, the receiver dropped by the Step 1 skip) go.
-df_step2_setup()
+df_a1_build_setup()
 {
     while ( !isdefined( level.the_bus ) || !isdefined( level.roof_trig ) )
         wait 0.05;
@@ -683,15 +692,15 @@ df_step2_setup()
     df_scav_carry_clear( "parts" );
 
     if ( !isdefined( level.df_relay ) )
-        df_step2_build_relay();
+        df_a1_build_relay();
 }
 
 // "!df goto" past this step: parts, glints, triggers, prompts and icons go (started at boot with the parts).
-df_step2_skip_cleanup()
+df_a1_parts_skip_cleanup()
 {
     level endon( "end_game" );
     level endon( "df_relay_built" );
-    level waittill( "df_skip_step2" );
+    level waittill( "df_skip_step3" );
 
     df_a1_parts_delete();
 
@@ -746,6 +755,9 @@ df_step3_run()
     level.df_segments_done = 0;
     level thread df_step3_nopower_watch();
     level thread df_step3_skip_cleanup();
+
+    // owner 2026-09-25 (design audit 2.1): the old Step 2: build the relay on the roof first (no-op when it stands)
+    df_a1_build_phase();
 
     // the relay implies a bus, but "!df goto step3" can get here before it exists
     while ( !isdefined( level.the_bus ) )
@@ -808,7 +820,7 @@ df_a1_stop_name()
 // "!df goto" past this step: relay exists and is locked
 df_step3_setup()
 {
-    df_step2_setup();
+    df_a1_build_setup();
     level.df_relay_locked = 1;
     level.df_segments_done = df_a1_stops_needed();
     df_relay_fx_set( "locked" );
@@ -1316,7 +1328,8 @@ df_step3_break_relay()
     df_step3_roof_part( 1, pos - f * 50, "mast" );
     df_step3_roof_part( df_a1_receiver_idx(), pos + r * 40, "coil" );
 
-    level thread df_step2_roof_site();
+    df_step_phase( "step3", "BUILD" ); // owner 2026-09-25: a rebuild is the build phase again for the ladder
+    level thread df_a1_roof_site();
 }
 
 // One part lying on the roof (df_model part_x / receiver), glint above it, both riding the bus.
@@ -1960,9 +1973,9 @@ df_a1_table_preview( side )
 
 // The relay is plugged: side from the power flag, socket light, antenna at the socket, side burst (blue / fire), a PROGRESS
 // TICK click (df_cue_tick) and the switch-on sound (zmb_turn_on, zm_transit_power.gsc:60), 15 s of tower
-// visuals in the side's colour, the lock line and the canon first-contact voice once (df_vox_once, 3D at the
-// table): Richtofen vox_zmba_sidequest_power_on_0 (zm_transit_sq.gsc:1043) or Maxis vox_maxi_power_off_0
-// (zm_transit_sq.gsc:599). The STEP DONE sting is df_complete's (df_step4_run). The wrong-side preview
+// visuals in the side's colour, the lock line and the canon first-contact voice once (df_vox_once): Richtofen
+// vox_zmba_sidequest_power_on_0 (zm_transit_sq.gsc:1043, 2D to Stuhlinger only) or Maxis vox_maxi_power_off_0
+// (zm_transit_sq.gsc:599, 3D at the table). The STEP DONE sting is df_complete's (df_step4_run). The wrong-side preview
 // (df_a1_table_preview) stays silent on purpose: the colour is the whole message.
 df_step4_plug( who )
 {
@@ -1992,7 +2005,7 @@ df_step4_plug( who )
     if ( side == "rich" )
     {
         df_say( "D4_RICH_LOCK" );
-        df_vox_once( "vox_zmba_sidequest_power_on_0", level.df_socket.origin + ( 0, 0, 40 ) );
+        df_vox_once( "vox_zmba_sidequest_power_on_0", undefined ); // owner 2026-09-25: 2D to Stuhlinger only (was 3D at the table, heard by all)
     }
     else
     {
