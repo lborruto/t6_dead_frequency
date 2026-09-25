@@ -151,6 +151,17 @@ df_place_follow()
     self.df_place_ent.angles = ( self.df_place_start_ang[0], yaw, self.df_place_start_ang[2] );
 }
 
+// self = player. True only on the frame button `slot` goes from up to down.
+df_place_edge( slot, down )
+{
+    if ( !isdefined( self.df_place_btn ) )
+        self.df_place_btn = [];
+
+    was = is_true( self.df_place_btn[slot] );
+    self.df_place_btn[slot] = down;
+    return down && !was;
+}
+
 // self = player. Turn, raise, snap mode, reset. Sprint held = fine steps.
 df_place_buttons()
 {
@@ -163,16 +174,18 @@ df_place_buttons()
         lift_step = 1;
     }
 
-    if ( self actionslotonebuttonpressed() )
+    // owner 2026-09-25: one step per PRESS (edge), not per frame while held: a held slot (or one that reads as held,
+    // e.g. with claymores or equipment on it) spun the prop at full speed and made it impossible to aim
+    if ( self df_place_edge( 1, self actionslotonebuttonpressed() ) )
         self.df_place_yaw -= yaw_step;
 
-    if ( self actionslottwobuttonpressed() )
+    if ( self df_place_edge( 2, self actionslottwobuttonpressed() ) )
         self.df_place_yaw += yaw_step;
 
-    if ( self actionslotthreebuttonpressed() )
+    if ( self df_place_edge( 3, self actionslotthreebuttonpressed() ) )
         self.df_place_lift -= lift_step;
 
-    if ( self actionslotfourbuttonpressed() )
+    if ( self df_place_edge( 4, self actionslotfourbuttonpressed() ) )
         self.df_place_lift += lift_step;
 
     if ( self usebuttonpressed() )
