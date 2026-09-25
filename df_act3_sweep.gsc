@@ -62,6 +62,7 @@ df_s5_run()
     level thread df_s5_skip_cleanup();
     level thread df_s5_relight_loop();
     level thread df_s5_debug_hook();
+    level thread df_s5_claymore_watch();
 
     foreach ( lamp in level.df_s5_lamps )
         df_s5_lamp_set( lamp, 0, 1 );
@@ -201,6 +202,50 @@ df_s5_lit_near( pos )
     return best;
 }
 
+// owner 2026-09-25: the game reports a claymore kill as weapon "none", MOD_GRENADE_SPLASH (owner's console), the same as a
+// thrown grenade. So the step watches the planted claymores (player.claymores, _zm_weap_claymore.gsc): a lamp
+// remembers the last moment a claymore stood within the kill radius of it; a splash kill there within 1.5 s of
+// that claymore disappearing (it exploded) is the claymore's.
+df_s5_claymore_watch()
+{
+    level endon( "end_game" );
+    level endon( "df_skip_step5" );
+    level endon( "df_s5_stop" );
+
+    r2 = level.df_s5_kill_radius * level.df_s5_kill_radius;
+
+    while ( true )
+    {
+        wait 0.1;
+
+        foreach ( player in getplayers() )
+        {
+            if ( !isdefined( player.claymores ) )
+                continue;
+
+            foreach ( clay in player.claymores )
+            {
+                if ( !isdefined( clay ) )
+                    continue;
+
+                foreach ( lamp in level.df_s5_lamps )
+                {
+                    if ( !is_true( lamp.df_s5_dark ) && distance2dsquared( clay.origin, lamp.origin ) < r2 )
+                        lamp.df_s5_clay_ms = gettime();
+                }
+            }
+        }
+    }
+}
+
+df_s5_claymore_blast( lamp, mod )
+{
+    if ( mod != "MOD_GRENADE_SPLASH" && mod != "MOD_EXPLOSIVE" )
+        return false;
+
+    return isdefined( lamp.df_s5_clay_ms ) && gettime() - lamp.df_s5_clay_ms < 1500;
+}
+
 // Only a claymore puts a lamp out: the dead set it off, not the player's hand (LO_NOTHAND_MAXIS once otherwise).
 df_s5_on_zombie_death( zombie )
 {
@@ -222,7 +267,7 @@ df_s5_on_zombie_death( zombie )
     // owner 2026-09-25: the console says what killed each zombie by a humming lamp, so a refused kill can be read
     df_debug_print( "DF: s5 kill by " + lamp.name + " at " + int( distance2d( zombie.origin, lamp.origin ) ) + ": weapon " + weapon + ", mod " + mod );
 
-    if ( !issubstr( weapon, "claymore" ) )
+    if ( !issubstr( weapon, "claymore" ) && !df_s5_claymore_blast( lamp, mod ) )
     {
         if ( !is_true( level.df_s5_nothand_said ) )
         {
