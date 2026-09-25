@@ -66,6 +66,8 @@ df_s5_run()
         df_s5_lamp_set( lamp, 0, 1 );
 
     df_death_listen_add( "s5", ::df_s5_on_zombie_death );
+    level.df_lamp_safe_lamps = level.df_s5_lamps; // owner 2026-09-25: no denizens within 320 of the M3 lamps (df_lamp_step_safe)
+    level.df_lamp_safe_radius = 320;
     df_step_focus( "step5", df_lamp_bulb_pos( level.df_s5_lamps[0] ) );
     df_debug_print( "DF: s5 lights out: " + level.df_s5_lamps.size + " lamps hum with his power, a claymore kill within " + level.df_s5_kill_radius + " puts one out, " + level.df_s5_need + " dark to win" );
 
@@ -101,6 +103,7 @@ df_s5_setup()
 
 df_s5_stop()
 {
+    level.df_lamp_safe_lamps = undefined;
     df_death_listen_remove( "s5" );
     level notify( "df_s5_stop" );
 }
@@ -110,6 +113,7 @@ df_s5_skip_cleanup()
     level endon( "end_game" );
     level endon( "df_s5_stop" );
     level waittill( "df_skip_step5" );
+    level.df_lamp_safe_lamps = undefined;
     df_death_listen_remove( "s5" );
 }
 

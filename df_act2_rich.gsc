@@ -1904,6 +1904,8 @@ df_r2_run()
     level endon( "end_game" );
 
     df_r2_pick_lamps();
+    level.df_lamp_safe_lamps = level.df_r2_lamps; // owner 2026-09-25: no denizens within 320 of R2's lamps (df_lamp_step_safe)
+    level.df_lamp_safe_radius = 320;
     level.df_r2_target = df_scaled_step( "lamp_souls", "r2" ); // B12: the count snapshotted when R2 opened
     level.df_r2_spools = 0;
     level.df_r2_spools_need = level.df_r2_lamps.size;
@@ -1946,6 +1948,7 @@ df_r2_run()
     // canon "the device is complete" in Richtofen's mouth (zm_transit_sq.gsc:1120 richtofensay), 2D to
     // Stuhlinger, once per game (df_vox_once threads the helper itself)
     df_vox_once( "vox_zmba_sidequest_jet_complete_0" );
+    level.df_lamp_safe_lamps = undefined;
     df_complete( "r2" );
 }
 
@@ -2343,6 +2346,7 @@ df_r2_skip_cleanup()
     level endon( "df_r2_done" );
     level waittill( "df_skip_r2" );
     df_death_listen_remove( "r2" );
+    level.df_lamp_safe_lamps = undefined;
 
     foreach ( lamp in level.df_r2_lamps )
         df_r2_beam_set( lamp, 0 );

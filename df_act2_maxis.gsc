@@ -222,13 +222,39 @@ df_m1_hooks_install()
 // stand in Town since 2026-09-23, outside the fog: denizens rarely reach them, the rule is harmless there.
 df_m1_protected( pos )
 {
+    // owner 2026-09-25: the lamp steps (Richtofen R2, Maxis M3): no denizen near their lamps, power on or off
+    if ( df_lamp_step_safe( pos ) )
+        return true;
+
     // owner 2026-09-23: near ANY of the four graves while M2 runs, lit or not (the walk to light one was a denizen trap),
     // and near the cabin hearth while Step 6 is open (the Jet Gun draw there takes the whole gun)
     if ( is_true( level.df_m2_armed ) )
         return df_m2_grave_near( pos, 400 );
 
-    if ( isdefined( level.df_step_avail_round ) && isdefined( level.df_step_avail_round["step6"] ) && !df_is_done( "step6" ) )
-        return df_m2_hearth_near( pos, 400 );
+    if ( isdefined( level.df_side ) && level.df_side == "maxis" && isdefined( level.df_step_avail_round ) && isdefined( level.df_step_avail_round["step6"] ) && !df_is_done( "step6" ) )
+        return df_m2_hearth_near( pos, 400 ); // owner 2026-09-25: Maxis only (the hooks are installed on both sides now)
+
+    return false;
+}
+
+// owner 2026-09-25: during a lamp step (R2 / M3, level.df_lamp_safe_lamps set by those steps) a circle of
+// level.df_lamp_safe_radius (320: vanilla's powered-lamp circle is 256, _zm_transit.gsc player_entered_safety_light)
+// around each of the step's lamps is denizen-free whatever the power.
+df_lamp_step_safe( pos )
+{
+    if ( !isdefined( level.df_lamp_safe_lamps ) || !isdefined( pos ) )
+        return false;
+
+    r = 320;
+
+    if ( isdefined( level.df_lamp_safe_radius ) )
+        r = level.df_lamp_safe_radius;
+
+    foreach ( lamp in level.df_lamp_safe_lamps )
+    {
+        if ( isdefined( lamp ) && isdefined( lamp.origin ) && distance2dsquared( pos, lamp.origin ) < r * r )
+            return true;
+    }
 
     return false;
 }
@@ -1622,6 +1648,7 @@ df_m2_boot()
     wait 0.1;
     df_m2_place_braziers();
     level thread df_m2_debug_restage_hook();
+    df_m1_hooks_install(); // owner 2026-09-25: both sides, for the lamp-step safe circle (df_lamp_step_safe); vanilla otherwise
 }
 
 // Arms the braziers: brazier 1 is lit (the AVAILABLE focus sits on its rim), the ember and the kills
