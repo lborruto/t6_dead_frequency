@@ -301,14 +301,14 @@ df_m1_in_screecher_zone( player )
 // ---- latch -----------------------------------------------------------------------------
 
 // Blocks until a ridden player reaches the table (or "!df fire m1_latch"); the denizen dies there through
-// the vanilla death path (ash fx, weapon restored to the player). Audit #6: the tower's safety box is taken
-// out of level.safety_volumes meanwhile (df_act3_hold df_s7_tower_safety_volume) so denizens rise AT the tower.
+// the vanilla death path (ash fx, weapon restored to the player). Owner 2026-09-25: the tower keeps its vanilla
+// safety box (audit #6 had removed it so denizens rose AT the tower and latched there: the ride was free). A
+// denizen has to be picked up in the fog and carried in; df_m1_should_runaway keeps a rider on through the box.
 df_m1_wait_latch()
 {
     level endon( "end_game" );
 
     level.df_m1_mode = "latch";
-    df_s7_tower_safety_volume( 0 );
     level thread df_m1_latch_poll();
     level waittill( "df_m1_latched", den, who );
     level notify( "df_m1_latch_poll_stop" );

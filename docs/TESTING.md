@@ -222,8 +222,8 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
 
 ## 4M. Maxis side (power OFF): `!df goto m1` in a fresh game (the goto locks the side)
 **M1 The Cold Room**. Skips: `!df fire m1_ride` (ride cue), `m1_latch`, `m1_kills`, `m1_skull` (the hand in front of you; fire again = on the table).
-- `!df goto m1`: console `m1 waiting for a denizen latched within 300 of the table` then `s7 tower safety volumes
-  removed: N`. Denizens now rise AT the tower in the fog. Glint over the table.
+- `!df goto m1`: console `m1 waiting for a denizen latched within 300 of the table`. The tower keeps its vanilla
+  safety box: no denizen rises or latches at the tower; get one on your head in the fog and walk it in.
 - Let a denizen jump on you anywhere: the portal-open sound, Maxis's M1_EVENT line, console `m1 first ride:
   table cue + event line`. No light. Only the first time.
 - Walk to the table with it: it dies in ash, `m1 denizen latched at the table`, `m1 portal at 7623 -457 ...`: the hole
