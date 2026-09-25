@@ -218,7 +218,12 @@ df_r1_run()
     df_r1_power_penalty_start(); // B16: the lock branch of the power-OFF penalty needs it during R1
 
     foreach ( fuse in level.df_fuses )
+    {
+        if ( !isdefined( fuse.trig ) )
+            fuse.trig = df_spawn_use_trigger( fuse.origin, 56, 90, "" );
+
         level thread df_fuse_watch( fuse );
+    }
 
     df_r1_arm( 1 );
     // audit art R1.2: "the signal went to the farm": one trail from the table to the barn when R1 opens
@@ -314,7 +319,8 @@ df_r1_spawn_fuses()
         fuse.model = spawn( "script_model", c.origin );
         fuse.model setmodel( df_model( "fuse" ) );
         fuse.model.angles = c.angles;
-        fuse.trig = df_spawn_use_trigger( c.origin, 56, 90, "" );
+        // owner 2026-09-25: no use trigger until R1 opens (df_r1_run): a blank trigger 43 from the Farm claymore
+        // wall buy (8827 -5838) stole its "buy" press on the Maxis side
         level.df_fuses[i] = fuse;
     }
 

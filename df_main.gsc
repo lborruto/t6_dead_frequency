@@ -166,6 +166,10 @@ df_debug_cmd_quest( sub, arg )
             self df_debug_status();
             return 1;
 
+        case "who":
+            self df_debug_who();
+            return 1;
+
         case "goto":
             if ( !isdefined( arg ) )
             {
@@ -1164,3 +1168,31 @@ df_debug_avogadro()
 // Vanilla tower notifies, kept for reference (zm_transit_classic.csc): "sq_kfx" kills the runner
 // loop, "sqkl" kills the lightning loop, "sqm"/"sqr" start orange/blue runners + lightning, but
 // "sqr" only ever plays once per game. We use our own df_tower_fx_start/stop instead.
+
+// owner 2026-09-25: "!df who": why can this player not use anything (wall buy, equipment pickup)? Prints the
+// vanilla use blockers and our carry flags, and every use trigger of ours within 200.
+df_debug_who()
+{
+    self df_out( "DF who: is_drinking " + df_who_v( self.is_drinking ) + " | screecher " + isdefined( self.screecher ) + " | laststand " + self maps\mp\zombies\_zm_laststand::player_is_in_laststand() + " | weapon " + self getcurrentweapon() );
+    self df_out( "DF who: relay " + df_who_v( self.df_carrying_relay ) + " | orb " + df_who_v( self.df_orb ) + " | hand " + df_who_v( self.df_skull ) + " | fire hand " + df_who_v( self.df_ember ) + " | battery " + df_who_v( self.df_carrying_bat ) + " | building " + df_who_v( self.df_a1_building ) );
+    n = 0;
+
+    foreach ( trig in getentarray( "trigger_radius_use", "classname" ) )
+    {
+        if ( distancesquared( trig.origin, self.origin ) < 200 * 200 )
+        {
+            n++;
+            self df_out( "DF who: use trigger at " + int( trig.origin[0] ) + " " + int( trig.origin[1] ) + " " + int( trig.origin[2] ) + " (" + int( distance( trig.origin, self.origin ) ) + " away)" );
+        }
+    }
+
+    self df_out( "DF who: " + n + " trigger_radius_use within 200" );
+}
+
+df_who_v( v )
+{
+    if ( !isdefined( v ) )
+        return "-";
+
+    return "" + v;
+}
