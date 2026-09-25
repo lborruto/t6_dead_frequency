@@ -2026,12 +2026,12 @@ df_m2_zone_fx( b, on )
     if ( isdefined( g ) )
         b.zone_fx[b.zone_fx.size] = g;
 
-    f = df_fx_loop( df_m2_small_fire_fx(), b.zone + ( 0, 0, 2 ) );
+    f = df_fx_loop( "character_fire_death_sm", b.zone + ( 0, 0, 2 ) ); // the small flame marks the zone (the big fire is the grave's)
 
     if ( isdefined( f ) )
     {
         b.zone_fx[b.zone_fx.size] = f;
-        level thread df_m2_flame_keep( f );
+        level thread df_m2_flame_keep( f, "character_fire_death_sm" );
     }
 }
 
@@ -2191,14 +2191,17 @@ df_m2_set_stage( b, stage )
 
     df_m2_crackle_start( b );
 
-    // owner 2026-09-23: one small flame only, no smoke or ash; `set df_m2_fire_fx <fx key>` swaps it at the next lighting
-    f = df_fx_loop( df_m2_small_fire_fx(), top );
+    // owner 2026-09-25: the graves stand outside the map now: a LARGE fire when lit, seen from Town
+    // (`set df_m2_fire_fx <fx key>` swaps it at the next lighting)
+    f = df_fx_loop( df_m2_small_fire_fx(), top ); // a looping fire: no replay needed (df_m2_flame_keep would stack it)
 
     if ( isdefined( f ) )
-    {
         b.fx[b.fx.size] = f;
-        level thread df_m2_flame_keep( f );
-    }
+
+    g = df_fx_loop( "fx_zmb_tranzit_fire_med", top );
+
+    if ( isdefined( g ) )
+        b.fx[b.fx.size] = g;
 }
 
 // Low fire crackle on a lit brazier: zmb_fire_loop, the loop vanilla puts on a burning zombie
@@ -2689,10 +2692,7 @@ df_m2_soul( from, b )
 
     // owner 2026-09-25: the kill counted: the red soul trail flies into the zone's flame (you see it land where you stand) and red
     // embers rise off the body, as in the M1 woods; no fire burst
-    to = df_m2_ash_pos( b );
-
-    if ( isdefined( b.zone ) )
-        to = b.zone + ( 0, 0, 20 );
+    to = df_m2_ash_pos( b ); // owner 2026-09-25: from the corpse to the tombstone itself
 
     df_snd_near( "evt_player_swiped", from, 700 );
     df_fx_burst( "fx_zmb_ash_rising_md", from, 3 );
@@ -2970,7 +2970,7 @@ df_m2_small_fire_fx()
     fire_fx = getdvar( "df_m2_fire_fx" );
 
     if ( !isdefined( fire_fx ) || fire_fx == "" )
-        fire_fx = "character_fire_death_sm";
+        fire_fx = "fx_zmb_tranzit_fire_lrg"; // owner 2026-09-25: large, the graves are outside the map
 
     return fire_fx;
 }

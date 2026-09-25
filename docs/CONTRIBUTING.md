@@ -107,14 +107,24 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   Avogadro entity = R1 counts as captured), R2 115 on the Line (hungry lamps, Galvaknuckle punch, spools; the set
   settles filled at R2 end), and the Richtofen side rules (Avogadro every round except while Step 6 is open, turrets
   without turbine, the power-OFF penalty, which runs from R1 open so its refill-lock branch works).
-- `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt
-  in Nacht at the farthest of three rising spots (DF_NACHT_SPAWN_1..3, never twice in a row), the plain HAND, code kind `skull`, left on the table at the fire hand's
-  pose), M2 Fire and Ash (the same hand taken from the table, cold and harmless until the four graves are ash, then
-  the FIRE HAND: flame + burn on the carrier, set back on the table where it rests burning until Step 6; four graves in Town, kills at a
-  lit grave burning or not, the 90 s cold timer per lit grave, the scorched glows; at completion it exports the ONE
-  Step 6 node, the hunter's cabin fireplace `DF_CABIN_HEARTH`, and warns when nobody has a Jet Gun), and the Maxis
-  side rules (`df_m1_protected`: denizens leave players alone within 400 of any grave while M2 runs and of the cabin
-  fireplace while Step 6 is open; doubled fog spawns; the power-ON penalty, which empties only the fullest lit grave).
+- `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt in
+  the woods behind the hunter's cabin at the farthest of three rising spots (DF_NACHT_SPAWN_1..3, never twice in
+  a row, a no-denizen zone of `level.df_m1_zone_radius`, 1000, around `DF_M1_ZONE` pauses vanilla's own denizens
+  for the whole zone while it runs), the plain HAND, code kind `skull`, floating with a white + lava glow linked
+  to it, left on the table at the fire hand's pose; the tower keeps its vanilla safety box during the latch so a
+  denizen must be carried in from the fog, never rises there for free), M2 Fire and Ash (owner 2026-09-25: the
+  hand M1 left on the table is never picked up again; the four graves stand OUTSIDE the map at their own owner
+  spots, `DF_BRAZIER_1..4`, each with a `trigger_damage`: a bullet on an unlit one (`df_m2_grave_shot_watch`)
+  lights it and opens its KILL ZONE - a circle of `df_m2_zone_radius` (dvar, default 400) on the ground where the
+  shooter stood, `df_m2_zone_of` reads it back for `df_m2_on_zombie_death`; the wave and the denizen-safe rule
+  (`df_m2_grave_near`) key off the zone, not the (unreachable) grave position; the 90 s cold timer clears the
+  zone, not just the count - the same grave must be shot again to open a fresh one; a spent grave's fire flies to
+  the hand on the table (`df_act2_maxis_trail`); the fourth spent grave charges the hand in place,
+  `df_m2_ember_charged` -> `df_m2_ember_return`, no carry, no return trip; at completion it exports the ONE
+  Step 6 node, the hunter's cabin fireplace `DF_CABIN_HEARTH`, and warns when nobody has a Jet Gun), and the Maxis side rules
+  (`df_m1_protected`: denizens leave players alone inside a lit grave's kill zone while M2 runs and near the
+  cabin fireplace while Step 6 is open; doubled fog spawns; the power-ON penalty, which empties only the
+  fullest lit grave).
 - `df_act3_sweep.gsc` - M3 / R3 on Maxis: "Lights Out" (owner 2026-09-25, replaces the old tune + turbine
   Frequency Sweep). Richtofen feeds his power into the set lamps (`df_lamp_set_get`); M3 / R3 opens with all of
   them "filled" (humming with his power). Only the dead may break his light: a lamp goes dark when a zombie dies
@@ -129,14 +139,22 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   `df_register_step`): on Richtofen (`level.df_side == "rich"`) it hands off at once to `df_bo_run` / `df_bo_setup`
   in `df_act3_blackout.gsc` (owner 2026-09-25).
 - `df_act3_blackout.gsc` - M3 / R3 on Richtofen (owner 2026-09-25): "Blackout". Three power switches (kinds
-  `pswitch_body` + `pswitch_lever`, anchors `DF_BLACKOUT_1..3`, vanilla's power switch without its hand) stand ON
-  from boot on both sides; when M3 / R3 opens all three roll OFF at once (Maxis cuts the grid). One press of F
-  within 80 of an OFF switch rolls it back ON (vanilla's own rotateroll -90 / `zmb_switch_flip` / `zmb_turn_on`
-  pattern, `zm_transit_power.gsc:56-60`), refused while the map's main power is off (BO_NOPOWER_RICH, throttled to
-  once per 10 s); each switch turned ON pulls a 20 s sprinting wave at it (the M2 grave pattern: 2 every 2 s, cap
-  8 + 3 per extra player); at every end of round with a switch still OFF, Maxis knocks one lit one back off
-  (BO_OFF_MAXIS). All three ON at once completes the step. No scaling (three switches at every lobby size). Debug:
-  `!df fire blackout_off` / `blackout_on`.
+  `pswitch_body` + `pswitch_lever`, anchors `DF_BLACKOUT_1..3`, each now at its own owner spot instead of side by
+  side under the tower) stand ON from boot on both sides, built exactly like the map's own power switch: the
+  lever's registry offset is `(0 -9 46.25)` on the body, and its ON / OFF pose is the registry angle plus a dvar
+  (`df_bo_pose`, `df_bo_lever_on` default `0 0 0` / `df_bo_lever_off` default `0 0 90` - vanilla itself: OFF =
+  roll 90, ON = roll 0, `zm_transit_power.gsc:56`); absolute angles stored once so `df_bo_set` always rotates TO
+  the pose, never BY a relative amount (repeated relative rotates could drift it off true). `df_bo_respawn`
+  deletes and respawns all three from their anchors at the current dvar poses while keeping each one's ON / OFF
+  state (`!df fire blackout_respawn`, and automatically whenever a `DF_BLACKOUT_n` anchor is tuned, `!df grab` /
+  `!df setpos` included). When M3 / R3 opens all three roll OFF at once (Maxis cuts the grid). One press of F
+  within 80 of an OFF switch rolls it back ON (flip sound, then `zmb_turn_on` plus an electric burst (`elec_md`)
+  and a blue snap (`fx_zmb_tranzit_spark_blue_lg_os`) at the lever - his power coming back), refused while the
+  map's main power is off (BO_NOPOWER_RICH, throttled to once per 10 s); each switch turned ON pulls a 20 s
+  sprinting wave at it (the M2 grave pattern: 2 every 2 s, cap 8 + 3 per extra player); at every end of round
+  with a switch still OFF, Maxis knocks one lit one back off (BO_OFF_MAXIS). All three ON at once completes the
+  step. No scaling (three switches at every lobby size). Debug: `!df fire blackout_off` / `blackout_on` /
+  `blackout_respawn`.
 - `df_act3_vacuum.gsc` - Step 6 Vacuum (the item is a "rock" on screen, `orb` in the code): the opening at the
   table (Richtofen the key card discharges, Maxis the fire hand bursts), the rock's arrival at the drawn landing
   spot, the carry, the draw (the same on both sides: ONE node, the Jet Gun or its upgrade fired at it with the rock
@@ -239,6 +257,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | Command | Effect |
 |---|---|
 | `!df status` | version, side, player count, round, hints state, steps done / available / registered |
+| `!df who` | diagnostic for "why is F doing nothing": prints whether you are drinking / screecher-ridden / in laststand, your current weapon, whether you carry the relay / orb / hand / fire hand / battery, and every `trigger_radius_use` within 200 of you with its distance |
 | `!df goto <step>` | mark previous steps done, make `<step>` available (`step1..step4 r1 r2 m1 m2 step5 step6 step7 finale`). Forward only: a step already done or not ahead of the current one is refused, and so is a step of the other side once a side is locked. A jump that does not finish in 20 s is aborted by a watchdog (the goto flag is cleared). Never deletes the boot props (pipes, table, boxes, graves, the three power switches, lamps); the side lock only ever changes their look (glow / flame), never removes them |
 | `!df side rich` / `!df side maxis` | lock the side by hand; FINAL, a second, different side is refused (`side X is already locked ...`). Re-copies the landing spot drawn at boot into DF_ORB_SPAWN (console `orb spawn for side X: ...`, no new draw) |
 | `!df say <KEY>` | show a dialogue key (`!df say s1_start` works too) |
@@ -261,7 +280,8 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | `!df model` / `!df model <kind> <name>` / `!df orb <name>` | list the model registry / swap a model for props spawned from now on. A swapped model renders only if the map precached it; make it permanent in `df_models_init` (df_coords.gsc) |
 | `!df show [KEY]` / `!df hide` / `!df tp <KEY>` / `!df dump` (= `!df coords`) | preview props with a glint / remove them / teleport to an anchor / print every anchor as `[SPOT]` and every model as `[MODEL]` |
 | `!df lift <KEY> <up>` / `!df move <KEY> <fwd> <right> <up>` / `!df ang <KEY> <pitch> <yaw> <roll>` | tune an anchor live. `!df move DF_TABLE ...` moves the real table |
-| `!df grab <KEY>` / `!df drop` / `!df cancel` / `!df rot <deg>` / `!df up <units>` | live placement: the prop follows your crosshair (fire = place, melee = cancel, ADS = freeze, 1/2 turn, 3/4 raise, F = surface/float, space = reset) |
+| `!df setpos <KEY> <x> <y> <z> [yaw]` | an anchor straight to world coordinates (yaw optional, keeps the anchor's current one if left off); calls `df_coord_override` + `df_coord_tune_done` like every other tune, so a `DF_BLACKOUT_n` or `DF_BRAZIER_n` respawns the real prop too |
+| `!df grab <KEY>` / `!df drop` / `!df cancel` / `!df rot <deg>` / `!df up <units>` | live placement: the prop follows your crosshair (fire = place, melee = cancel, ADS = freeze, 1/2 turn, 3/4 raise, F = surface/float, space = reset); turn and raise move ONE step per PRESS of the slot button (edge-detected, `df_place_edge`), not per frame while it reads as held - a held or stuck action slot used to spin the prop at full speed. A `DF_BLACKOUT_n` or `DF_BRAZIER_n` placed this way moves the real switch / grave along with the anchor (model, clips, flame/lever), not just the anchor |
 | `!df pos` / `!df aim [KEY]` | print where you stand and what you aim at / snap an anchor to the aim point |
 | `!df catalog <keyword|all> [page]` / `!df catalog pick <n> <kind>` / `!df catalog clear` | up to 10 candidate models in a row in front of you; `pick` assigns one to a kind. Needs `--multi` for the full list |
 | `!df sizes <keyword|all> [page]` | list catalogue models with size and zone, no precache needed (`--multi` only) |
@@ -276,7 +296,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | R1 / R2 | `simon_solved` (= `!df simon`), `souls_done` (= `!df souls`), `r1_captured`, `r1_sounds` (click / buzzer / arpeggio), `r1_soul` (ONE box gets its battery without the bus trip), `r1_card` (card arrival fx), `r2_soul` (one soul into the first unfilled lamp), `r2_punch` (every full lamp gives its spool without the knuckles), `r2_spool` (one spool counts as placed) |
 | M1 / M2 | `m1_latch`, `m1_kills`, `m1_cue` (kill cue demo), `m1_burst`, `m1_fog` (toggle bunker fog), `m1_ride` (first-ride cue: table sound + line + hint, no table fx, no denizen needed), `m1_skull` (drop the M1 hand in front of you; fire again to send it to the table), `m2_ember` (you hold the hand now), `m2_light` (light the next unlit grave), `m2_fill` (spend every grave and return the fire hand: a carrier returns it, else it is put back on the table), `m2_restage` (re-skin the graves after `!df model brazier ...`), `m2_penalty` (the power-ON penalty now), `m2_column` (the 20 s smoke column at the tower top) |
 | M3 / R3 (Maxis Lights Out) | `s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again) |
-| M3 / R3 (Richtofen Blackout) | `blackout_off` (all three switches OFF, a running step keeps going), `blackout_on` (all three ON, completes the step if it is open) |
+| M3 / R3 (Richtofen Blackout) | `blackout_off` (all three switches OFF, a running step keeps going), `blackout_on` (all three ON, completes the step if it is open), `blackout_respawn` (deletes and respawns all three switches from their anchors at the current `df_bo_lever_on` / `df_bo_lever_off` poses, keeping each one's ON / OFF state; also fires itself when a `DF_BLACKOUT_n` anchor is tuned) |
 | Step 6 | `s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver`, `s6_restart`, `orb_aura` (next aura candidate) |
 | Step 7 | `s7_start`, `s7_time` (win), `s7_fail`, `s7_hp`, `s7_dmg` (100 dmg; solo 3000 hp: damaged under 900, destroyed at 0, strikes heal in between), `s7_strike` (one charge strike now) |
 | Finale | `finale`, `finale_nostat`, `finale_fx` (~15 s spectacle with a stand-in orb, repeatable), `finale_world` (the permanent world change alone, once), `a2_reward` (the Act 2 reward now, once), `perks` (give every perk + summary) |
@@ -304,8 +324,10 @@ touch. `!df texthints off` silences the ladder (prompts have their own switch).
 | `df_catalog_page` / `df_catalog_pagesize` | - / 30 | precache one page of the full catalogue (`--multi` install) |
 | `df_lamp_glow` | 1 | `0` turns the safety glow in the lamp bulb off (the exploder colour alone) |
 | `df_m2_grave_time` | 90 | seconds a lit M2 grave has to be filled before it goes cold (unlit, count back to 0) |
+| `df_m2_zone_radius` | 400 | radius of a lit M2 grave's kill zone, the circle on the ground where the shooter stood when the grave was lit |
 | `df_m2_fire_fx` | `character_fire_death_sm` | the small M2 flame on every standing grave, replayed every 2 s |
 | `df_m2_hand_fx` | `dog_trail_fire` | the fire hand's own, smaller flame on the table (only once the four graves are ash), replayed every 2 s; read at the next spawn (`character_fire_death_sm` = the old one) |
+| `df_bo_lever_on` / `df_bo_lever_off` | `0 0 0` / `0 0 90` | pitch yaw roll ADDED to the `pswitch_lever` registry angle for the Blackout switch's ON / OFF pose (vanilla: OFF = roll 90, ON = roll 0, `zm_transit_power.gsc:56`); after changing either, `!df fire blackout_respawn` re-poses the three live switches |
 | `df_step_glow_fx` | `fx_zmb_tranzit_key_glint` | the per-step glow on the table relay mast (applies to glows lit after the change) |
 | `df_catalog` | "" | `0` skips precaching `df_catalog_models()` (the registry models are always precached) |
 | `df_scav_slot` | "" (auto) | forces the TAB square slot for a Scavenger version whose row has another length |

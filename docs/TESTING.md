@@ -14,7 +14,7 @@ Every `!df` answer and every quest event lands in the console as `[DF] ...`: pas
 ONE press of F = every pickup and placement (parts, coil, relay, card, battery, spools, the M1 / M2 hand, rock) and every
 pipe kick / grave touch / Blackout switch flip.
 Holds only: build the relay (3 s, vanilla bar + builder hands), power the relay (1.5 s,
-small bar "Powering the relay"), open the frequency (5 s, bar "Opening the frequency"). NO timer on screen anywhere:
+small bar "Powering the relay"), open the frequency (2.5 s, bar "Opening the frequency"). NO timer on screen anywhere:
 every clock is the Pack-a-Punch tick-tock loop on every player plus dry ticks in the last 30 s (every second, doubled
 under 10 s). `set df_hud_timers 1` before loading brings the old top-centre timers back for a test.
 Two switches: `!df hints on|off` = on-screen PUZZLE prompts (the Simon boxes, Jet Gun hints, "Take the hand before
@@ -35,7 +35,10 @@ tower top gets a slow fire pulse instead of the lightning orb, no Avogadro thund
 Step 7 charge strikes or the finale burst.
 Useful cheats: `!god`, `!points`, `!ammo`, `!kill`, `!round <n>`, `!gun jetgun_zm`, `!gun turbine_zm`, `!gun
 tazer_knuckles_zm`; `!df freeze` (ours: every regular zombie stands inert until toggled back, denizens and Avogadro
-untouched, new zombies freeze as they finish rising); `!df jet` / `!df jet watch` (Jet Gun heat values per player).
+untouched, new zombies freeze as they finish rising); `!df jet` / `!df jet watch` (Jet Gun heat values per player);
+`!df who` (why is F doing nothing: prints whether you are drinking / screecher-ridden / in laststand, your current
+weapon, whether you carry the relay / orb / hand / fire hand / battery, and every `trigger_radius_use` within 200
+of you with its distance - paste it when a prompt refuses to show).
 
 ## 0. Load
 - No red error popup. `!df status` -> the version line above, `registered: step1 step2 step3 step4 r1 r2 m1 m2 step5 step6 step7 finale`, `available: step1`.
@@ -265,64 +268,81 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
 - Timeout: `m1 cold room over: timeout`, back at the tower with an ash burst + EMP thump, Maxis's fail line, `m1 failed
   (timeout), back to the latch`.
 
-**M2 Fire and Ash**. Skips: `!df fire m2_ember` (you hold it), `m2_light` (next grave lit), `m2_fill` (all four spent, fire hand returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
-- M2 opens: M2_START ("The hand on the table wants fire..."), `m2 the hand is on the table (charged 0)` and `m2 the
-  fire hand burns on the table: take it (one press), touch any tombstone with it, 5 zombies killed at a lit one make it
-  vanish; all four gone = bring the charged fire hand back to the table`. The M1 hand is swapped for M2's at the SAME
-  pose (never two hands on the table): a plain hand, NO flame yet, with the glint.
-- "Press F to take the hand" within 100 of the table: pickup sound + a short fire-loop puff, notice "Hand" (rock icon),
-  NO fire on your body and NO damage while it is uncharged, `m2 fire hand taken from the table by <you> (5 hp/s while
-  carried; it stays in hand for the whole step)` (the console text is older than the rule: no burn yet), Maxis names it
-  once (ITEM_EMBER_MAXIS "Take the hand to the graves in Town..."). Lamp portal: deny, refused.
-- Within 100 of an unlit grave: "Press F to light the hand". One press: fire whoosh, the grave starts to CRACKLE (its
-  small flame stays), a clink, the hand STAYS in your hand: `m2 brazier_n lit by <you> (1/4 lit, 3 to go, you keep
-  the fire hand)`. Any order, any number lit at once. Console `m2 brazier_n: N spawn structs for its waves`.
-- A lit grave starts its wave (`m2 wave ON at brazier_n`): two sprinting zombies every 2 s from the Town spawn structs
-  within 1200 (N above must not be 0), up to 8 per grave (+3 per extra player). Kill one within 250 of that grave,
-  burning or not, any gun: EVERY counted kill = a fire burst at the body with the swipe sound there, a fire trail into
-  the grave, then the clink at the grave (two different sounds; paste it if one is missing on quick kills), `m2
-  brazier_n 1/5`. A kill at an unlit grave does not count (deny buzz to the killer, console silent); a Galvaknuckle kill
-  at a lit grave does not count either (deny buzz). At 5: `m2 brazier_n spent (the grave stays, its flame is out)
-  (k/4)`: a small burst, the tombstone STAYS standing with its clips, its flame goes out, and a scorched lava
-  glow marks the spot.
-- Cold timer: a lit grave not filled within 90 s (`set df_m2_grave_time <s>` before loading) goes cold: the tick-tock
-  runs for the grave that cools first (dry ticks in its last 30 s), then EMP thump at the grave, M2_GRAVE_COLD, `m2
-  brazier_n went cold (not filled within 90 s): light it again and fill it from 0`, the crackle stops, `m2 wave OFF at
-  brazier_n`.
-- All four gone: NavCard chime + fire flash + a runner from YOU to the tower, it is now the FIRE HAND: a real flame on
-  your body (fx_zmb_tranzit_fire_med) and 5 hp/s burn (never below half health, and not within 300 of a lit grave),
-  M2_EMBER_CHARGED ("...Their fire lives in the hand now. Set it on the table."), `m2 all four graves spent, the fire
-  hand is charged: return it to the table (one press within 150)`. At the table "Press F to set the fire hand on the
-  table": the clink only (no snap), it rests on the table BURNING until Step 6 bursts it (no prompt; the hand's flame is
-  `dog_trail_fire`, `set df_m2_hand_fx <fx>` swaps it), `m2 the hand is on the table (charged 1)`, `m2 the charged fire
-  hand is back in the table`, `step complete m2`, tower cue 12 s (fire pulse at the top, no lightning), `m2 smoke column at
-  the tower top for 20 s`, M2_DONE, act 2 reward at once (`act 2 reward given (maxis)`, Max Ammo, Maxis line, orange
-  runners on the tower). Nobody holding a Jet Gun: A2_JETGUN_MAXIS ("Before the end you will need a Jet Gun").
-  `m2 done: Step 6 node = the cabin hearth at 5430 6874 -24 (one draw: fire until the Jet Gun overheats)`. `!df fire
-  lamps`: `silent 1` on all 8 lamps; a denizen dropping at any lamp opens a portal, no turbine.
-- Galvaknuckles (`!gun tazer_knuckles_zm`) melee within 100 of a grave, or anywhere with the hand in hand (charged or not): deny buzz +
-  "His current will not touch my graves...", console `m2 <you> used the knuckles at the graves: refused`.
-- Denizens leave you alone within 400 of ANY of the four graves (lit or not) while M2 runs.
-- Wrong: paste the `m2 brazier_n ...` lines, the `spawn structs` count, and what killed the zombie.
+**M2 Fire and Ash**. Skips: `!df fire m2_ember` (forces you to hold the hand for debug only: the live game never
+puts it in your hand any more), `m2_light` (next grave lit without a shot), `m2_fill` (all four spent, fire hand
+returned), `!df souls` (same), `m2_column` (smoke replay), `m2_penalty`.
+- M2 opens: M2_START ("Four graves stand beyond the edge of Town. Shoot one and it wakes."), console `m2 the
+  hand waits on the table; shoot a grave outside Town to light it, kill 5 zombies within 400 of where you shot
+  from; four graves = the fire hand`. The hand from M1 stays exactly where it lies on the table: no swap, no
+  glint, no prompt over it - nobody ever picks it up this step.
+- `!df tp DF_BRAZIER_1..4`: the four graves stand OUTSIDE the map, one to each side of Town; you cannot walk up
+  to one. Each carries a `trigger_damage`: ANY bullet on an unlit grave (while M2 is armed) is what lights it.
+- Shoot an unlit grave: fire whoosh, console `m2 brazier_n lit by <you> (1/4 lit, 3 to go, you keep the fire
+  hand)` (the "you keep the fire hand" tail is a leftover string from the old carry rule - ignore it, nothing is
+  in your hand), then `m2 brazier_n shot by <you>, kill zone at X Y (400)`. A lava glow + a small flame mark the
+  KILL ZONE on the ground where YOU stood when you fired, not at the grave itself (`set df_m2_zone_radius <n>`
+  before loading changes the 400). Shooting an already-lit grave does nothing. Console `m2 brazier_n: N spawn
+  structs for its waves`.
+- The wave rises at the ZONE (`m2 wave ON at brazier_n`): two sprinting zombies every 2 s from the Town spawn
+  structs within 1200 of the zone (N above must not be 0), up to 8 per grave (+3 per extra player). Kill one
+  INSIDE the zone, burning or not, any gun: EVERY counted kill = a fire burst at the body with the swipe sound
+  there, a fire trail into the grave, then the clink at the grave, `m2 brazier_n 1/5`. A kill outside the zone,
+  or at a grave never shot, does not count (deny buzz to the killer, console silent); a Galvaknuckle kill inside
+  a zone does not count either (deny buzz). At 5: `m2 brazier_n spent (the grave stays, its flame is out)
+  (k/4)`: a small burst, the zone fx clear, the grave (still outside the map) keeps its clips with a scorched
+  lava glow marking the spot, and its fire flies off toward the hand on the table (a trail from the grave's rim
+  to the hand).
+- Cold timer: a lit grave not filled within 90 s (`set df_m2_grave_time <s>` before loading) goes cold: the
+  tick-tock runs for the grave that cools first (dry ticks in its last 30 s), then EMP thump at the grave,
+  M2_GRAVE_COLD ("Too slow. That grave went cold. Light it again and feed it from the start."), console `m2
+  brazier_n went cold (not filled within 90 s): light it again and fill it from 0`, the crackle stops, `m2 wave
+  OFF at brazier_n`, and its zone fx clear (the zone itself is gone): shoot the SAME grave again to open a fresh
+  zone wherever you are standing then, and fill it from zero.
+- All four spent: M2_MAXIS_BRAZIER ("Good. That grave is spent. Its fire runs to the hand.") on the fourth, then
+  at once (the hand was on the table the whole time) console `m2 the charged fire hand is back in the table`, a
+  clink (`zmb_buildable_complete`) and the table-place cue (no fire burst, no ash) at the hand's spot: it is now
+  the FIRE HAND, burning where it has lain the whole step. `step complete m2`, M2_DONE ("The ash carries the
+  message. Now the fog will answer it." / Richtofen: "Bonfires. He has reduced you to bonfires, Samuel."), tower
+  cue 12 s (fire pulse at the top, no lightning), `m2 smoke column at the tower top for 20 s`, act 2 reward at
+  once (`act 2 reward given (maxis)`, Max Ammo, Maxis line, orange runners on the tower). Nobody holding a Jet
+  Gun: A2_JETGUN_MAXIS ("Before the end you will need a Jet Gun"). `m2 done: Step 6 node = the cabin hearth at
+  5430 6874 -24 (one draw: fire until the Jet Gun overheats)`. `!df fire lamps`: `silent 1` on all 8 lamps; a
+  denizen dropping at any lamp opens a portal, no turbine.
+- The old "take the hand" prompt, ITEM_EMBER_MAXIS and M2_EMBER_CHARGED are retired in practice: the code still
+  carries them (`!df fire m2_ember` forces a debug hold that still uses them), but nothing in the normal flow
+  ever takes the hand any more, so a real playthrough should never say them. Hear one? Say so, something took
+  the hand.
+- Denizens leave you alone inside the kill zone of a lit grave while M2 runs (not near the grave's own position:
+  it is outside the map and unreachable on foot).
+- Wrong: paste the `m2 brazier_n ...` lines (shot / lit / spent / cold, with coordinates), the `spawn structs`
+  count, and what killed the zombie.
 
 ## 5. Act 3 (shared; what differs per side is marked)
 **M3 / R3 Lights Out (Maxis)**. Skips: `!df fire s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again), `!df goto step6`.
 - S5 START waits until the end-of-Act-2 lines are over (at most 90 s). Console `DF: s5 lights out: 3 lamps hum with
-  his power, a claymore kill within 150 puts one out, 3 dark to win` (also with 4 set lamps in a full lobby, need
-  4; fewer only if the set itself is smaller). Every set lamp is state "filled": a steady bulb glow, no sparks, no
-  hold prompt anywhere - nothing to press.
+  his power, a claymore kill within 250 puts one out, 3 dark to win` (also with 4 set lamps in a full lobby, need
+  4; fewer only if the set itself is smaller). Every set lamp is state "possessed": his look, a big looping
+  electric spark, a blue glow and his hum on the bulb, no hold prompt anywhere - nothing to press.
 - Buy a CLAYMORE at the Farm wall buy (`claymore_zm`, 8827 -5838) and plant one at the foot of a humming lamp
-  (within 150 of its base). Let a zombie walk into it: `DF: s5 lamp X put out by a claymore (1/3 dark)`, the fire
-  burst + rising ash at the bulb + a tick clink (progress cue), the lamp goes state "dark" (the vanilla light off,
-  nothing of ours - no glow, no hum), LO_DARK_MAXIS ("One lamp is dark. His voice is thinner already.") unless
+  (within 250 of its base, up from 150: a claymore throws its kill several steps before it dies, and 150 missed
+  most of them). Let a zombie walk into it: the game reports the kill itself as weapon `none`, mod
+  `MOD_GRENADE_SPLASH` (identical to a thrown grenade), so the step watches the PLANTED claymores instead
+  (`player.claymores`, polled every 0.1 s): a lamp remembers the last moment a claymore stood within its radius,
+  and a splash kill there within 1.5 s of that claymore vanishing (it exploded) is credited to it. Console `DF: s5
+  kill by lamp_X at NN: weapon none, mod MOD_GRENADE_SPLASH` prints for EVERY kill near a humming lamp, whatever
+  killed it - paste it if a claymore kill is refused. Then `DF: s5 lamp X put out by a claymore (1/3 dark)`: a
+  blue snap at the bulb (`fx_zmb_tranzit_spark_blue_lg_os`) + `zmb_zombie_arc`, his stolen power flying off as a
+  trail from the bulb to the tower top, the lamp back to state "vanilla" - exactly the map's own light, nothing
+  of his left on it, no idle marker - LO_DARK_MAXIS ("One lamp is dark. His voice is thinner already.") unless
   that kill is the winning one.
-- Kill a zombie within 150 of a humming lamp WITHOUT a claymore (gun, melee, anything): the lamp does not change,
-  console silent, LO_NOTHAND_MAXIS ("Not your hand. His light must fall at the step of the dead. A claymore.")
-  plays once for the whole game - kill a few more that way and it does not repeat.
+- Kill a zombie within 250 of a humming lamp with anything that is not a claymore (gun, melee, a grenade with no
+  claymore planted there): the console `weapon ..., mod ...` line still prints, but the lamp does not change,
+  LO_NOTHAND_MAXIS ("Not your hand. His light must fall at the step of the dead. A claymore.") plays once for the
+  whole game - kill a few more that way and it does not repeat.
 - End a round (`!round <n>`) with at least one lamp still dark and at least one still humming: `DF: s5 Richtofen
   relit lamp X at the end of the round`, the `zmb_turn_on` sound, LO_RELIGHT ("He has relit one of them. Put it
-  out again."), one random dark lamp goes back to "filled". With zero dark, or all of them dark, end of round does
-  nothing.
+  out again."), one random dark lamp goes back to "possessed" (his spark, glow and hum return). With zero dark,
+  or all of them dark, end of round does nothing.
 - Put out THREE lamps at once (every lamp if the set is smaller): `DF: s5 3 lamps dark, step done`, D5_DONE
   ("Three lamps dark. His voice is gone. Something small must carry the charge."), `step complete step5`.
 - No countdown, no soul penalty, nothing lost by taking your time: only the claymore mechanic and the end-of-round
@@ -335,13 +355,22 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
 
 **M3 / R3 Blackout (Richtofen)**. Skips: `!df fire blackout_off` (all three switches OFF, a running step keeps
 going), `!df fire blackout_on` (all three ON, completes the step if it is open), `!df goto step6`.
-- The three DF_BLACKOUT switches stand ON from boot on both sides (console `DF: blackout 3 power switch(es)
-  standing ON`); Maxis's side never touches them.
+- The three DF_BLACKOUT switches stand ON from boot on both sides, each at its OWN owner spot (no longer
+  side by side under the tower), console `DF: blackout 3 power switch(es) standing ON`; Maxis's side never
+  touches them. Every switch is built exactly like the map's own power switch: `pswitch_body` +
+  `pswitch_lever`, the lever offset (0 -9 46.25) on the body, OFF = the lever rolled to 90, ON = rolled to 0
+  (`zm_transit_power.gsc:56`). The two poses are tunable live: `set df_bo_lever_on "0 0 0"` / `set
+  df_bo_lever_off "0 0 90"` (pitch yaw roll, ADDED to the lever's registry angle) before loading, then in game
+  `!df fire blackout_respawn` deletes and respawns all three from their anchors at the new poses, keeping each
+  one's current ON / OFF state (console `DF: blackout switches respawned (lever on ..., off ...)`). `!df grab
+  DF_BLACKOUT_n` / `!df setpos DF_BLACKOUT_n ...` also respawns the real switch at the new spot (not just the
+  anchor).
 - S5 opens (after the end-of-Act-2 lines, at most 90 s): `DF: blackout Maxis cut the grid: 3 switch(es) OFF, one
   press each turns it ON` - all three levers roll OFF at once (flip sound + a short blue spark at each).
 - Within 80 of a dark switch: "Press [{+activate}] to turn the power switch ON". One press (no hold): the lever
-  rolls ON (flip sound, then `zmb_turn_on`, a progress clink), `DF: blackout switch N ON by <you> (a/3)`, and a
-  20 s wave of sprinting zombies rises at that switch (2 every 2 s, cap 8 + 3 per extra player).
+  rolls ON (flip sound at once, then 0.3 s later `zmb_turn_on` + an electric burst (`elec_md`) and a blue snap
+  (`fx_zmb_tranzit_spark_blue_lg_os`) at the lever, a progress clink), `DF: blackout switch N ON by <you> (a/3)`,
+  and a 20 s wave of sprinting zombies rises at that switch (2 every 2 s, cap 8 + 3 per extra player).
 - Press an OFF switch while the map's main power is OFF: deny buzz, BO_NOPOWER_RICH ("Power ON first, Samuel! A
   switch on a dead grid is a toy."), said at most once every 10 s even if you hold the key.
 - End of a round with at least one switch still OFF: `DF: blackout Maxis knocked switch N OFF at the end of the
@@ -384,7 +413,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   a metre back (5357 6872) must all draw. Wrong: paste the `aim NN/100` line and your `!pos`. Denizens leave you alone
   within 400 of the fireplace while Step 6 is open. RICH: Avogadro stays in his cloud while Step 6 is open.
 - All charges: three clinks, `s6 orb fully charged, bring it to the tower socket`, D6_FULL_RICH / D6_FULL_MAXIS, aura +
-  hum on the rock and on you (RICH avogadro_health_full, MAXIS powerup_on_caution; `!df fire orb_aura` cycles). At the
+  hum on the rock and on you (RICH powerup_on_caution, the same glow as Maxis's rock now - easy to see; MAXIS
+  powerup_on_caution too; `!df fire orb_aura` cycles). At the
   table with charges missing: "The rock needs N more charge(s)". Full, one press within 150: "Press F to place the rock
   in the relay", the clink only (no snap on the table), the rock rests on the RIGHT slot with NO aura, the "Rock" notice is
   cleared, D6_DONE, `step complete step6`, the eighth step glow on the relay.
@@ -430,7 +460,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - `finale waiting at the table (side X)`, NO marker glint on the table (the prompt leads), "Hold F to open the frequency". Power gate: RICH power ON;
   MAXIS power OFF now, OR the round STARTED with the power off (turn it ON mid-round, the hold is still accepted). Wrong:
   deny buzz while you hold, the patron complains once per 20 s, `finale refused, wrong power state for side X`.
-- Hold 5 s (bar "Opening the frequency"): `finale start, side X, nostat 0`. Order: all perks (one console line each),
+- Hold 2.5 s (bar "Opening the frequency"): `finale start, side X, nostat 0`. Order: all perks (one console line each),
   `finale build-up (6 s, X)` (RICH: electric hum, blue sparks and arcs over the table; MAXIS: fire crackle, fire pulses,
   ash column at the base, smoke column at the top; both shake), `finale orb rising to the tower top (6 s, stand-in 0)`:
   the rock lifts off the right slot with the reactor hum, `finale burst, tower fx on`, RICH lightning at the top + Avogadro
@@ -468,10 +498,9 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - R2, full lamp punched with the wrong tool: deny + "Bare steel? No.", no spool; `!df fire r2_punch` frees every ready spool.
 - M1, timeout: see 4M. M1, hand carrier down (console says skull): `m1 hand dropped (<you> went down), take it again`. Carrier leaves:
   `m1 hand carrier left, the hand lies at the tower return point`.
-- M2, carrier down: EMP thump + ash, `m2 fire hand lost (<you> went down), it waits on the table again`, M2_EMBER_LOST ("The hand
-  fell with you..."), the fire on you stops (charged only); the hand is back on the table (plain, or burning if it was
-  already the fire hand), take it again. Lit graves keep their count. Carrier leaves the game: `m2 the fire
-  hand carrier left, it waits on the table again`, the notice clears.
+- M2, no carrier to lose any more: the hand never leaves the table this step (see 4M), so there is no "carrier
+  down" or "carrier left" fail path here. `m2 fire hand lost ...` / M2_EMBER_LOST only exist for the debug
+  `!df fire m2_ember` hold; they should never fire in a real playthrough.
 - M2, power ON at the end of a round: EMP thump at the grave, Maxis's M2_POWER line, `m2 power ON at end of round:
   brazier_n forgets its N dead (Maxis wants the dark)`: ONLY the lit unfinished grave with the most kills goes back to
   0/5 (the others keep theirs, spent graves stay gone); nothing left to lose prints `m2 power on at end of round,
@@ -484,11 +513,11 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 
 ## 7. Skips and cleanliness
 - `!df goto <step>` at any point: the skipped steps leave nothing behind (no lights, sparks, prompts, hums) BUT the boot
-  props stay: pipes (dark), table, boxes, graves, the three DF_BLACKOUT switches, lamps. Boxes and graves are NEVER
-  removed by the side lock any more (owner 2026-09-25): only their look (glow / flame) follows the locked side, both
-  stay standing for the rest of the game. No AVAILABLE / DONE sounds during the jump, the target step plays its own
-  once it opens. `!df goto step3`: no parts anywhere, relay on the roof. `!df goto step2`: coil at DF_COIL_DROP, two
-  parts in the fog, 3 needed.
+  props stay: pipes (dark), table, boxes, graves (outside the map around Town), the three DF_BLACKOUT switches (each at
+  its own owner spot), lamps. Boxes and graves are NEVER removed by the side lock any more (owner 2026-09-25): only
+  their look (glow / flame) follows the locked side, both stay standing for the rest of the game. No AVAILABLE / DONE
+  sounds during the jump, the target step plays its own once it opens. `!df goto step3`: no parts anywhere, relay on
+  the roof. `!df goto step2`: coil at DF_COIL_DROP, two parts in the fog, 3 needed.
 - The goto only moves FORWARD and never crosses the lock: `<step> is already done, goto only moves forward`, `<step> is
   not ahead of the current step <key>, goto only moves forward`, `<step> belongs to the <side> side but <side> is locked
   in this game (start a fresh game)`. A jump that hangs is aborted after 20 s: `goto <step> did not finish in 20 s,
@@ -498,10 +527,11 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   maxis` FIRST for a Maxis test (it cannot be changed afterwards).
 - `!df goto m3` (Maxis) / `!df goto r3` (Richtofen) RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
   (steady glow, no sparks), six step glows on the relay mast, `act 2 reward given silently (goto)` (no Max Ammo, no
-  line). MAXIS: ONE hand on the table (M2's replaced M1's at the same pose), the charged fire hand
-  resting there with its small flame (no prompt), four graves STILL STANDING, spent, dark, each with a scorched
-  glow (owner 2026-09-25: no longer deleted; cosmetic, not Step 6 nodes). `!df goto step7` / `finale`: the
-  rock rests on the right slot (no "Rock" notice), the fire hand is gone, tracker runners on.
+  line). MAXIS: the hand still lies where M1 left it, now the charged fire hand, burning there (no prompt, nothing
+  swapped in or out - it was never picked up); four graves (outside the map, unreachable) STILL STANDING, spent,
+  each with a scorched glow and no kill zone (owner 2026-09-25: no longer deleted; cosmetic, not Step 6 nodes).
+  `!df goto step7` / `finale`: the rock rests on the right slot (no "Rock" notice), the fire hand is gone, tracker
+  runners on.
 - Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched)` + one line, then at 10 min and every
   6 min; every touch of the step starts the ladder over (HINT_1 4 min after the LAST touch); an event hint earlier
   (`event hint ...`) skips that rung once. `!df texthints off` mutes them (the clock keeps running); `!df hints off`
@@ -513,8 +543,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - Co-op only, when you have a second player: Richtofen's blue lines that carry team information reach everyone (including
   the finale's wrong-power line and closing lines); the M3 / R3 "one lamp each" line appears; a downed player is
   teleported into the cold room with the team and can be revived there; the Step 7 after-hold waves rise near a random living
-  player; a carrier who leaves drops the relay (back on the table after 60 s), the M2 hand (back on the table at once)
-  or the M1 hand (at the tower return point).
+  player; a carrier who leaves drops the relay (back on the table after 60 s) or the M1 hand (at the tower return
+  point) - M2's hand is never carried, so it has nothing to drop.
 
 ## Open verifications (things the code cannot decide alone)
 - Step 1 readability: is the far light visible from where the pipes are, can four blinking pipes be told apart, is the
@@ -528,9 +558,13 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   step5` on Maxis); the M1 one must not spin. Sunk, floating, inside the relay? Say so. Rock rest height: 3 above slot 2 / the ground (`!df fire
   table_demo`, `!df tp DF_ORB_SPOT_n`).
 - Fuse box wall offset: the boxes are 6 off the wall at mid height. In the wall, or a visible gap? Say which box (`!df tp DF_FUSE_n`).
-- Grave flame: the small flame sits at the top of every standing tombstone (`set df_m2_fire_fx <fx>` swaps it). The
-  fire hand on the table has its own, smaller flame (`dog_trail_fire`; `set df_m2_hand_fx <fx>` swaps it at the next
-  spawn, `character_fire_death_sm` = the old one). Buried or floating? Visible from the road? Say so.
+- Grave flame: the small flame sits at the top of every standing tombstone, now outside the map (`set
+  df_m2_fire_fx <fx>` swaps it). The fire hand on the table has its own, smaller flame (`dog_trail_fire`; `set
+  df_m2_hand_fx <fx>` swaps it at the next spawn, `character_fire_death_sm` = the old one). Buried or floating? Say so.
+- Grave line of sight: is each DF_BRAZIER_n actually visible and hittable (`trigger_damage`) from somewhere a
+  player would naturally stand near Town, or does the map geometry block the shot? Is the kill zone's lava glow
+  + small flame (400 around the shooter's spot) easy to read as "stand here"? `!df tp DF_BRAZIER_n` then look
+  back toward Town to check the angle.
 - Orb landing spots: is the rock reachable and visible at Town (SPOT_2, 900 130) and at the power station (SPOT_3)? Off the road?
 - Step 7 solo pass rate: at round 10 with a Pack-a-Punched gun, how many tries out of three pass? Paste `s7 wave over ...`.
   Are the after-hold waves (until the song ends) fun or too long?
