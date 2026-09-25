@@ -132,9 +132,9 @@ df_coords_init()
 
     // ---- Step 5, Richtofen "Blackout" (owner 2026-09-25): three power switches, placeholders around the table under
     //      the tower for testing; the owner moves them with !df grab and sends the spots.
-    df_coord_set( "DF_BLACKOUT_1", df_ground( ( 7650, -330, -190 ) ), ( 0, 0, 0 ), df_model( "pswitch_body" ) );
-    df_coord_set( "DF_BLACKOUT_2", df_ground( ( 7650, -570, -190 ) ), ( 0, 0, 0 ), df_model( "pswitch_body" ) );
-    df_coord_set( "DF_BLACKOUT_3", df_ground( ( 7890, -570, -190 ) ), ( 0, 180, 0 ), df_model( "pswitch_body" ) );
+    df_coord_set( "DF_BLACKOUT_1", df_ground( ( 7620, -510, -190 ) ), ( 0, 0, 0 ), df_model( "pswitch_body" ) );
+    df_coord_set( "DF_BLACKOUT_2", df_ground( ( 7620, -464, -190 ) ), ( 0, 0, 0 ), df_model( "pswitch_body" ) );
+    df_coord_set( "DF_BLACKOUT_3", df_ground( ( 7620, -418, -190 ) ), ( 0, 0, 0 ), df_model( "pswitch_body" ) );
 
     // ---- Farm barn: four fuse boxes, each on the wall the owner faced from these spots (recorded with !pos
     //      on 2026-09-07). The "fuse" model is the EE power box p6_zm_buildable_sq_electric_box (13 x 20 x 4,
@@ -1417,7 +1417,7 @@ df_models_init()
     // owner 2026-09-25: Blackout (Richtofen Step 5): vanilla's power switch without its hand. The lever sits on the
     // body at its offset; ON = the lever rolled -90 from this pose (zm_transit_power.gsc:56), OFF = this pose.
     df_model_def( "pswitch_body", "p6_zm_buildable_pswitch_body", 0, 0, 0 );
-    df_model_def( "pswitch_lever", "p6_zm_buildable_pswitch_lever", 0, 0, 0, ( 0, 0, 40 ) );
+    df_model_def( "pswitch_lever", "p6_zm_buildable_pswitch_lever", 0, 0, 180, ( 0, 0, 40 ) ); // owner 2026-09-25: yaw 180, the handle was on the wrong side of the panel
     df_models_init_items();
 }
 
