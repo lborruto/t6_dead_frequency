@@ -168,8 +168,9 @@ with the denizen still on you (none rise at the tower itself: you have to bring 
 hole (no F): you are in the woods behind the hunter's cabin. While you are there, no vanilla denizen
 comes near: only the cold room's own rise. Walk out of the area on foot and the woods are a normal fog zone again.
 
-Cold room: 60 s solo (75 / 90 / 100). Denizens rise two at a time, at the spot farthest from
-you (three spots); kill 6 (9 / 12 / 15). Downed players come along and can be revived inside. Timeout: everyone is sent back
+Cold room: 60 s solo (75 / 90 / 100). Denizens rise one at a time, at the spot farthest from
+you (three spots), fast enough to keep the pressure on the whole team (three per player in the room, at least
+four alive at once); kill 6 (9 / 12 / 15). Downed players come along and can be revived inside. Timeout: everyone is sent back
 to the tower; get a denizen on your head again and repeat.
 
 Success: a HAND (the hand of the power switch) arrives by a strike where the last denizen died. You have 30 s
@@ -182,31 +183,28 @@ table to place it (a clink): it lies on the table, cold and still. That complete
 <details><summary><b>M2 - Fire and Ash (Town)</b> (click to reveal)</summary>
 
 
-The hand M1 left on the table is the one you need now. Press F to take it (it does not burn yet, no damage);
-it stays in hand for the whole step.
+The hand M1 left on the table stays right there for this whole step - you never pick it up. Four graves stand
+OUTSIDE the map, one to each side of Town: you cannot walk up to one, only shoot it.
 
-Four tombstones stand in Town, each with a small flame. Carry the hand there (the bus is fine; the lamp
-portals refuse you) and press F on any of them to light the hand at it (any order, as many as you like); a lit grave
-crackles. Lighting a grave starts a wave of sprinting zombies at it that ends when the grave is full. Kill 5
-zombies near a lit grave (5 / 5 / 6 / 7, fixed when M2 opens), burning or not (a Galvaknuckle kill does not
-count): every counted kill bursts, its fire flies into the grave with a clink. Full: the tombstone stays standing,
-its flame goes out and a scorched glow marks it as spent. A lit grave has 90 seconds to be filled (you hear the clock, dry ticks at the
-end): if not, it goes cold (the thump and Maxis tell you), loses its kills and must be lit again and filled from
-zero. A kill at an UNLIT grave does not count (a buzz tells you). Denizens leave you alone within a few steps of
-any of the four graves while M2 runs.
+SHOOT a grave (any weapon) to light it: it starts to crackle, and a kill zone opens on the ground where YOU
+were standing when you fired it - a circle 400 units across, marked by a lava glow and a small flame. Lighting
+a grave starts a wave of sprinting zombies at that zone. Kill 5 zombies inside the zone (5 / 5 / 6 / 7, fixed
+when M2 opens), burning or not (a Galvaknuckle kill does not count): every counted kill bursts, and its fire
+flies off toward the hand on the table. Full: the grave goes quiet, its zone fades, and it stands spent. A lit
+grave has 90 seconds to be filled (you hear the clock, dry ticks at the end): if not, it goes cold (the thump
+and Maxis tell you) and its zone disappears - shoot the same grave again to open a fresh zone and fill it from
+zero. A kill outside a lit zone, or at a grave that has not been shot, does not count (a buzz tells you).
+Denizens leave you alone inside the kill zone of a lit grave while M2 runs.
 
-All four gone: chime, and the hand becomes the FIRE HAND: fire on your body, 5 health a second while you carry
-it (never below half your health, and not while you stand next to a lit grave). Go back to the table and press F
-to set the fire hand on the table (a clink); it rests there, burning, until Step 6. That completes M2 and the Act 2 reward drops at once. If nobody in the team
-carries a Jet Gun, Maxis says you will need one before the end.
+All four spent: chime, and the hand waiting on the table becomes the FIRE HAND by itself, burning where it lies
+- nothing to carry back to the table. That completes M2 and the Act 2 reward drops at once. If nobody in the
+team carries a Jet Gun, Maxis says you will need one before the end.
 
-Going down with the hand, or leaving the game with it, sends it back to the table (take it again; lit
-graves keep their count, and a fire hand stays a fire hand). Ending a round with the power ON makes the lit,
-unfinished grave with the most kills forget them. The Galvaknuckles are refused near the graves and while you
-hold the hand.
+Ending a round with the power ON makes the lit, unfinished grave with the most kills forget them.
 
-Maxis side rules from M1 on: there are twice as many denizens in the fog; they leave you alone only near the
-four graves while M2 runs and near the cabin fireplace while Step 6 is open (plus vanilla's own safe places). After M2 the lamp portals open without a turbine.
+Maxis side rules from M1 on: there are twice as many denizens in the fog; they leave you alone only inside a
+lit grave's kill zone while M2 runs and near the cabin fireplace while Step 6 is open (plus vanilla's own safe
+places). After M2 the lamp portals open without a turbine.
 
 ---
 
@@ -227,17 +225,20 @@ overheat). Maxis: every lamp is powered, so portals and denizen burrows work wit
 
 Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
 
-- RICHTOFEN - Blackout: the moment R3 opens, Maxis cuts the grid. The three power switches standing near
-  the tower (there since the start of the game, always ON until now) flip OFF, one spark each. Walk up to a dark
-  switch and press F once within reach: the lever rolls back ON with a click, then a hum - no hold, no timer.
-  Turning a switch back ON pulls a short wave of sprinting zombies at it. A switch refuses you while the map's
+- RICHTOFEN - Blackout: the moment R3 opens, Maxis cuts the grid. The three power switches, spread around the
+  map (there since the start of the game, always ON until now, each built like the map's own power switch) flip
+  OFF, one spark each. Walk up to a dark switch and press F once within reach: the lever rolls back ON with a
+  click, then a hum and an electric burst at the lever - no hold, no timer. Turning a switch back ON pulls a
+  short wave of sprinting zombies at it. A switch refuses you while the map's
   main power itself is off ("Power ON first, Samuel! A switch on a dead grid is a toy."). At the end of every
   round with at least one switch still dark, Maxis knocks one lit switch back off ("Another of his switches
   falls. The dark is patient."). Get all three ON at the same time and R3 is done. There are always three
   switches, whatever the lobby size.
 - MAXIS - Lights Out: the moment M3 opens, Richtofen feeds his power into three lamps of the same set as
-  before - each one hums with a steady bulb glow. Only the dead can break his light: a lamp goes dark when a
-  zombie dies to a CLAYMORE (sold at the Farm wall buy) within 150 units of its base. Kill it there any other
+  before - each one hums with a big electric spark, a blue glow and his hum. Only the dead can break his light:
+  a zombie dying to a CLAYMORE (sold at the Farm wall buy, or one already planted there) within 250 units of a
+  humming lamp's base snaps his power off it - a blue spark flies away toward the tower and the lamp goes back
+  to exactly the light the map gave it, nothing of his left on it. Kill it there any other
   way and the lamp does not care - Maxis tells you why, once for the whole game ("Not your hand. His light must
   fall at the step of the dead. A claymore."). Every lamp you put out costs him a little ("One lamp is dark. His
   voice is thinner already."), and at the end of every round while a lamp still hums, Richtofen relights one dark
@@ -303,7 +304,7 @@ you can start the finale meanwhile.
 
 
 Set the right power state: RICHTOFEN power ON; MAXIS power OFF now, or off at the start of this round. HOLD F
-for 5 s at the table ("open the frequency"). Wrong power state: a buzz and a complaint.
+for 2.5 s at the table ("open the frequency"). Wrong power state: a buzz and a complaint.
 
 Every perk first, a 6 s build-up, the rock rises into the tower top, the burst (Richtofen: lightning and
 thunder; Maxis: a fire pulse at the top, no lightning, no thunder), then the permanent world change: on Richtofen

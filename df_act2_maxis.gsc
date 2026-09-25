@@ -2182,10 +2182,14 @@ df_m2_set_stage( b, stage )
         return;
     }
 
-    if ( stage <= 0 )
+    // owner 2026-09-25: an unlit grave shows nothing; only a grave that was shot (lit) burns
+    if ( stage <= 0 || !b.lit )
+    {
         df_m2_crackle_stop( b );
-    else
-        df_m2_crackle_start( b );
+        return;
+    }
+
+    df_m2_crackle_start( b );
 
     // owner 2026-09-23: one small flame only, no smoke or ash; `set df_m2_fire_fx <fx key>` swaps it at the next lighting
     f = df_fx_loop( df_m2_small_fire_fx(), top );
@@ -2683,10 +2687,17 @@ df_m2_soul( from, b )
 {
     level endon( "end_game" );
 
-    df_fx_burst( df_side_burst_fx( "maxis" ), from + ( 0, 0, 30 ), 0.5 );
+    // owner 2026-09-25: the kill counted: the red soul trail flies into the zone's flame (you see it land where you stand) and red
+    // embers rise off the body, as in the M1 woods; no fire burst
+    to = df_m2_ash_pos( b );
+
+    if ( isdefined( b.zone ) )
+        to = b.zone + ( 0, 0, 20 );
+
     df_snd_near( "evt_player_swiped", from, 700 );
-    df_act2_maxis_trail( from, df_m2_ash_pos( b ), 0 );
-    df_cue_tick( df_m2_rim_pos( b ), 0 );
+    df_fx_burst( "fx_zmb_ash_rising_md", from, 3 );
+    df_act2_maxis_trail( from + ( 0, 0, 10 ), to, 0 );
+    df_cue_tick( to, 0 );
 }
 
 // Lit brazier: stage = 1 + floor( 2 * count / target ) (1 or 2); the quota fills it (stage 3). Each stage-up
@@ -2727,18 +2738,28 @@ df_m2_fill( b, quiet )
     b.stage = -1;
     df_m2_set_stage( b, 0 );
 
+    // owner 2026-09-25: the spent grave EXPLODES and is gone (it stands outside the map: nothing to keep)
     if ( !is_true( quiet ) )
     {
         playsoundatposition( "zmb_explo_sweet", top );
+        df_fx_burst( "fx_zmb_tranzit_fire_lrg", top, 1.0 );
+        df_fx_burst( "fx_zmb_ash_rising_md", top, 3 );
+        earthquake( 0.2, 0.6, top, 900 );
     }
 
-    g = df_fx_loop( "fx_zmb_lava_crevice_glow_50", b.origin + df_fx_point( "brazier_ember" ) );
+    if ( isdefined( b.hit ) )
+        b.hit delete();
 
-    if ( isdefined( g ) )
-    {
-        b.fx[b.fx.size] = g;
-        level thread df_fx_keepalive( g );
-    }
+    b.hit = undefined;
+
+    if ( isdefined( b.model ) )
+        b.model delete();
+
+    if ( isdefined( b.clip ) )
+        b.clip delete();
+
+    if ( isdefined( b.clip_top ) )
+        b.clip_top delete();
 
     if ( is_true( quiet ) )
         return;

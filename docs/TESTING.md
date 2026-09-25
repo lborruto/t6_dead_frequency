@@ -18,7 +18,7 @@ small bar "Powering the relay"), open the frequency (5 s, bar "Opening the frequ
 every clock is the Pack-a-Punch tick-tock loop on every player plus dry ticks in the last 30 s (every second, doubled
 under 10 s). `set df_hud_timers 1` before loading brings the old top-centre timers back for a test.
 Two switches: `!df hints on|off` = on-screen PUZZLE prompts (the Simon boxes, Jet Gun hints, "Take the hand before
-the cold closes" in the bunker), default OFF; mechanic prompts (take / place / build / hold) always stay. The pipes
+the cold closes" in the cold room), default OFF; mechanic prompts (take / place / build / hold) always stay. The pipes
 never show a prompt, whatever the switch. `!df texthints on|off` = the spoken HINT_1 (4 min) / HINT_2 (10 min, then
 every 6 min) ladder and the event hints, default ON; START / FAIL / DONE lines play whatever it says.
 Cue grammar, one sound = one meaning: portal-arrive sound + glint on the object = a step is AVAILABLE; piece-add clink =
@@ -67,13 +67,15 @@ Everything below must already be there. Missing = the biggest bug of this build.
 - Barn: `!df tp DF_FUSE_1..4`: four small power boxes (13 x 20, centre at mid height) on the walls, back against
   the wall, lever side towards the room, NO glow yet (owner 2026-09-25: the boxes stand from boot on both sides;
   only a side lock gives them a look). Press F on one: nothing.
-- Town: `!df tp DF_BRAZIER_1..4`: four TOMBSTONES spread over Town (owner spots 2026-09-23), standing on the ground,
-  NO flame yet (owner 2026-09-25: the graves stand from boot on both sides; the small flame belongs to the Maxis
-  side only, once locked). Walk into one: you must not pass through, and you must not be able to stand on it (two
-  clip blocks, 64 tall).
-- Tower: `!df tp DF_BLACKOUT_1..3`: three power switches stand near the table under the tower, lever ON, on BOTH
-  sides from boot (console `DF: blackout 3 power switch(es) standing ON`). Press F: nothing yet (Richtofen's
-  M3 / R3 arms them).
+- Town: `!df tp DF_BRAZIER_1..4`: four TOMBSTONES stand OUTSIDE the map around Town (owner spots 2026-09-25,
+  `!df grab DF_BRAZIER_n` moves the real grave along), NO flame yet (the small flame belongs to the Maxis side
+  only, once locked). Each carries a `trigger_damage`: a bullet on one (Maxis, M2 armed) is what lights it, not
+  a walk-up touch. Walk into one: you must not pass through, and you must not be able to stand on it (two clip
+  blocks, 64 tall).
+- Around the map: `!df tp DF_BLACKOUT_1..3`: three power switches stand at their own owner spots (no longer next
+  to each other under the tower), lever ON, on BOTH sides from boot (console `DF: blackout 3 power switch(es)
+  standing ON`), built exactly like the map's own power switch (`pswitch_body` + `pswitch_lever`, lever offset
+  0 -9 46.25 on the body, OFF = roll 90, ON = roll 0). Press F: nothing yet (Richtofen's M3 / R3 arms them).
 - Lamps: walk to one lamp of the printed set: one small electric spark at the bulb every 6 s, no colour, not green.
   `!df fire lamps` lists 3 lamps `set 1 state off`. None of them is diner or townbridge; one is the lamp nearest the tower.
 - Bus parts: the ladder lies at the Depot (-7313 5441), the hatch at the Diner (-3537 -7214). `!df fire busparts`
@@ -89,7 +91,9 @@ Everything below must already be there. Missing = the biggest bug of this build.
     !df tp DF_COIL_DROP   where the coil lands after Step 1 (-6311 5019 -46): preview of the wire coil
                           (p6_zm_buildable_jetgun_wires, slightly tilted)
     !df tp DF_FUSE_1      power box on the barn wall (also FUSE_2..4); IN the wall or floating? say which
-    !df tp DF_BRAZIER_1   tombstone on the ground (also 2..4); sunk? floating?
+    !df tp DF_BRAZIER_1   tombstone OUTSIDE the map around Town (also 2..4); sunk? floating? shootable from where
+                          a player would stand?
+    !df tp DF_BLACKOUT_1  power switch at its own owner spot, lever ON (also 2..3); lever flush with the panel?
     !df tp DF_CARD_SPAWN  key card preview upright on the barn wall, clear of panel 4
     !df tp DF_PORTAL      the M1 hole spot in front of the table (7623 -457 -207)
     !df tp DF_NACHT_SPAWN_1  a denizen spawn in the woods behind the cabin (also 2..4: 13673 -337, 13861 -327, 13643 -541, 13886 -522)
@@ -97,8 +101,12 @@ Everything below must already be there. Missing = the biggest bug of this build.
                           (11720 8491 -575): the rock preview on the ground at each, off the road?
     !df dump              one [SPOT] line per anchor + [MODEL] lines
 Report: invisible / black / sideways / wrong size, with the anchor name. Fix live: `!df grab DF_ORB_SPOT_2` (fire =
-place, melee = cancel), paste the printed line; a live tune of a DF_ORB_SPOT_n makes it this game's landing spot
-(`orb landing spot now DF_ORB_SPOT_n (edited)`). `!df hide` when done. The M1 item is a plain HAND (kind `skull` in the
+place, melee = cancel; turn/raise now moves ONE step per press of slot 1/2/3/4, not per frame while held), paste
+the printed line; a live tune of a DF_ORB_SPOT_n makes it this game's landing spot
+(`orb landing spot now DF_ORB_SPOT_n (edited)`). Straight to coordinates instead: `!df setpos <KEY> <x> <y> <z>
+[yaw]` (yaw optional, keeps the current one if left off). Grabbing or `setpos`-ing a `DF_BLACKOUT_n` or
+`DF_BRAZIER_n` anchor moves the REAL switch / grave along with it (model, clips, flame), not just the anchor:
+`DF: blackout switches respawned (...)` / `DF: m2 brazier_n moved to ...`. `!df hide` when done. The M1 item is a plain HAND (kind `skull` in the
 code, `p6_zm_buildable_pswitch_hand`, the same model and table pose as the M2 fire hand, kind `ember`); the Step 6 rock
 is the meteor piece (`p6_zm_buildable_sq_meteor`).
 Picking by ear and eye: the picker pages (Sound, Prop, Effect; self-contained HTML built by the generators in `tools/pickers`)
@@ -228,10 +236,16 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
   table cue + event line`. No light. Only the first time.
 - Walk to the table with it: it dies in ash, `m1 denizen latched at the table`, `m1 portal at 7623 -457 ...`: the hole
   rises out of the ground in front of the table and spins with an orbiting orange light; the glint moves onto it.
-- Walk INTO the hole (no F): warp sound, black flash, Nacht. `m1 cold room 60 s, 6 denizen kills`, cold fog, the
-  tick-tock (no timer). Denizens rise two at a time at the FARTHEST of three Nacht spots (DF_NACHT_SPAWN_1..3) from every
-  player, never the same one twice in a row (`m1 denizen rising at x y`: the coordinates must change); each kill =
-  red trail + 5 s of rising embers + `m1 denizen kill k/6`. The hand floats 14 above the floor, turning, with a tiny glow.
+- Walk INTO the hole (no F): warp sound, black flash, the woods behind the hunter's cabin. `m1 cold room 60 s, 6
+  denizen kills`, cold fog, the tick-tock (no timer). Console `m1 no-denizen zone ON (1000 around DF_M1_ZONE, the
+  woods behind the cabin)`: vanilla denizens are paused for the whole zone (1000 around DF_M1_ZONE, not just the
+  room), only ours rise. Denizens rise ONE at a time at the FARTHEST of three spots (DF_NACHT_SPAWN_1..3) from every
+  player, never the same one twice in a row (`m1 denizen rising at x y`: the coordinates must change), fast enough
+  to keep the pressure on: a fresh one every 0.4 s while fewer than 3 per player in the zone are alive (at least 4
+  whatever the player count). Each kill = a red trail + 5 s of rising embers only, no fire burst (`m1 denizen kill
+  k/6`). The hand floats 14 above the floor, turning, with a white glow plus a small lava glint riding on it.
+- Walk out of the zone on foot (all players clear of the 1000 radius, or the room ends): console `m1 no-denizen
+  zone OFF, vanilla denizens are back`.
 - Success: `m1 cold room over: success (6/6)`, the STRIKE where the last one died and the HAND (the power switch hand,
   `p6_zm_buildable_pswitch_hand`; code kind `skull`, so the console still says skull) lies there with a glint (`m1
   skull on the floor at ..., one press takes it`), Maxis (ITEM_HAND_MAXIS): "The cold left a hand behind. The
@@ -498,7 +512,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   error naming `zm_scavenger` or `epod_key`? The pinned ladder / hatch must still be buildable as vanilla.
 - Co-op only, when you have a second player: Richtofen's blue lines that carry team information reach everyone (including
   the finale's wrong-power line and closing lines); the M3 / R3 "one lamp each" line appears; a downed player is
-  teleported into Nacht with the team and can be revived there; the Step 7 after-hold waves rise near a random living
+  teleported into the cold room with the team and can be revived there; the Step 7 after-hold waves rise near a random living
   player; a carrier who leaves drops the relay (back on the table after 60 s), the M2 hand (back on the table at once)
   or the M1 hand (at the tower return point).
 
