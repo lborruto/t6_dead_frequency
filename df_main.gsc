@@ -482,6 +482,29 @@ df_debug_cmd_coords( sub, arg, args )
             self df_debug_tune_result( df_coord_tune_lift( args[2], float( args[3] ) ), args[2] );
             return 1;
 
+        // owner 2026-09-25: "!df setpos <KEY> <x> <y> <z> [yaw]": an anchor straight to world coordinates
+        case "setpos":
+            if ( args.size < 6 )
+            {
+                self df_out( "Usage: !df setpos <KEY> <x> <y> <z> [yaw]" );
+                return 1;
+            }
+
+            key = args[2]; // anchor keys are upper case (DF_BLACKOUT_1, DF_BRAZIER_2, ...)
+            yaw = 0;
+            c = df_coord( key );
+
+            if ( isdefined( c ) )
+                yaw = c.angles[1];
+
+            if ( args.size >= 7 )
+                yaw = float( args[6] );
+
+            df_coord_override( key, ( float( args[3] ), float( args[4] ), float( args[5] ) ), ( 0, yaw, 0 ) );
+            df_coord_tune_done( key );
+            self df_out( "DF: " + key + " set to " + args[3] + " " + args[4] + " " + args[5] + " yaw " + yaw );
+            return 1;
+
         case "move":
             if ( args.size < 6 )
             {

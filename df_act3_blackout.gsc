@@ -18,6 +18,7 @@ df_act3_blackout_init()
 {
     level thread df_bo_boot();
     level thread df_bo_debug_hook();
+    level thread df_bo_respawn_hook();
 }
 
 // Boot: the three switches stand ON for the whole game on both sides (owner: props exist from the start).
@@ -53,14 +54,75 @@ df_bo_spawn()
         s.lever setmodel( df_model( "pswitch_lever" ) );
         // owner 2026-09-25: absolute angles stored once, so df_bo_set rotates TO a fixed pose instead of BY a
         // relative amount (repeated relative rotates could drift the lever off true ON/OFF)
-        s.off_angles = df_model_angles( "pswitch_lever", s.yaw );
-        s.on_angles = s.off_angles + ( 0, 0, -90 );
+        base = df_model_angles( "pswitch_lever", s.yaw );
+        s.off_angles = base + df_bo_pose( "df_bo_lever_off", ( 0, 0, -180 ) );
+        s.on_angles = base + df_bo_pose( "df_bo_lever_on", ( 0, 0, -90 ) );
         s.lever.angles = s.on_angles; // ON
         s.on = 1;
+
+        if ( isdefined( level.df_bo_saved_on ) && isdefined( level.df_bo_saved_on[i] ) && !level.df_bo_saved_on[i] )
+        {
+            s.lever.angles = s.off_angles;
+            s.on = 0;
+        }
         level.df_bo[level.df_bo.size] = s;
     }
 
     df_debug_print( "DF: blackout " + level.df_bo.size + " power switch(es) standing ON" );
+}
+
+// owner 2026-09-25: the lever's ON and OFF poses, added to the lever's registry angles, are dvars so the owner can tune them
+// live: `set df_bo_lever_on "0 0 -90"` / `set df_bo_lever_off "0 0 -180"` (pitch yaw roll), then
+// `!df fire blackout_respawn` (moving a DF_BLACKOUT anchor with !df grab / !df setpos respawns them too).
+df_bo_pose( dvar, fallback )
+{
+    v = getdvar( dvar );
+
+    if ( !isdefined( v ) || v == "" )
+        return fallback;
+
+    t = strtok( v, " " );
+
+    if ( t.size < 3 )
+        return fallback;
+
+    return ( float( t[0] ), float( t[1] ), float( t[2] ) );
+}
+
+// Deletes and respawns the three switches from their anchors, keeping each ON / OFF state.
+df_bo_respawn()
+{
+    level.df_bo_saved_on = [];
+
+    if ( isdefined( level.df_bo ) )
+    {
+        foreach ( s in level.df_bo )
+        {
+            level.df_bo_saved_on[s.idx] = s.on;
+
+            if ( isdefined( s.lever ) )
+                s.lever delete();
+
+            if ( isdefined( s.body ) )
+                s.body delete();
+        }
+    }
+
+    level.df_bo = undefined;
+    df_bo_spawn();
+    level.df_bo_saved_on = undefined;
+    df_debug_print( "DF: blackout switches respawned (lever on " + getdvar( "df_bo_lever_on" ) + ", off " + getdvar( "df_bo_lever_off" ) + ")" );
+}
+
+df_bo_respawn_hook()
+{
+    level endon( "end_game" );
+
+    while ( true )
+    {
+        level waittill_either( "df_debug_blackout_respawn", "df_bo_respawn" );
+        df_bo_respawn();
+    }
 }
 
 // Rolls one lever to its stored absolute angles (owner 2026-09-25: was a relative rotateroll); quiet = no
@@ -86,6 +148,9 @@ df_bo_set( s, on, quiet )
     {
         wait 0.3;
         s.lever playsound( "zmb_turn_on" );
+        // owner 2026-09-25: his power comes back: an electric burst at the lever and a blue snap
+        df_fx_burst( "elec_md", s.lever.origin, 0.8 );
+        df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", s.lever.origin );
         df_cue_tick( s.origin + ( 0, 0, 40 ), 0 );
         return;
     }

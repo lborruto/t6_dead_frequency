@@ -152,7 +152,7 @@ df_fin_socket_watch()
 
             player df_prompt( 0, undefined );
 
-            if ( !player df_hold_use( c.origin, 200, 5, "Opening the frequency" ) )
+            if ( !player df_hold_use( c.origin, 200, 2.5, "Opening the frequency" ) )
                 continue;
 
             df_fin_clear_prompts();

@@ -239,7 +239,7 @@ df_s7_charge_fx()
 df_s7_aura_fx()
 {
     side = "rich";
-    fallback = "avogadro_health_full";
+    fallback = "powerup_on_caution"; // owner 2026-09-25: the same glow as Maxis's rock, easy to see
 
     if ( isdefined( level.df_side ) && level.df_side == "maxis" )
     {

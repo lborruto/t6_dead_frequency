@@ -249,7 +249,7 @@ df_s6_aura_init()
 
     level.df_orb_aura = [];
     level.df_orb_aura["rich"] = [];
-    level.df_orb_aura["rich"][0] = "avogadro_health_full"; // owner pick 2026-09-11 (Effect Picker)
+    level.df_orb_aura["rich"][0] = "powerup_on_caution"; // owner 2026-09-25: the Maxis glow on both sides, easy to see (was avogadro_health_full)
     level.df_orb_aura["rich"][1] = "avogadro_health_half";
     level.df_orb_aura["rich"][2] = "avogadro_health_low";
     level.df_orb_aura["rich"][3] = "etrap_on";

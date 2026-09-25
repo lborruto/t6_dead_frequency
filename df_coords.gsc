@@ -1114,6 +1114,12 @@ df_coord_tune_done( key )
     if ( key == "DF_ORB_SPOT_1" || key == "DF_ORB_SPOT_2" || key == "DF_ORB_SPOT_3" )
         df_orb_spot_pick( key );
 
+    if ( issubstr( key, "DF_BLACKOUT_" ) )
+        level notify( "df_bo_respawn" ); // owner 2026-09-25: the switches follow their moved anchor
+
+    if ( issubstr( key, "DF_BRAZIER_" ) )
+        level notify( "df_m2_grave_moved", key ); // owner 2026-09-25: the grave follows its moved anchor
+
     df_preview_refresh( key );
 
     if ( key != "DF_TABLE" )
@@ -1417,7 +1423,7 @@ df_models_init()
     // owner 2026-09-25: Blackout (Richtofen Step 5): vanilla's power switch without its hand. The lever sits on the
     // body at its offset; ON = the lever rolled -90 from this pose (zm_transit_power.gsc:56), OFF = this pose.
     df_model_def( "pswitch_body", "p6_zm_buildable_pswitch_body", 0, 0, 0 );
-    df_model_def( "pswitch_lever", "p6_zm_buildable_pswitch_lever", 0, 0, 180, ( 0, 0, 40 ) ); // owner 2026-09-25: yaw 180, the handle was on the wrong side of the panel
+    df_model_def( "pswitch_lever", "p6_zm_buildable_pswitch_lever", 0, 0, 0, ( 0, 0, 40 ) ); // owner 2026-09-25: yaw back to 0 (the 180 turned it upside down); ON / OFF poses are dvars (df_act3_blackout df_bo_pose) panel
     df_models_init_items();
 }
 

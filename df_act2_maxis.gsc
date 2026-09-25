@@ -1919,6 +1919,54 @@ df_m2_place_braziers()
     }
 
     level thread df_m2_side_watch();
+    level thread df_m2_grave_move_hook();
+}
+
+// owner 2026-09-25: a DF_BRAZIER_n anchor moved in game (!df setpos / !df grab / !df move) carries its grave along:
+// model, both clips and the flame / crackle at the new rim. df_coords df_coord_tune_done notifies.
+df_m2_grave_move_hook()
+{
+    level endon( "end_game" );
+
+    while ( true )
+    {
+        level waittill( "df_m2_grave_moved", key );
+
+        foreach ( b in level.df_m2_braziers )
+        {
+            if ( !isdefined( b ) || "DF_BRAZIER_" + ( b.idx + 1 ) != key )
+                continue;
+
+            c = df_coord( key );
+            b.origin = df_ground( c.origin + ( 0, 0, 20 ) );
+            b.angles = c.angles;
+            b.df_spots = undefined;
+
+            if ( isdefined( b.model ) )
+            {
+                b.model.origin = b.origin;
+                b.model.angles = c.angles;
+            }
+
+            if ( isdefined( b.clip ) )
+            {
+                b.clip.origin = b.origin + ( 0, 0, 16 );
+                b.clip.angles = c.angles;
+            }
+
+            if ( isdefined( b.clip_top ) )
+            {
+                b.clip_top.origin = b.origin + ( 0, 0, 48 );
+                b.clip_top.angles = c.angles;
+            }
+
+            df_m2_crackle_stop( b );
+            stage = b.stage;
+            b.stage = -1;
+            df_m2_set_stage( b, stage );
+            df_debug_print( "DF: m2 " + b.name + " moved to " + int( b.origin[0] ) + " " + int( b.origin[1] ) + " " + int( b.origin[2] ) );
+        }
+    }
 }
 
 df_m2_side_watch()
