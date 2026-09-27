@@ -3,7 +3,7 @@
 All notable changes to Dead Frequency are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.1.0-rc2] - 2026-09-27
+## [1.1.1] - 2026-09-27 (hotfix)
 
 ### Fixed
 - R2: the spark under each inserted battery was replayed every few seconds and never stopped (the
