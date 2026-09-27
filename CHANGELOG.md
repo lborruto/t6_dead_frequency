@@ -3,6 +3,13 @@
 All notable changes to Dead Frequency are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.0-rc2] - 2026-09-27
+
+### Fixed
+- R2: the spark under each inserted battery was replayed every few seconds and never stopped (the
+  effect loops by itself); after a while thousands stacked up and the game stopped drawing new
+  effects (Ray Gun, power-ups). It is now played once per battery.
+
 ## [1.1.0] - 2026-09-25
 
 ### Added
