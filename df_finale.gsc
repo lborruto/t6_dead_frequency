@@ -1046,7 +1046,7 @@ df_fin_tracker_apply( key )
 
     level.df_fin_track[key] = 1;
 
-    // owner 2026-09-28: from the charged rock on the table (Step 6 done) to the finale burst, the rock never loses its glow
+    // owner 2026-09-28: once Step 7 has started, the rock never loses its glow until the finale burst
     if ( key == "step6" || key == "step7" )
         level thread df_fin_rest_aura_watch();
 
@@ -1125,8 +1125,8 @@ df_fin_orb_beacon_loop( gap )
     }
 }
 
-// owner 2026-09-28: "the glow should never leave the rock": from Step 6 done to the finale burst the rock wears the
-// glow it has while protected (df_s7_aura_fx). Step 7 carries its own (the wave rock, df_s7_orb_aura_on); outside a
+// owner 2026-09-28: the glow appears when Step 7 starts ("Hold F to power the relay") and never leaves the rock until
+// the finale burst: the glow it has while protected (df_s7_aura_fx). Before the first Step 7 start: no glow. Step 7 carries its own (the wave rock, df_s7_orb_aura_on); outside a
 // wave this watcher keeps one glow linked to the Step 6 rock resting on the table, and it stays linked while the
 // finale lifts that rock (level.df_fin_rising) until the burst removes it. One watcher per game, 0.25 s ticks.
 df_fin_rest_aura_watch()
@@ -1149,7 +1149,7 @@ df_fin_rest_aura_watch()
         {
             // the rise keeps the glow it has
         }
-        else if ( isdefined( rock ) && !is_true( level.df_s7_active ) )
+        else if ( isdefined( rock ) && ( is_true( level.df_s7_ever_started ) || df_is_done( "step7" ) ) && !is_true( level.df_s7_active ) )
         {
             if ( !isdefined( level.df_fin_rest_aura ) || !isdefined( level.df_fin_rest_on ) || level.df_fin_rest_on != rock )
                 df_fin_rest_aura_on( rock );

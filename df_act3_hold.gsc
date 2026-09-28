@@ -384,6 +384,7 @@ df_s7_wave( starter )
     level.df_s7_striking = 0;
     level.df_s7_starter = starter;
     level.df_s7_active = 1;
+    level.df_s7_ever_started = 1; // owner 2026-09-28: from now on the rock keeps its glow (df_finale df_fin_rest_aura_watch)
 
     df_s7_orb_spawn();
     playsoundatposition( "zmb_screecher_portal_end", socket ); // owner pick 2026-09-11: Step 7 starts
