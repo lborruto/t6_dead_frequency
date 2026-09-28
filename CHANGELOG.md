@@ -6,6 +6,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- After the finale (no denizens), a Galvaknuckle punch on a powered lamp opens its teleport portal, as a burrowing
+  denizen did: with the power ON any lamp, with the power OFF a lamp with a turbine by it.
 - Rewards are the same on both sides and come at the finale only: every perk, a Max Ammo and a Jet Gun that
   never overheats. The Act 2 rewards (turrets without a turbine, powered lamp posts, their Max Ammo) are gone.
 - Permanent world change: the lamps in the side's colour, and on both sides Avogadro is banished and the

@@ -462,6 +462,7 @@ df_fin_world( side )
     level thread df_fin_avogadro_banish();
     level.zombie_ai_limit_screecher = 0;
     level thread df_fin_denizen_keeper();
+    level thread df_fin_lamp_punch_loop(); // owner 2026-09-28: no denizen to open the lamp portals any more
 
     if ( side == "rich" )
         df_say( "FIN_WORLD_RICH" );
@@ -499,6 +500,69 @@ df_fin_keepsake( side )
     }
 
     df_debug_print( "DF: finale keepsake on slot 1 (" + side + ")" );
+}
+
+// owner 2026-09-28: with the denizens gone, a Galvaknuckle punch opens the lamp's portal instead. Vanilla opens it when a
+// denizen burrows under a POWERED lamp (zm_transit_ai_screecher.gsc:55-56 screecher_should_burrow: green_light.power_on,
+// true with the power ON or a turbine by the lamp), by create_portal() then the "burrow_done" notify (:68-92); the punch
+// runs those same two. Power ON: every lamp works; power OFF: place a turbine by the lamp first. An unpowered lamp is
+// refused (deny buzz). The lamps are vanilla's screecher_escape structs; a player within 100 (2D) of one is punching it.
+df_fin_lamp_punch_loop()
+{
+    level endon( "end_game" );
+
+    if ( is_true( level.df_fin_punch_loop ) )
+        return;
+
+    level.df_fin_punch_loop = 1;
+    lights = getstructarray( "screecher_escape", "targetname" );
+
+    if ( !isdefined( lights ) || lights.size == 0 )
+        return;
+
+    while ( true )
+    {
+        wait 0.05;
+
+        foreach ( player in getplayers() )
+        {
+            if ( !is_player_valid( player ) || !df_melee_edge( player ) || !df_has_knuckles( player ) )
+                continue;
+
+            light = undefined;
+
+            foreach ( l in lights )
+            {
+                if ( distance2dsquared( player.origin, l.origin ) < 100 * 100 && df_abs( player.origin[2] - l.origin[2] ) < 160 )
+                    light = l;
+            }
+
+            if ( !isdefined( light ) || is_true( light.burrow_active ) )
+                continue;
+
+            if ( !is_true( light.power_on ) )
+            {
+                df_cue_deny( player );
+                df_debug_print( "DF: lamp punch refused, the lamp has no power (power ON, or a turbine by it)" );
+                continue;
+            }
+
+            level thread df_fin_lamp_portal_open( light, player );
+        }
+    }
+}
+
+// The portal, the vanilla way (create_portal, then burrow_done), plus the punch's blue spark and arc at the post.
+df_fin_lamp_portal_open( light, player )
+{
+    level endon( "end_game" );
+
+    df_fx_once( "fx_zmb_tranzit_spark_blue_lg_os", light.origin + ( 0, 0, 60 ) );
+    playsoundatposition( "zmb_zombie_arc", light.origin );
+    light thread maps\mp\zm_transit_ai_screecher::create_portal();
+    wait 1.2;
+    light notify( "burrow_done" );
+    df_debug_print( "DF: lamp portal opened by " + player.name + "'s punch" );
 }
 
 // M1 saves / restores the denizen cap around its cold room (df_act2_maxis); a late restore or any other
