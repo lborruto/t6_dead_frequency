@@ -6,6 +6,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- Steps renumbered the way they are played: Step 1-3 (Act 1), R1-R3 / M1-M3 (Act 2, Blackout and Lights Out
+  are the side's third step), Step 4-5 (Act 3), finale. `!df goto` and the console use the new names; `step6` /
+  `step7` still work.
+- M3: putting out a lamp plays the sub-goal chime to every player and an arc crack at the lamp.
 - M1: the cold room's denizens rise from eight spots around the woods zone (three before).
 - M1: the rider carried under the tower jumps off and burrows like at a powered lamp (the vanilla animation and
   portal), within the vanilla lamp radius (256).

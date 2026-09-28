@@ -54,17 +54,17 @@ When all four are lit the bus dashboard pulses, Maxis and Richtofen speak, and t
 
 </details>
 
-<details><summary><b>Step 3 - Ride the Line (build the relay, then ride it with the power ON)</b> (click to reveal)</summary>
+<details><summary><b>Step 2 - Ride the Line (build the relay, then ride it with the power ON)</b> (click to reveal)</summary>
 
 
-There is no Step 2 any more: collecting the parts and building the relay is the first half of this step.
+Collecting the parts and building the relay is the first half of this step.
 
 Two more parts lie in the fog from round 1 and can be taken at any time, even before Step 1:
 
 - the RADIO, in the garage next to the Diner (behind the mystery box);
 - the MAST, a tall standing post, on the upper floor of the Farm barn.
 
-Once Step 3 is open, with all three parts, get on the bus roof: "Hold F to build the relay". Three seconds later
+Once Step 2 is open, with all three parts, get on the bus roof: "Hold F to build the relay". Three seconds later
 the relay stands on the roof (radio, coil box, mast). With only two parts there is no build prompt.
 
 Then turn the power on (Power station). Ride the bus with the relay on its roof for ONE full trip from one stop to
@@ -77,7 +77,7 @@ When the bus reaches the next stop with the power on, the relay is locked (the d
 
 </details>
 
-<details><summary><b>Step 4 - Plug In (the tower) - THIS CHOOSES YOUR SIDE</b> (click to reveal)</summary>
+<details><summary><b>Step 3 - Plug In (the tower) - THIS CHOOSES YOUR SIDE</b> (click to reveal)</summary>
 
 
 Press F on the locked relay to take it (sparks on your back; you cannot use the lamp portals while carrying;
@@ -129,7 +129,7 @@ in hand and is consumed at the fourth box. Then the Simon must be played again f
 and a new key card only comes with the new solve. One bus trip, no kills needed. While the boxes are locked, ending a round with the
 power OFF empties one charged box again (Richtofen complains).
 
-Done: the four boxes hold his charge. Step 6's node is the sparking transformer block at the Power station.
+Done: the four boxes hold his charge. Step 4's node is the sparking transformer block at the Power station.
 
 </details>
 
@@ -152,8 +152,7 @@ lamp.
 Every lamp's battery in the table = R2 done. If nobody in the team carries a Jet Gun, Richtofen says you will
 need one before the end.
 
-Richtofen side rules from here on: Avogadro returns every round (not while Step 6 is open); turrets work
-without a turbine. Ending a round with the power OFF costs you and Richtofen says so: the fullest hungry lamp
+Richtofen side rules from here on: Avogadro returns every round (not while Step 4 is open). Ending a round with the power OFF costs you and Richtofen says so: the fullest hungry lamp
 loses 5 kills (a full lamp whose battery is still in the post can reopen), or during the R1 lock one charged box
 loses its battery. When R2 completes every lamp of the set counts as full.
 
@@ -210,8 +209,8 @@ team carries a Jet Gun, Maxis says you will need one before the end.
 Ending a round with the power ON makes the lit, unfinished grave with the most kills forget them.
 
 Maxis side rules from M1 on: there are twice as many denizens in the fog; they leave you alone only inside a
-lit grave's kill zone while M2 runs and near the cabin fireplace while Step 6 is open (plus vanilla's own safe
-places). After M2 the lamp portals open without a turbine.
+lit grave's kill zone while M2 runs and near the cabin fireplace while Step 4 is open (plus vanilla's own safe
+places).
 
 ---
 
@@ -219,7 +218,7 @@ places). After M2 the lamp portals open without a turbine.
 
 ---
 
-## Act 3 - Convergence (shared; the actions differ per side)
+## Act 2 - the third step (R3 Richtofen / M3 Maxis)
 
 <details><summary><b>R3 - Blackout (Richtofen) / M3 - Lights Out (Maxis)</b> (click to reveal)</summary>
 
@@ -248,7 +247,9 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
 
 </details>
 
-<details><summary><b>Step 6 - Vacuum (the rock)</b> (click to reveal)</summary>
+## Act 3 - Convergence (shared; the actions differ per side)
+
+<details><summary><b>Step 4 - Vacuum (the rock)</b> (click to reveal)</summary>
 
 
 The step opens at the table: RICHTOFEN, the key card discharges and its storm flies off; MAXIS, the burning lantern
@@ -279,7 +280,7 @@ whichever is nearer.
 
 </details>
 
-<details><summary><b>Step 7 - The Line Holds (the tower)</b> (click to reveal)</summary>
+<details><summary><b>Step 5 - The Line Holds (the tower)</b> (click to reveal)</summary>
 
 
 HOLD F for 1.5 s at the table ("power the relay"). The rock leaves its slot and hovers under the tower for 75 s
@@ -310,7 +311,7 @@ Set the right power state: RICHTOFEN power ON; MAXIS power OFF now, or off at th
 for 1 s at the table ("open the frequency"). Until then the rock on the table sends a light up to the tower top every
 few seconds. Wrong power state: a buzz and a complaint.
 
-Every perk first, a 6 s build-up, the rock rises into the tower top wearing its Step 7 glow, the burst (Richtofen: lightning and
+Every perk first, a 6 s build-up, the rock rises into the tower top wearing its Step 5 glow, the burst (Richtofen: lightning and
 thunder; Maxis: a fire pulse at the top, no lightning, no thunder), then the permanent world change: on both sides Avogadro
 is banished and the denizens are gone for good (the lamps stay vanilla; with no denizen to open a lamp portal, punch a
 powered lamp with the Galvaknuckles to open it). Then the rewards, the same on both sides: every perk (already given), a Max

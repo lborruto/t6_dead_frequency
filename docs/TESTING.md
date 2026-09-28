@@ -26,13 +26,13 @@ progress tick; NavCard chime + side flash + a spark runner flying to the tower t
 (2D) = STEP DONE (the only step-done sound); NavCard fail buzz = wrong input (only you hear it); bus EMP thump =
 something lost / failed; Samantha-steal burst + Avogadro thunder + a short quake = a quest ITEM ARRIVES (coil, key card,
 spool, M1 lantern, rock: every item comes by that strike). Anything put on the table = the piece-add clink ONLY: the table
-under the tower shows NO fx of ours (no Step 4 preview light, no plug spark, no marker glint, no placing snap); the
+under the tower shows NO fx of ours (no Step 3 preview light, no plug spark, no marker glint, no placing snap); the
 lasting look is one small glow per finished step climbing the relay mast. `!df cue avail|tick|subgoal|fail|deny|trail|done`
 plays each one where you stand.
 Side family: everything electric (blue sparks) on Richtofen and before the fork, everything fire / ash on Maxis. On
 Maxis NOTHING looks electric: lamps never light the vanilla (electric-arc) exploder and hum with zmb_fire_loop, the
-tower top gets a slow fire pulse instead of the lightning orb, no Avogadro thunder crack at the Step 6 strike, the
-Step 7 charge strikes or the finale burst.
+tower top gets a slow fire pulse instead of the lightning orb, no Avogadro thunder crack at the Step 4 strike, the
+Step 5 charge strikes or the finale burst.
 Useful cheats: `!god`, `!points`, `!ammo`, `!kill`, `!round <n>`, `!gun jetgun_zm`, `!gun turbine_zm`, `!gun
 tazer_knuckles_zm`; `!df freeze` (ours: every regular zombie stands inert until toggled back, denizens and Avogadro
 untouched, new zombies freeze as they finish rising); `!df jet` / `!df jet watch` (Jet Gun heat values per player);
@@ -41,10 +41,10 @@ weapon, whether you carry the relay / orb / lantern / battery, and every `trigge
 of you with its distance - paste it when a prompt refuses to show).
 
 ## 0. Load
-- No red error popup. `!df status` -> the version line above, `registered: step1 step3 step4 r1 r2 m1 m2 step5 step6 step7 finale` (no step2: merged into step3, 2026-09-25), `available: step1`.
+- No red error popup. `!df status` -> the version line above, `registered: step1 step3 step4 r1 r2 m1 m2 step5 step6 step7 finale` (the internal keys) (no step2: merged into step3, 2026-09-25), `available: step1`.
 - `!df fire compat` -> `DF compat: richcompleted 1 maxcompleted 1` (vanilla quest muted). Console at boot: `bus parts
   pinned (n moved): ladder at the Depot, hatch at the Diner`, `Galvaknuckles cost 3000 (was 6000), 1 wall buy(s) patched` and `orb landing spot
-  DF_ORB_SPOT_n x y z (drawn once per game)` (the Step 6 spot, fixed for the whole game).
+  DF_ORB_SPOT_n x y z (drawn once per game)` (the Step 4 spot, fixed for the whole game).
 - ~20 s into round 1: MAXIS (orange name, white text) then RICHTOFEN (blue name) bottom centre, a soft tick per line.
   Readable? Cut on the right? A vanilla Maxis voice line plays at the phone when Step 1 opens (console `vox vox_maxi_tv_distress_0 3D`).
 - `!df fire perks` -> `finale perks (debug): 5 perks` + one `finale perk X given` line each, five icons. `!df say FIN_RICH_2` (longest line): still readable?
@@ -113,7 +113,7 @@ change; an unknown KEY is refused: `DF: unknown anchor <KEY> (!df dump lists the
 `!df aim`-ing a `DF_BLACKOUT_n` or
 `DF_BRAZIER_n` anchor moves the REAL switch / grave along with it (model, trigger, bullet walls, flame), not just the anchor:
 `DF: blackout switches respawned (...)` / `DF: m2 brazier_n moved to ...`. `!df hide` when done. The M1 item is Maxis's lantern (kind `skull` in the
-code, `p_lights_cagelight02_red_off`, the same model and table pose as the M2 burning lantern, kind `ember`); the Step 6 rock
+code, `p_lights_cagelight02_red_off`, the same model and table pose as the M2 burning lantern, kind `ember`); the Step 4 rock
 is the meteor piece (`p6_zm_buildable_sq_meteor`).
 Picking by ear and eye: the picker pages (Sound, Prop, Effect; self-contained HTML built by the generators in `tools/pickers`)
 list the same sets as `!df snd list` / `!df fx list`. In game: `!df snd <n>` / `!df snd next` plays a sound to you at
@@ -123,7 +123,7 @@ huge ones / `gridoff`), walk to a pedestal and the bottom label reads `[n] name`
 and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, rock aura, ...).
 
 ## 3. Act 1 (shared)
-**Step 1 Dead Air** (depot, no power). Skip: `!df fire a1_solve1` or `!df goto step3` (`step2` still works as its alias; the coil arrives in both cases).
+**Step 1 Dead Air** (depot, no power). Skip: `!df fire a1_solve1` or `!df goto step2` (`step2` still works as its alias; the coil arrives in both cases).
 - Count the far light's groups ("3, pause, 1, pause, 4, pause, 2"), then KICK the pipes whose blink count matches, in
   that order (one press each; NO prompt, even with `!df hints on`): a spark on the pipe, it stops blinking and its light
   stays on. Holding F must not repeat. Console `screen n used, expected screen m, progress k`.
@@ -138,9 +138,9 @@ and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, 
   zmb_meteor_loop). Move the light: `!df grab DF_SIGNAL`, paste the printed line.
 - Wrong: paste the `screen n used ...` lines and `step1 order ...`.
 
-**Step 3 Ride the Line, part 1: build** (fog, then the bus roof; the old Step 2 Salvage, merged 2026-09-25). Skip the
-whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an alias of `!df goto step3`.
-- Step 3 opens right after Step 1: S3_START ("The signal needs a voice that travels..."). While the relay is not
+**Step 2 Ride the Line, part 1: build** (fog, then the bus roof; the old Step 2 Salvage, merged 2026-09-25). Skip the
+whole step: `!df goto step3`. There is no `step2` key: `!df goto step2` is an alias of `!df goto step2`.
+- Step 2 opens right after Step 1: S3_START ("The signal needs a voice that travels..."). While the relay is not
   built the stall ladder speaks the build rungs S3_BUILD_HINT_1 / _2 / _3 (phase BUILD), afterwards the ride rungs
   S3_HINT_1 / _2 / _3 (console `stall hint S3_BUILD_HINT_1 (step3 untouched, rung 1)`).
 - Take the remaining parts (one press, notice n/3, TAB square). `!df fire a1_parts` takes the rest, coil included.
@@ -151,7 +151,7 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
   here (the step goes on with the ride). `!df fire a1_build` demos the hands anywhere.
 - `!df power off`: relay dark. `!df power on`: tiny glow + a spark every 2-3 s.
 
-**Step 3 Ride the Line, part 2: ride** (power ON). Skip: `!df fire a1_stop` (needs a running sweep) or `!df goto step4`.
+**Step 2 Ride the Line, part 2: ride** (power ON). Skip: `!df fire a1_stop` (needs a running sweep) or `!df goto step3`.
 - Glint on the relay until the first sweep. Bus leaves: `sweep 1/1 started, bus left <stop>, relay hp 800`, a blue
   burst on the relay every 1.5 s (no big spark cloud over the bus), and `roof waves on: two zombies every 1.5 s ahead
   of the bus, cap 8, until the relay locks or the sweep ends` (cap +3 per extra player): zombies keep rising along the
@@ -159,12 +159,12 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
 - Roof zombies swing: sparks, `relay hit, hp 740` (60 a hit). `!df fire a1_hit` (200) x2: `relay damaged, hp 400,
   second burst layer on`; x3: `relay low, hp 200, warning horn`.
 - Arrival: leave horn, blue burst, 8 s of tower lightning, `stop 1/1 counted at <stop>`, then `relay locked, take it to
-  the tower` + the dashboard power pulse replaying on the relay, `roof waves off`, D3 lines, `step complete step3`. ONE stop only.
+  the tower` + the dashboard power pulse replaying on the relay, `roof waves off`, D3 lines, `step complete step2`. ONE stop only.
 - Power OFF while the bus rides (`!df power off` mid-trip): at the stop `the bus reached the stop without power: not
   counted`, EMP thump, D3_FAIL, relay kept.
 - Wrong: paste every `sweep ...` / `bus left ...` / `roof waves ...` line.
 
-**Step 4 Plug In**. Skip: `!df goto r1` (rich) or `!df goto m1` (maxis; the goto locks the side itself).
+**Step 3 Plug In**. Skip: `!df goto r1` (rich) or `!df goto m1` (maxis; the goto locks the side itself).
 - One press within 120 takes the relay (`relay picked up by`, sparks on your back); the first lift of the game plays
   S4_CHOOSE ("Choose now..." / "Lights ON when you plug it..."). Portal at a lamp: deny buzz, refused.
 - Carry it into the cornfield: Maxis's vanilla "Spire" voice once (`locked relay entered the cornfield`).
@@ -190,7 +190,7 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
   this game (start a fresh game to test maxis)`.
 - Persistence (owner, `say` in the in-game chat with `df_debug 1`): fresh game `say !df side maxis` -> graves
   flame, barn boxes present and dark. Fresh game `say !df side rich` -> boxes glow, graves present, no flame.
-  `say !df goto step7` on Maxis -> all four graves still standing.
+  `say !df goto step5` on Maxis -> all four graves still standing.
 - Co-op: the carrier leaves the game with the relay: `relay carrier left the game, relay dropped`, then after 60 s
   untouched `orphan relay untouched for 60 s, returned to the table`.
 
@@ -243,7 +243,7 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
 - Side rules: hold the Jet Gun until the heat passes 50: the needle stalls. Power OFF and end a round: `power off: lamp X
   -5, n` + R2_POWER_RICH ("Lights out, Samuel!"); a filled lamp whose battery is still in the post reopens (hungry
   again), one whose battery is out never does. Avogadro comes back EVERY round (`avogadro returns next round`), except while
-  Step 6 is open.
+  Step 4 is open.
 
 ## 4M. Maxis side (power OFF): `!df goto m1` in a fresh game (the goto locks the side)
 **M1 The Cold Room**. Skips: `!df fire m1_ride` (ride cue), `m1_latch`, `m1_kills`, `m1_skull` (the lantern in
@@ -285,7 +285,7 @@ returns them to the tower first (owner 2026-09-25 fix; before, a goto mid-room l
   the clink only (no snap), `m1 lantern placed by <you>`, `m1 lantern on the table, slot 1 (...)` (it lies at the burning lantern's
   pose, exactly where M2's burning lantern will rest; no spin, no glow, no flame), tower cue 12 s (the slow fire pulse at the
   top, no lightning), M1_DONE ("...The lantern still wants fire."), `step complete m1`.
-- After M1: `m1 side rules on: denizens avoid the graves (M2) and the cabin fireplace (Step 6) within 400, fog spawns doubled` (the tower safety
+- After M1: `m1 side rules on: denizens avoid the graves (M2) and the cabin fireplace (Step 4) within 400, fog spawns doubled` (the tower safety
   volume comes back as well). Stand at the table with a denizen on your
   head: say whether it jumps off.
 - Timeout: `m1 cold room over: timeout`, back at the tower with an ash burst + EMP thump, Maxis's fail line, `m1 failed
@@ -342,7 +342,7 @@ m2_ember` is GONE, 2026-09-25, with the whole old lantern take/carry/monitor cod
   Samuel."), tower
   cue 12 s (fire pulse at the top, no lightning), `m2 smoke column at the tower top for 20 s`, orange runners
   on the tower (no Act 2 reward any more). Nobody holding a Jet
-  Gun: A2_JETGUN_MAXIS ("Before the end you will need a Jet Gun"). `m2 done: Step 6 node = the cabin hearth at
+  Gun: A2_JETGUN_MAXIS ("Before the end you will need a Jet Gun"). `m2 done: Step 4 node = the cabin hearth at
   5430 6874 -24 (one draw: fire until the Jet Gun overheats)`. `!df fire lamps`: `silent 1` on all 8 lamps; a
   denizen dropping at any lamp opens a portal, no turbine.
 - The old "take the lantern" prompt, `ITEM_EMBER_MAXIS` and the whole take/carry/monitor code were CUT entirely
@@ -355,7 +355,7 @@ m2_ember` is GONE, 2026-09-25, with the whole old lantern take/carry/monitor cod
   count, and what killed the zombie.
 
 ## 5. Act 3 (shared; what differs per side is marked)
-**M3 / R3 Lights Out (Maxis)**. Skips: `!df fire s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again), `!df goto step6`.
+**M3 / R3 Lights Out (Maxis)**. Skips: `!df fire s5_dark` (every lamp dark at once, completes the step), `s5_relight` (every lamp humming again), `!df goto step4`.
 - S5 START waits until the end-of-Act-2 lines are over (at most 90 s). Console `DF: s5 lights out: 3 lamps hum with
   his power, a claymore kill within 250 puts one out, 3 dark to win` (exactly three lamps at every player count; a full
   lobby's fourth set lamp stays vanilla). Every set lamp is state "possessed": his look, a big looping
@@ -384,17 +384,17 @@ m2_ember` is GONE, 2026-09-25, with the whole old lantern take/carry/monitor cod
   out again."), one random dark lamp goes back to "possessed" (his spark, glow and hum return). With zero dark,
   or all of them dark, end of round does nothing.
 - Put out all THREE lamps at once: `DF: s5 3 lamps dark, step done`, D5_DONE
-  ("His lamps are dark. His voice is gone. Now the lantern must give up its fire."), `step complete step5`.
+  ("His lamps are dark. His voice is gone. Now the lantern must give up its fire."), `step complete m3` (Maxis) / `step complete r3` (Richtofen).
 - No countdown, no soul penalty, nothing lost by taking your time: only the claymore mechanic and the end-of-round
   relight move the count.
 - `!df fire s5_dark` / `s5_relight`: `DF: s5 debug: every lamp df_debug_s5_dark` / `df_debug_s5_relight` (the
   console line names the raw hook, not dark/lit, on purpose); every lamp jumps to that state at once (`s5_dark`
-  also completes the step if it is open). `!df goto step6`: every set lamp stands dark, nothing running,
+  also completes the step if it is open). `!df goto step4`: every set lamp stands dark, nothing running,
   `DF: s5 setup: 3 lamps dark`.
 - Wrong: paste every `DF: s5 ...` line and which lamp.
 
 **M3 / R3 Blackout (Richtofen)**. Skips: `!df fire blackout_off` (all three switches OFF, a running step keeps
-going), `!df fire blackout_on` (all three ON, completes the step if it is open), `!df goto step6`.
+going), `!df fire blackout_on` (all three ON, completes the step if it is open), `!df goto step4`.
 - The three DF_BLACKOUT switches stand ON from boot on both sides, each at its OWN owner spot (no longer
   side by side under the tower), console `DF: blackout 3 power switch(es) standing ON`; Maxis's side never
   touches them. Every switch is built exactly like the map's own power switch: `pswitch_body` +
@@ -418,14 +418,14 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   over. Every switch he lit falls dark again. The dark is patient.", + Richtofen for Stuhlinger). All three must be ON within ONE round (owner 2026-09-25; was one switch
   knocked per round). Nothing ON: nothing happens.
 - Third switch ON: at once (not at the round end) sub-goal cue, `DF: blackout all switches ON`, D5_DONE_RICH ("All three ON! The obelisk
-  drinks, Samuel. Now my card wants to let go!"), `step complete step5`.
+  drinks, Samuel. Now my card wants to let go!"), `step complete m3` (Maxis) / `step complete r3` (Richtofen).
 - `!df fire blackout_off` / `blackout_on`: `DF: blackout debug: every switch df_debug_blackout_off` /
-  `df_debug_blackout_on` (the console line names the raw hook, not ON/OFF, on purpose). `!df goto step6`: all
+  `df_debug_blackout_on` (the console line names the raw hook, not ON/OFF, on purpose). `!df goto step4`: all
   three switches stand ON, nothing running, no console line.
 - No scaling: three switches whatever the lobby size.
 - Wrong: paste every `DF: blackout ...` line and which switch.
 
-**Step 6 Vacuum**. Skips: `!df fire s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver` (finish), `s6_restart`, `orb_aura` (next aura), `!df goto step7`.
+**Step 4 Vacuum**. Skips: `!df fire s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver` (finish), `s6_restart`, `orb_aura` (next aura), `!df goto step5`.
 - Step opens at the table: RICH the key card discharges (blue spark + arc crack, a blue runner to the landing spot,
   S6_CARD_RICH, `s6 the key card discharged on the table, its charge flew to the landing spot`; the card stays); MAXIS
   the burning lantern bursts and is gone (fire burst, its fire flies to the landing spot, S6_EMBER_MAXIS, `s6 the burning lantern
@@ -457,19 +457,19 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   node 0 without the orb in hand (orb: <state, distance, position>)`. Walking past the node with another gun: silent.
 - MAXIS aim check at the fireplace: crouched at 5394 6872 looking straight in, standing at the same spot, and standing
   a metre back (5357 6872) must all draw. Wrong: paste the `aim NN/100` line and your `!pos`. Denizens leave you alone
-  within 400 of the fireplace while Step 6 is open. RICH: Avogadro stays in his cloud while Step 6 is open.
+  within 400 of the fireplace while Step 4 is open. RICH: Avogadro stays in his cloud while Step 4 is open.
 - All charges: three clinks, `s6 orb fully charged, bring it to the tower socket`, D6_FULL_RICH / D6_FULL_MAXIS, aura +
   hum on the rock and on you (RICH powerup_on_caution, the same glow as Maxis's rock now - easy to see; MAXIS
   powerup_on_caution too; `!df fire orb_aura` cycles). At the
   table with charges missing: "The rock needs N more charge(s)". Full, within 150: "Hold F to place the rock
   in the relay" (the vanilla build hold, 3 s), the clink only (no snap on the table), the rock rests on the RIGHT slot with NO aura, the "Rock" notice is
-  cleared, D6_DONE, `step complete step6`.
-- `!df goto step6` MAXIS (after `!df side maxis`): console `m2 done: Step 6 node = the cabin hearth ...` and `s6 node 0
-  hearth cabin hearth`; RICH `r1 done: Step 6 node = the transformer block ...`.
+  cleared, D6_DONE, `step complete step4`.
+- `!df goto step4` MAXIS (after `!df side maxis`): console `m2 done: Step 4 node = the cabin hearth ...` and `s6 node 0
+  hearth cabin hearth`; RICH `r1 done: Step 4 node = the transformer block ...`.
 - Drop test: go down while carrying: `s6 orb dropped at ..., 60 s to pick it up`; wait: `s6 orb returned home (...)` =
   the NEARER of the landing spot and the table front, charges kept.
 
-**Step 7 The Line Holds**. Skips: `!df fire s7_start`, `s7_time` (win now), `s7_fail`, `s7_hp` (print hp), `s7_dmg` (100 dmg), `s7_strike`.
+**Step 5 The Line Holds**. Skips: `!df fire s7_start`, `s7_time` (win now), `s7_fail`, `s7_hp` (print hp), `s7_dmg` (100 dmg), `s7_strike`.
 - At the table: `s7 socket armed (hold 75 s, orb 3000 hp, period 1.3 s, cap 10 | 14, 1 player(s))` (the "hold" there is
   the wave length), glint over the right slot, "Hold F to power the relay". Hold 1.5 s (bar "Powering the relay"): the rock leaves the slot and wanders under the
   tower HOVERING 40 UP with its aura and hum (RICH the Avogadro hum, MAXIS a fire crackle; easy to see from the road?),
@@ -494,7 +494,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   table is armed again`), hold again. Song must NOT play twice within its own length (256.5 s): `s7 song still running
   from the last attempt, not restarted`. Never two rocks at once.
 - Survive (or `!df fire s7_time`): `s7 wave over: success`, tower lights, the rock glides back onto the right slot in 2 s
-  with the rising sound, `s7 orb back on the table, slot 2`, D7_DONE, `step complete step7`, one more white and one more side runner on the tower.
+  with the rising sound, `s7 orb back on the table, slot 2`, D7_DONE, `step complete step5`, one more white and one more side runner on the tower.
 - AFTER the hold the song keeps playing (256 s from its start, it cannot be stopped): `s7 after the hold: waves near the
   players until the song ends in N s`. Walk anywhere: zombies keep rising near you (every 1.3 s, up to the cap around
   you) and hunt you normally, no rock to defend. When the song ends: `s7 after-hold waves over (song ended, or a new
@@ -505,17 +505,17 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - `finale waiting at the table (side X)`, NO marker glint on the table (the prompt leads), "Hold F to open the frequency". Power gate: RICH power ON;
   MAXIS power OFF now, OR the round STARTED with the power off (turn it ON mid-round, the hold is still accepted). Wrong:
   deny buzz while you hold, the patron complains once per 20 s, `finale refused, wrong power state for side X`.
-- Before: from Step 7 done, the rock on the table sends a side-coloured light up to the tower top every 3 s
+- Before: from Step 5 done, the rock on the table sends a side-coloured light up to the tower top every 3 s
   (`finale beacon: ...`); it stops when the frequency opens.
 - Hold 1 s (bar "Opening the frequency"): `finale start, side X, nostat 0`. Order: all perks (one console line each),
   `finale build-up (6 s, X)` (RICH: electric hum, blue sparks and arcs over the table; MAXIS: fire crackle, fire pulses,
   ash column at the base, smoke column at the top; both shake), `finale orb rising to the tower top (6 s, stand-in 0)`:
-  the rock lifts off the right slot with the reactor hum and its Step 7 glow, `finale burst, tower fx on`, RICH lightning at the top + Avogadro
+  the rock lifts off the right slot with the reactor hum and its Step 5 glow, `finale burst, tower fx on`, RICH lightning at the top + Avogadro
   thunder / MAXIS the slow fire pulse at the top, no lightning, no thunder crack; side flash, 3 s shake, one vanilla
   voice line, `s6 orb consumed by the finale`. The lamps stay vanilla (green only with power or a turbine).
   Console `finale world change done (X)`, the patron's world line, the keepsake line (RICH the card left on the table; MAXIS
   ITEM_KEEPSAKE_MAXIS "The lantern burnt out for this. Let the Spire remember whose fire it holds.", the lantern is
-  gone since Step 6) (`finale keepsake on slot 1`), sting, Max Ammo (`finale power-up dropped`), `finale reward on (jet gun cool)` (both sides), screen
+  gone since Step 4) (`finale keepsake on slot 1`), sting, Max Ammo (`finale power-up dropped`), `finale reward on (jet gun cool)` (both sides), screen
   message "Dead Frequency complete: ...", `finale stat written for side X`, three closing lines
   (6.5 s apart), `finale done`, `step complete finale`.
 - RICH: `avogadro banished to the cloud (return_round 9999)`; play two more rounds: he never returns. MAXIS: `denizen cap
@@ -525,10 +525,10 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 ## 6. Fail paths (each in its own game or with `!df goto`)
 - Step 1, wrong pipe: deny buzz, all four blink again, same order; the far light never stops. Kicking a pipe twice or
   holding F must not count twice.
-- Step 3, relay destroyed: 14 roof swings (or `!df fire a1_hit` x4): EMP thump + explosion, `relay destroyed, parts back
+- Step 2, relay destroyed: 14 roof swings (or `!df fire a1_hit` x4): EMP thump + explosion, `relay destroyed, parts back
   on the roof`, THREE glinting parts on the roof (radio fore, mast aft, coil right). One press each, rebuild, ride again.
-  Co-op: the "take" prompt of a part goes from EVERY screen once somebody takes it (and on a goto past Step 3).
-- Step 3, EMP near the bus during the ride: `EMP near the bus, sweep lost`, the relay stays. Power OFF: `bus left <stop>
+  Co-op: the "take" prompt of a part goes from EVERY screen once somebody takes it (and on a goto past Step 2).
+- Step 2, EMP near the bus during the ride: `EMP near the bus, sweep lost`, the relay stays. Power OFF: `bus left <stop>
   without power, no sweep`, or at the stop `the bus reached the stop without power: not counted`. Empty bus 6 s:
   `nobody on the bus for 6 s, sweep lost`.
 - R1, capture fail: kill him far from the tower, or walk him away after 240 s: `avogadro not captured`, EMP thump at the
@@ -560,9 +560,9 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   0/5 (the others keep theirs, spent graves stay gone); nothing left to lose prints `m2 power on at end of round,
   nothing left to lose`. `!df fire m2_penalty` does it now.
 - M2, a lit grave left alone 90 s: see the cold timer in 4M.
-- Step 6, rock dropped: 60 s then home (nearer of the landing spot / table front, charges kept). After a Step 7 fail its
+- Step 4, rock dropped: 60 s then home (nearer of the landing spot / table front, charges kept). After a Step 5 fail its
   home is the table front. Never touched after landing: 3 min, then the table front.
-- Step 7, rock destroyed / zone empty: see Step 7 above; hold the table again, no second song.
+- Step 5, rock destroyed / zone empty: see Step 5 above; hold the table again, no second song.
 - Finale, wrong power: RICH deny + line with the power off; MAXIS refuses a round that started with power on.
 
 ## 7. Skips and cleanliness
@@ -572,9 +572,9 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   (glow) follows the locked side, staying standing for the rest of the game. The four graves stay standing the same
   way UNTIL M2 completes (normally or by goto past it) - a completed M2 deletes all four (see 4M / M2), so a goto
   straight to `m2` or earlier still shows four standing, unlit graves, but `m3` / `step6` and later show none. No
-  AVAILABLE / DONE sounds during the jump, the target step plays its own once it opens. `!df goto step3`: the start
-  of Step 3 (the build): coil at DF_COIL_DROP, two parts in the fog, 3 needed (`!df goto step2` = the
-  same). `!df goto step4`: no parts anywhere, relay locked on the roof.
+  AVAILABLE / DONE sounds during the jump, the target step plays its own once it opens. `!df goto step2`: the start
+  of Step 2 (the build): coil at DF_COIL_DROP, two parts in the fog, 3 needed (`!df goto step2` = the
+  same). `!df goto step3`: no parts anywhere, relay locked on the roof.
 - The goto only moves FORWARD and never crosses the lock: `<step> is already done, goto only moves forward`, `<step> is
   not ahead of the current step <key>, goto only moves forward`, `<step> belongs to the <side> side but <side> is locked
   in this game (start a fresh game)`. A jump that hangs is aborted after 20 s: `goto <step> did not finish in 20 s,
@@ -587,10 +587,10 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   swapped in or out - it was never picked up); all four graves (outside the map, unreachable anyway) are GONE -
   `df_m2_fill` deletes each one quietly on a skip too (model, both bullet walls, trigger), same as a real fourth kill, just
   without the burst/sound/quake; nothing to see at `!df tp DF_BRAZIER_n` past this point.
-  `!df goto step7` / `finale`: the rock rests on the right slot (no "Rock" notice), the burning lantern is gone, tracker
+  `!df goto step5` / `finale`: the rock rests on the right slot (no "Rock" notice), the burning lantern is gone, tracker
   runners on.
 - Stall hints: leave a step untouched 4 min: `stall hint <KEY> (<step> untouched, rung 1)` + one line, HINT_2 at 10 and
-  16 min, HINT_3 (the plain one) once at 20 min, then nothing more. Puzzle steps (step1, r1, m1, step5, while they have
+  16 min, HINT_3 (the plain one) once at 20 min, then nothing more. Puzzle steps (step1, r1, m1, r3 / m3, while they have
   no phase): HINT_1 at 6 min, HINT_2 once at 15, HINT_3 at 20. Every touch of the step, and every phase change (console
   key names `<P>_<PHASE>_HINT_n`, e.g. R1_WAKE_HINT_1 while Avogadro sleeps in the chamber), starts the ladder over
   from that moment; an event hint earlier (`event hint ...`) skips that rung once. `!df texthints off` mutes them (the clock keeps running); `!df hints off`
@@ -601,9 +601,9 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   error naming `zm_scavenger` or `epod_key`? The pinned ladder / hatch must still be buildable as vanilla.
 - Co-op only, when you have a second player: Richtofen's blue lines and his recorded voice reach the Stuhlinger
   player ONLY (vanilla rule; without Stuhlinger he is silent), Maxis reaches everyone; on the Richtofen side a player who is NOT Stuhlinger still hears ONE
-  cold Maxis line at the start of R1, R2, R3, Step 6, Step 7 and the finale (the idea of the step, never the recipe);
+  cold Maxis line at the start of R1, R2, R3, Step 4, Step 5 and the finale (the idea of the step, never the recipe);
   the M3 / R3 "one lamp each" line appears; a downed player is
-  teleported into the cold room with the team and can be revived there; the Step 7 after-hold waves rise near a random living
+  teleported into the cold room with the team and can be revived there; the Step 5 after-hold waves rise near a random living
   player; a carrier who leaves drops the relay (back on the table after 60 s), the M1 lantern (at the tower return
   point, or home in 60 s if untaken), the R1 key card or the R1 refill battery (each flies home after
   60 s untaken, and on the bus links and rides along instead of falling to the road, owner 2026-09-25) - M2's
@@ -615,10 +615,10 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - Beam alias / orientation: `!df fire beam_test` = one light shaft from the table to the nearest lamp for 20 s, console
   `beam test: <alias> from the table to lamp X`. Wrong way round: `set df_beam_flip 1`, fire again. Nothing: `set
   df_beam_fx fx_zmb_tranzit_god_ray_pwr_station` (or `_interior_med`, `mc_towerlight`), fire again. Say which one reads as a beam.
-- Relay runner: from Step 4 to the end of the game, a blue (Richtofen) or red (Maxis) runner leaves the plugged relay
+- Relay runner: from Step 3 to the end of the game, a blue (Richtofen) or red (Maxis) runner leaves the plugged relay
   every ~4 s and climbs the nearest tower leg; no glows on the relay mast any more.
 - Table pose: the M1 lantern and the M2 burning lantern lie at the SAME pose on the table (`!df goto m2` then `!df goto
-  step5` on Maxis); the M1 one must not spin. Sunk, floating, inside the relay? Say so. Rock rest height: 3 above slot 2 / the ground (`!df fire
+  m3` on Maxis); the M1 one must not spin. Sunk, floating, inside the relay? Say so. Rock rest height: 3 above slot 2 / the ground (`!df fire
   table_demo`, `!df tp DF_ORB_SPOT_n`).
 - Fuse box wall offset: the boxes are 6 off the wall at mid height. In the wall, or a visible gap? Say which box (`!df tp DF_FUSE_n`).
 - Grave flame: a LIT grave carries a large fire at its rim (`set df_m2_fire_fx <fx>` swaps it, default
@@ -631,7 +631,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   + small flame (400 around the shooter's spot) easy to read as "stand here"? `!df tp DF_BRAZIER_n` then look
   back toward Town to check the angle.
 - Orb landing spots: is the rock reachable and visible at Town (SPOT_2, 900 130) and at the power station (SPOT_3)? Off the road?
-- Step 7 solo pass rate: at round 10 with a Pack-a-Punched gun, how many tries out of three pass? Paste `s7 wave over ...`.
+- Step 5 solo pass rate: at round 10 with a Pack-a-Punched gun, how many tries out of three pass? Paste `s7 wave over ...`.
   Are the after-hold waves (until the song ends) fun or too long?
 - Finale queue length: after the burst, world line + keepsake + three closing lines = ~5-6 lines at 6.5 s each (~40 s).
   Too long? Say so.

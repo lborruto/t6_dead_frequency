@@ -10,6 +10,23 @@ concatenates the sources into two loadable files. Never edit a packed file; edit
 Every step was validated in game on both sides. The version string `!df status` prints
 (`level.df_version` in `df_main.gsc`) moves whenever the mechanics change.
 
+## Step numbers (owner 2026-09-28)
+
+Players, the guide, the console lines and `!df goto` use this numbering; the code keeps its old keys:
+
+| Shown | Internal key | Step |
+|---|---|---|
+| step1 | step1 | Dead Air |
+| step2 | step3 | Ride the Line (build + ride) |
+| step3 | step4 | Plug In |
+| r1 - r3 / m1 - m3 | r1, r2, step5 (r3 / m3) / m1, m2, step5 | the side steps |
+| step4 | step6 | Vacuum |
+| step5 | step7 | The Line Holds |
+| finale | finale | |
+
+`df_steps` `df_step_label( key )` gives the shown name, `df_step_key_of( name )` the key. `!df goto step6` / `step7`
+still reach Vacuum / The Line Holds. Dialogue keys (S3_, S6_, D7_...) and dvars keep the internal numbers.
+
 ## Toolchain facts that bite
 
 - Plutonium T6 loads every `*.gsc` in `scripts\zm\` and `scripts\zm\zm_transit\` (root level only) and all loaded

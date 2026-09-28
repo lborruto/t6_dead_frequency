@@ -380,6 +380,13 @@ df_s5_lamp_out( lamp )
     df_touch( "step5" );
     df_s5_lamp_set( lamp, 1 );
     df_cue_tick( df_lamp_bulb_pos( lamp ), 0 );
+
+    // owner 2026-09-28: "the claymore explodes, the effect shows but no sound confirms": the sub-goal chime to every
+    // player (df_cue_subgoal's navcard success) and the arc crack at the lamp's base
+    foreach ( player in getplayers() )
+        player playsoundtoplayer( "zmb_sq_navcard_success", player );
+
+    playsoundatposition( "zmb_zombie_arc", lamp.origin + ( 0, 0, 20 ) );
     df_debug_print( "DF: s5 lamp " + lamp.name + " put out by a claymore (" + df_s5_dark_count() + "/" + level.df_s5_need + " dark)" );
 
     if ( df_s5_dark_count() < level.df_s5_need )

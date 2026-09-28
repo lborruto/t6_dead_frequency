@@ -874,17 +874,53 @@ df_step_finale_reached()
 }
 
 // owner 2026-09-25: the player-facing name of a step. step5 is one slot run by side (df_act3_sweep dispatches):
-// "m3" on Maxis (Lights Out), "r3" on Richtofen (Blackout); every other key is its own name.
+// owner 2026-09-28: the numbering players see (the internal keys stay): Act 1 = step1, step2 (key step3, build +
+// ride), step3 (key step4, plug in); Act 2 = r1-r3 / m1-m3 (key step5 is r3 / m3 by side); Act 3 = step4 (key step6,
+// Vacuum), step5 (key step7, The Line Holds), finale.
 df_step_label( key )
 {
-    if ( isdefined( key ) && key == "step5" && isdefined( level.df_side ) )
-    {
-        if ( level.df_side == "maxis" )
-            return "m3";
+    if ( !isdefined( key ) )
+        return key;
 
-        return "r3";
+    switch ( key )
+    {
+        case "step3":
+            return "step2";
+        case "step4":
+            return "step3";
+        case "step6":
+            return "step4";
+        case "step7":
+            return "step5";
+        case "step5":
+            if ( isdefined( level.df_side ) && level.df_side == "maxis" )
+                return "m3";
+
+            if ( isdefined( level.df_side ) )
+                return "r3";
+
+            return "r3/m3";
     }
 
     return key;
+}
+
+// The internal key of a name a player types (df_step_label's numbering; step6 / step7 still reach Vacuum / The Line
+// Holds, their old names; r3 / m3 are resolved by the caller, they carry a side).
+df_step_key_of( name )
+{
+    switch ( name )
+    {
+        case "step2":
+            return "step3";
+        case "step3":
+            return "step4";
+        case "step4":
+            return "step6";
+        case "step5":
+            return "step7";
+    }
+
+    return name;
 }
 
