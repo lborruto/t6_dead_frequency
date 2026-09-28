@@ -706,6 +706,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .viewer canvas{display:block;width:100%;height:480px;background:var(--canvas)}
 .vbar{display:flex;align-items:center;gap:10px;padding:10px 12px;flex-wrap:wrap;border-top:1px solid var(--line)}
 .vbar .dims{margin-left:auto}
+.vbar label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);cursor:pointer}
+.viewer.max{position:fixed;inset:0;top:0;z-index:50;display:flex;flex-direction:column;border:0}
+.viewer.max canvas{flex:1;height:auto;min-height:0}
+.viewer.max .hint{display:none}
+.viewer canvas.grab{cursor:grabbing}
 .hint{font-size:12px;color:var(--muted);padding:0 12px 10px}
 .diag{font:11px "IBM Plex Mono",monospace;color:var(--muted);padding:0 12px 10px}
 .parts{max-height:52vh;overflow:auto;padding-right:2px}
@@ -748,8 +753,8 @@ __LIST__
 
 <div class="mid">
 <div class="viewer" id="viewer"><canvas id="c"></canvas>
-<div class="vbar"><code id="vname">nothing previewed</code><span class="dims" id="vdims"></span><button class="pickbtn" type="button" id="addBtn" disabled>Add as part</button></div>
-<div class="hint">Click a model on the left to preview it; "Add as part" drops it into the scene at the origin. Arrows = X/Y by 1, PageUp/PageDown = Z by 1, Q/E = yaw 5&deg;, R/F = pitch 5&deg;, Z/C = roll 5&deg; (Shift = 5 units / 15&deg;, Alt = 0.25 unit / 1&deg;) on the selected part -- for a selected fx cross, arrows/PageUp/PageDown move its offset in its PARENT's frame instead (it has no pitch/yaw/roll of its own: it turns with its parent).</div>
+<div class="vbar"><code id="vname">nothing previewed</code><span class="dims" id="vdims"></span><button class="pickbtn" type="button" id="addBtn" disabled>Add as part</button><button class="pickbtn" type="button" id="dropBtn" title="Put the selected part down on the surface under it (G)">Drop on surface</button><label><input type="checkbox" id="dropAuto" checked> drop when released</label><button class="pickbtn" type="button" id="fsBtn" title="Full screen preview (Esc to leave)">Full screen</button></div>
+<div class="hint">Mouse: click a part in the view to select it and drag it along the ground plane (hold Shift while dragging to move it up / down); with "drop when released" it then settles on the surface under it (Drop on surface / G does the same at any time). Drag empty space to orbit. Click a model on the left to preview it; "Add as part" drops it into the scene at the origin. Arrows = X/Y by 1, PageUp/PageDown = Z by 1, Q/E = yaw 5&deg;, R/F = pitch 5&deg;, Z/C = roll 5&deg; (Shift = 5 units / 15&deg;, Alt = 0.25 unit / 1&deg;) on the selected part -- for a selected fx cross, arrows/PageUp/PageDown move its offset in its PARENT's frame instead (it has no pitch/yaw/roll of its own: it turns with its parent).</div>
 <div class="diag" id="diag"></div>
 </div>
 <div class="readout" id="readout">nothing selected</div>
@@ -892,6 +897,87 @@ __SCRIPTS__
     post.position.set(-100, 35, 0); scene.add(post);
     function resize(){ var w = canvas.clientWidth, h = canvas.clientHeight; if (canvas.width !== w || canvas.height !== h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); } }
     (function loop(){ requestAnimationFrame(loop); resize(); controls.update(); renderer.render(scene, camera); })();
+
+    // ---------- mouse: pick, drag, drop (owner 2026-09-28) ----------
+    // Scene axes: toThree(x, y, z) = (x, z, -y), so a three point P is the logical (P.x, -P.z, P.y).
+    var raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2(), drag = null;
+    function rayFrom(ev){
+      var r = canvas.getBoundingClientRect();
+      ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+      ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, camera);
+    }
+    function modelMeshes(skip){
+      var objs = [], owner = [];
+      partGroups.forEach(function(grp, i){
+        if (!grp || i === skip || !parts[i] || parts[i].ptype === 'fx') return;
+        grp.traverse(function(o){ if (o.isMesh) { objs.push(o); owner.push(i); } });
+      });
+      return { objs: objs, owner: owner };
+    }
+    canvas.addEventListener('pointerdown', function(ev){
+      if (ev.button !== 0) return;
+      rayFrom(ev);
+      var m = modelMeshes(-1), hits = raycaster.intersectObjects(m.objs, false);
+      if (!hits.length) return;                        // empty space: OrbitControls orbits as before
+      var i = m.owner[m.objs.indexOf(hits[0].object)], p = parts[i];
+      ev.stopImmediatePropagation(); ev.preventDefault();
+      controls.enabled = false;
+      if (selected !== i) { selected = i; renderParts(); rebuildScene(); updateReadout(); }
+      var plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -p.z), at = new THREE.Vector3();
+      var got = raycaster.ray.intersectPlane(plane, at);
+      drag = { i: i, plane: plane, gx: got ? p.x - at.x : 0, gy: got ? p.y + at.z : 0, sy: ev.clientY, sz: p.z };
+      canvas.classList.add('grab');
+      try { canvas.setPointerCapture(ev.pointerId); } catch (e) {}
+    }, true);
+    canvas.addEventListener('pointermove', function(ev){
+      if (!drag) return;
+      ev.stopImmediatePropagation();
+      var p = parts[drag.i];
+      if (!p) { drag = null; return; }
+      if (ev.shiftKey) {
+        p.z = round2(drag.sz + (drag.sy - ev.clientY) * 0.25);
+      } else {
+        rayFrom(ev);
+        var at = new THREE.Vector3();
+        if (raycaster.ray.intersectPlane(drag.plane, at)) { p.x = round2(at.x + drag.gx); p.y = round2(-at.z + drag.gy); }
+        drag.sy = ev.clientY; drag.sz = p.z;
+      }
+      if (partGroups[drag.i]) setPose(partGroups[drag.i], p);
+      updateReadout();
+    }, true);
+    function endDrag(ev){
+      if (!drag) return;
+      ev.stopImmediatePropagation();
+      var i = drag.i;
+      drag = null;
+      canvas.classList.remove('grab');
+      controls.enabled = true;
+      try { canvas.releasePointerCapture(ev.pointerId); } catch (e) {}
+      if (document.getElementById('dropAuto').checked) { dropPart(i); return; }
+      saveStore(); renderParts(); rebuildScene(); updateExport(); updateReadout();
+    }
+    canvas.addEventListener('pointerup', endDrag, true);
+    canvas.addEventListener('pointercancel', endDrag, true);
+
+    // Puts part i down: rays straight down from its top at its centre and four inner corners, against every other
+    // part and the ground (z 0); its lowest point then rests on the highest surface found under it.
+    window.mgDropPart = function(i){
+      var p = parts[i], grp = partGroups[i];
+      if (!p || p.ptype === 'fx' || !grp) return;
+      grp.updateMatrixWorld(true);
+      var box = new THREE.Box3().setFromObject(grp);
+      var targets = modelMeshes(i).objs, best = 0, rc = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0);
+      var cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2;
+      var hx = (box.max.x - box.min.x) * 0.35, hz = (box.max.z - box.min.z) * 0.35;
+      [[cx, cz], [cx - hx, cz - hz], [cx + hx, cz - hz], [cx - hx, cz + hz], [cx + hx, cz + hz]].forEach(function(q){
+        rc.set(new THREE.Vector3(q[0], box.max.y, q[1]), down);
+        var hs = rc.intersectObjects(targets, false);
+        if (hs.length && hs[0].point.y > best) best = hs[0].point.y;
+      });
+      p.z = round2(p.z + (best - box.min.y));
+      saveStore(); renderParts(); rebuildScene(); updateExport(); updateReadout();
+    };
   } else {
     var hintEl = document.querySelector('#viewer .hint');
     if (hintEl) hintEl.textContent = 'The 3D libraries did not load; parts can still be added, positioned and exported by the numbers.';
@@ -1183,6 +1269,14 @@ __SCRIPTS__
     target.z = round2(below.z + mb.bounds.maxz - mt.bounds.minz);
     saveStore(); renderParts(); rebuildScene();
   }
+  function dropPart(i){ if (window.mgDropPart) window.mgDropPart(i); }
+  document.getElementById('dropBtn').addEventListener('click', function(){ if (selected >= 0) dropPart(selected); });
+  function setViewerMax(on){
+    var v = document.getElementById('viewer');
+    v.classList.toggle('max', on);
+    document.getElementById('fsBtn').textContent = on ? 'Exit full screen' : 'Full screen';
+  }
+  document.getElementById('fsBtn').addEventListener('click', function(){ setViewerMax(!document.getElementById('viewer').classList.contains('max')); });
   function setAsBase(i){
     if (i < 1 || parts[i].ptype === 'fx') return;
     var p = parts.splice(i, 1)[0];
@@ -1196,6 +1290,8 @@ __SCRIPTS__
     if (selected < 0 || !parts[selected]) return;
     var ae = document.activeElement;
     if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
+    if (ev.key === 'Escape' && document.getElementById('viewer').classList.contains('max')) { setViewerMax(false); return; }
+    if (ev.key === 'g' || ev.key === 'G') { ev.preventDefault(); dropPart(selected); return; }
     var unit = ev.shiftKey ? 5 : (ev.altKey ? 0.25 : 1);
     var deg = ev.shiftKey ? 15 : (ev.altKey ? 1 : 5);
     var p = parts[selected], used = true, isFx = p.ptype === 'fx';
