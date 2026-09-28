@@ -496,6 +496,19 @@ df_relay_roof_def( offset, yaw )
     level.df_relay_roof_yaw = yaw;
 }
 
+// owner 2026-09-28: where the R1 fuse battery waits on the bus dashboard, set in the prop composer ("Relay on the bus"): an offset
+// in the bus frame (x forward, y left, z up, from the bus origin) and a yaw added to the bus's. Default = the old spot.
+df_bus_battery_init()
+{
+    df_bus_battery_def( ( 190, 0, 64 ), 0 );
+}
+
+df_bus_battery_def( offset, yaw )
+{
+    level.df_bus_battery_off = offset;
+    level.df_bus_battery_yaw = yaw;
+}
+
 // owner 2026-09-28: the Step 7 rock's route under the tower, chosen in the prop composer ("Step 7 rock path"): the
 // rock glides from point to point in this order and loops. Each point is in the table's frame (x towards its front,
 // y to its left, from the table's origin) and z is the hover ABOVE THE GROUND at that spot (df_s7_orb_path_pos

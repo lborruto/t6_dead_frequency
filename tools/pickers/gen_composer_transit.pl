@@ -120,6 +120,10 @@ while ( $gsc =~ /df_s7_path_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)
 }
 die "df_s7_path_init(): no df_s7_path_def( 0, ( x, y, z ) ); line found\n" unless $path_def{0};
 my @roof_def;
+my @busbat_def = ( 190, 0, 64, 0 );
+if ( $gsc =~ /^\s*df_bus_battery_def\(\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*,\s*(-?[\d.]+)\s*\)\s*;/m ) {
+    @busbat_def = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
+}
 if ( $gsc =~ /^\s*df_relay_roof_def\(\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*,\s*(-?[\d.]+)\s*\)\s*;/m ) {
     @roof_def = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
 }
@@ -147,7 +151,7 @@ $table_front_yaw = defined($table_front_yaw) ? $table_front_yaw + 0 : 0;
 # The card / skull / orb lifts are gone from the callers: each item's own lift is the z of its slot in the
 # registry above (df_table_slot( n ) returns the item's FINAL rest position).
 
-for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a portal spool r2_battery pswitch_body pswitch_lever)) {
+for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a portal spool r2_battery battery pswitch_body pswitch_lever)) {
     die "df_model_def for kind \"$kind\" not found in $coords -- needed for a preset\n" unless $model_def{$kind};
 }
 
@@ -182,7 +186,7 @@ printf STDERR "df_coords.gsc: table slots (df_table_slot_def, z from the top %s)
 printf STDERR "df_coords.gsc: %d df_fx_point_def(...) points parsed from df_fx_points_init()\n", scalar @fx_order;
 
 # The preset's own models must be embedded no matter what the size budget below does to the general list.
-my %required = ( veh_t6_civ_bus_zombie => 1, map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool r2_battery pswitch_body pswitch_lever) );
+my %required = ( veh_t6_civ_bus_zombie => 1, map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool r2_battery battery pswitch_body pswitch_lever) );
 
 # ---- 16 MB page budget: if the embedded glTF payload would push the page over it, drop the largest
 #      glTF files first (never a model any preset needs) and remember how many were dropped. -------------
@@ -290,6 +294,7 @@ sub model_part {
     $p{bat}     = $o{bat}     if defined $o{bat};
     $p{path}    = $o{path}    if defined $o{path};
     $p{roof}    = 1           if $o{roof};
+    $p{busbat}  = 1           if $o{busbat};
     $p{noexport} = 1          if $o{noexport};
     $p{slotSide} = $o{slotSide} if $o{slotSide};
     return \%p;
@@ -477,13 +482,16 @@ add_preset(
                     pitch => $model_def{relay_top}{pitch}, roll => $model_def{relay_top}{roll}, yaw => $ryaw + $model_def{relay_top}{yawoff}, parent => 'relay', noexport => 1 ),
     );
     add_preset(
-        'relay_bus', 'Relay on the bus',
+        'relay_bus', 'Relay + battery on the bus',
         'Base = the bus (veh_t6_civ_bus_zombie) at (0,0,0), its front along +X. The relay (with its coil box and top piece) '
           . 'stands where the game builds it: df_relay_roof_def in df_coords.gsc, an offset in the bus frame plus a yaw. '
           . ( @roof_def ? 'Current line: ( ' . join( ', ', @roof_def[0..2] ) . ' ), yaw ' . $roof_def[3] . '.' : 'No line yet: the game uses the roof under the roof trigger, (145, -1) from the bus origin, shown here at the roof trigger height: press G to set it down on the roof.' )
           . ' Drag the relay (drop it on the roof with G); the export gives the df_relay_roof_def line. The coil and the top follow in the game (their own offsets are the "Relay (bus roof)" preset).',
         model_part( kind => 'bus', model => 'veh_t6_civ_bus_zombie', noexport => 1 ),
         @relay,
+        # owner 2026-09-28: the R1 fuse battery on the dashboard (df_bus_battery_def)
+        model_part( kind => 'battery', model => $model_def{battery}{name}, x => $busbat_def[0], y => $busbat_def[1], z => $busbat_def[2],
+                    pitch => $model_def{battery}{pitch}, roll => $model_def{battery}{roll}, yaw => $busbat_def[3] + ( $model_def{battery}{yawoff} // 0 ), busbat => 1, noexport => 1 ),
     );
 }
 
@@ -1487,6 +1495,16 @@ __SCRIPTS__
         if (tb) { var lq = rotateXY(p.x - tb.x, p.y - tb.y, -tb.yaw); qx = lq[0]; qy = lq[1]; qz = p.z - tb.z; }
         lines.push('df_s7_path_def( ' + n + ', ( ' + round05(qx) + ', ' + round05(qy) + ', ' + round05(qz) + ' ) );');
       });
+    }
+    // owner 2026-09-28: the R1 fuse battery on the bus (the part carrying .busbat), in the bus frame
+    var busBat = parts.filter(function(p){ return p.ptype !== 'fx' && p.busbat; })[0];
+    if (busBat) {
+      var bb = findParentPart('bus');
+      var ux = busBat.x, uy = busBat.y, uz = busBat.z, uyaw = busBat.yaw;
+      if (bb) { var lu = rotateXY(busBat.x - bb.x, busBat.y - bb.y, -bb.yaw); ux = lu[0]; uy = lu[1]; uz = busBat.z - bb.z; uyaw = busBat.yaw - bb.yaw; }
+      lines.push('');
+      lines.push('// R1 fuse battery on the bus (df_bus_battery_def in df_coords.gsc, df_bus_battery_init(); bus frame + yaw)');
+      lines.push('df_bus_battery_def( ( ' + round05(ux) + ', ' + round05(uy) + ', ' + round05(uz) + ' ), ' + round2(uyaw) + ' );');
     }
     // owner 2026-09-28: the relay on the bus roof (the part carrying .roof), in the bus frame
     var roofPart = parts.filter(function(p){ return p.ptype !== 'fx' && p.roof; })[0];

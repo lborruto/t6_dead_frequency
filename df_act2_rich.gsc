@@ -1520,10 +1520,21 @@ df_r1_battery_spawn_on_bus()
     link = level.the_bus;
     pos = df_r1_card_pos();
 
+    // owner 2026-09-28: the spot is df_coords df_bus_battery_def (bus frame + yaw), set in the prop composer
+    if ( !isdefined( level.df_bus_battery_off ) )
+        df_bus_battery_init();
+
     if ( isdefined( link ) )
-        pos = link.origin + anglestoforward( link.angles ) * 190 + ( 0, 0, 64 );
+        pos = link.origin + df_offset_rotate( level.df_bus_battery_off, link.angles[1] );
 
     b.pick = df_rich_pickup_place( "battery", pos, link ); // kind "battery" = the car battery (part_a is the radio now)
+
+    if ( isdefined( link ) && isdefined( b.pick.model ) )
+    {
+        b.pick.model unlink();
+        b.pick.model.angles = df_model_angles( "battery", link.angles[1] + level.df_bus_battery_yaw );
+        b.pick.model linkto( link );
+    }
     b.model = b.pick.model;
     b.held = 0;
     level.df_r1_bat = b;
