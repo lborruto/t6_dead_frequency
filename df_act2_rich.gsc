@@ -612,8 +612,17 @@ df_fuse_watch( fuse )
 
         if ( is_true( level.df_r1_locked ) )
         {
-            // owner 2026-09-23 (B15): the same press charges a box with the battery (df_r1_battery_player_tick,
-            // within 70): no deny + EMP for the carrier, nor for the press that just used the battery up
+            // owner 2026-09-28: the battery charges through the box's own use trigger, the zone the Simon press uses
+            // (a prop in front of one box kept the carrier out of the old 70-unit reach)
+            b = level.df_r1_bat;
+
+            if ( isdefined( b ) && is_true( b.held ) && isdefined( b.carrier ) && b.carrier == who && fuse.souls < level.df_r1_refill_target )
+            {
+                df_r1_battery_slot( fuse, who );
+                continue;
+            }
+
+            // owner 2026-09-23 (B15): no deny + EMP for the carrier, nor for the press that just used the battery up
             if ( !df_r1_press_is_charge( who ) )
             {
                 level.df_fuse_last_who = who;
@@ -1654,11 +1663,10 @@ df_r1_battery_player_tick( player )
 
     if ( is_true( b.held ) && isdefined( b.carrier ) && player == b.carrier )
     {
-        fuse = df_r1_empty_fuse_near( player.origin, 70 );
+        // owner 2026-09-28: the prompt shows inside an empty box's use trigger; the press itself is handled by that
+        // trigger (df_fuse_watch), the zone the Simon uses
+        fuse = df_r1_empty_fuse_touching( player );
         player df_prompt( isdefined( fuse ), "Press [{+activate}] to charge the box" );
-
-        if ( isdefined( fuse ) && player df_press_use() )
-            df_r1_battery_slot( fuse, player );
 
         return;
     }
@@ -1675,6 +1683,21 @@ df_r1_battery_player_tick( player )
     }
 
     player df_prompt( 0, undefined );
+}
+
+// The box still needing its battery whose use trigger `player` stands in, or undefined.
+df_r1_empty_fuse_touching( player )
+{
+    foreach ( fuse in level.df_fuses )
+    {
+        if ( fuse.souls >= level.df_r1_refill_target || !isdefined( fuse.trig ) )
+            continue;
+
+        if ( player istouching( fuse.trig ) )
+            return fuse;
+    }
+
+    return undefined;
 }
 
 // Nearest box within `radius` that still needs its battery, or undefined.

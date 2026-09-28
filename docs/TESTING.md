@@ -534,8 +534,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - R1, capture fail: kill him far from the tower, or walk him away after 240 s: `avogadro not captured`, EMP thump at the
   table, Richtofen's fail line, the key card LEAVES the table, `r1 locked, one battery from the bus charges the four
   boxes`, the boxes go dark. ONE glinting BATTERY on the bus dashboard (`battery on the bus`), Richtofen names it.
-  "Press F to take the battery" within 100 (`battery taken`, notice "Fuse battery"). Walk to the barn: "Press F to charge the box"
-  at every empty panel (within 70): glow + sparks + clink, `box n charged k/4`, NO deny buzz or EMP thump on these
+  "Press F to take the battery" within 100 (`battery taken`, notice "Fuse battery"). Walk to the barn: "Press F to charge the box"  at every empty panel (inside the box's own use zone, the one the Simon press uses): glow + sparks + clink, `box n charged k/4`, NO deny buzz or EMP thump on these
   presses (nor on the fourth), the battery STAYS in hand; at the fourth `battery consumed, all four boxes charged`,
   NavCard chime + runner, `r1 unlocked, play the Simon again (a press on a box starts it)`: the Simon from the start, then a new key
   card. ONE bus trip. `!df fire r1_fail` forces this path (fails a running capture, else locks at once). Go down while carrying: `battery dropped` at your feet (linked to the bus if
