@@ -124,7 +124,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
 - `df_audition.gsc` - in-game audition of the game's own fx and sounds (`!df fx ...`, `!df snd ...`, the fx grid
   pages) so picks are made by eye and ear. Every fx key is registered server-side by a vanilla script; every
   alias is in the TranZit banks.
-- `df_act1.gsc` - Act 1 "Static" (shared): Step 1 Dead Air (pipes + far signal light), Step 3 Ride the Line
+- `df_act1.gsc` - (owner 2026-09-28: every table deposit - relay, key card, batteries, lantern, rock - is the vanilla build hold `df_a1_build_hold`, 3 s) Act 1 "Static" (shared): Step 1 Dead Air (pipes + far signal light), Step 3 Ride the Line
   (owner 2026-09-25: the old Step 2 Salvage is merged in, `df_a1_build_phase`: three parts, relay built on the bus
   roof with the vanilla build hold, the ladder on phase "BUILD"; then one full stop with power on at departure AND
   arrival, roof waves, relay hp; there is no `step2` key, `!df goto step2` is an alias of step3), Step 4 Plug In (the side preview is console-only since 2026-09-25: no table light, no plug spark, no marker glint; side lock at the table,
@@ -133,7 +133,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
 - `df_act2_rich.gsc` - Act 2 Richtofen: R1 Summon the Storm (Simon on the four barn boxes, key card, Avogadro
   capture at the tower, one-battery refill on failure after which the card comes back without a Simon replay; no
   Avogadro entity = R1 counts as captured), R2 115 on the Line (hungry lamps, Galvaknuckle punch, a battery drops at the
-  lamp and is carried to the table, one per press (`df_r2_spool_*`, owner 2026-09-25; model kind `r2_battery`); the set settles filled at R2 end), and the Richtofen side rules (Avogadro every round except while Step 6 is open, turrets
+  lamp and is carried to the table, one build hold for all the batteries in hand (`df_r2_spool_*`, owner 2026-09-25; model kind `r2_battery`); the set settles filled at R2 end), and the Richtofen side rules (Avogadro every round except while Step 6 is open, turrets
   without turbine, the power-OFF penalty, which runs from R1 open so its refill-lock branch works).
 - `df_act2_maxis.gsc` - Act 2 Maxis: M1 The Cold Room (denizen latch at the table, the portal, the timed hunt in
   the woods behind the hunter's cabin at the farthest of three rising spots (DF_NACHT_SPAWN_1..3, never twice in

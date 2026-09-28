@@ -40,6 +40,7 @@
 #include scripts\zm\zm_transit\df_coords;
 #include scripts\zm\zm_transit\df_scav;
 #include scripts\zm\zm_transit\df_lamps;
+#include scripts\zm\zm_transit\df_act1;
 
 df_act2_rich_init()
 {
@@ -974,9 +975,15 @@ df_r1_card_player_tick( player, socket )
     if ( isdefined( level.df_card_carrier ) && player == level.df_card_carrier )
     {
         near = distancesquared( player.origin, socket ) < 150 * 150;
-        player df_prompt( near, "Press [{+activate}] to insert the key card" );
+        player df_prompt( near, "Hold [{+activate}] to insert the key card" );
 
-        if ( !near || !player df_press_use() )
+        if ( !near || !player usebuttonpressed() )
+            return 0;
+
+        // owner 2026-09-28: every item goes into the table by the vanilla build hold (df_a1_build_hold, df_act1)
+        player df_prompt( 0, undefined );
+
+        if ( !player df_a1_build_hold( socket, 160, 3 ) )
             return 0;
 
         df_r1_card_release( player );
@@ -2357,10 +2364,17 @@ df_r2_spool_player_tick( player, table )
     if ( df_r2_spools_carried( player ) > 0 )
     {
         near = distancesquared( player.origin, table ) < 150 * 150;
-        player df_prompt( near, "Press [{+activate}] to insert a battery" );
+        player df_prompt( near, "Hold [{+activate}] to insert the batteries" );
 
-        if ( near && player df_press_use() )
-            df_r2_spool_deliver( player );
+        // owner 2026-09-28: every item goes into the table by the vanilla build hold (df_a1_build_hold, df_act1): ONE hold puts in every battery
+        // the player carries (one in hand = one per hold)
+        if ( near && player usebuttonpressed() )
+        {
+            player df_prompt( 0, undefined );
+
+            if ( player df_a1_build_hold( table, 160, 3 ) )
+                df_r2_spool_deliver( player );
+        }
 
         return;
     }
@@ -2409,10 +2423,13 @@ df_r2_spool_notice( player )
     df_scav_carry_set( "spool", n, level.df_r2_spools_need, player, "spool" );
 }
 
-// ONE battery of `player` goes in: it stands under the table with its sparks, the PROGRESS TICK cue at the relay
-// slot (df_cue_tick = piece-add clink + side burst) and the array count. The step's sting comes from df_complete.
+// Every battery `player` carries goes in (owner 2026-09-28: one build hold for all of them): each one stands under the
+// table with its spark, then ONE progress tick cue at the relay slot and the array count. The step's sting comes from
+// df_complete.
 df_r2_spool_deliver( player )
 {
+    placed = 0;
+
     foreach ( s in level.df_r2_spool_ents )
     {
         if ( !is_true( s.held ) || !isdefined( s.carrier ) || s.carrier != player )
@@ -2422,16 +2439,20 @@ df_r2_spool_deliver( player )
         s.carrier = undefined;
         s.done = 1;
         level.df_r2_spools++;
+        placed++;
         df_r2_table_battery_show( level.df_r2_spools - 1 );
-        df_r2_spool_notice( player );
-        player df_prompt( 0, undefined );
-        df_cue_tick( df_table_slot( 0 ) + ( 0, 0, 30 ), 1 );
-        df_r2_array_set( level.df_r2_spools );
-        df_debug_print( "DF: battery inserted by " + player.name + ", " + level.df_r2_spools + "/" + level.df_r2_spools_need );
-        df_r2_punch_phase_update();
-        level notify( "df_r2_check" );
-        return;
     }
+
+    if ( placed == 0 )
+        return;
+
+    df_r2_spool_notice( player );
+    player df_prompt( 0, undefined );
+    df_cue_tick( df_table_slot( 0 ) + ( 0, 0, 30 ), 1 );
+    df_r2_array_set( level.df_r2_spools );
+    df_debug_print( "DF: " + placed + " battery(ies) inserted by " + player.name + ", " + level.df_r2_spools + "/" + level.df_r2_spools_need );
+    df_r2_punch_phase_update();
+    level notify( "df_r2_check" );
 }
 
 // Battery i (0-based) on the ground under the table, side by side along the table, with a spark loop.

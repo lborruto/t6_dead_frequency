@@ -70,6 +70,7 @@
 #include scripts\zm\zm_transit\df_systems;
 #include scripts\zm\zm_transit\df_steps;
 #include scripts\zm\zm_transit\df_coords;
+#include scripts\zm\zm_transit\df_act1; // df_a1_build_hold (owner 2026-09-28: table deposits)
 #include scripts\zm\zm_transit\df_scav;
 #include scripts\zm\zm_transit\df_lamps;
 
@@ -1670,9 +1671,15 @@ df_s6_socket_monitor()
                 continue;
             }
 
-            player df_s6_prompt_set( "socket", "Press [{+activate}] to place the rock in the relay" );
+            player df_s6_prompt_set( "socket", "Hold [{+activate}] to place the rock in the relay" );
 
-            if ( !player df_press_use() )
+            if ( !player usebuttonpressed() )
+                continue;
+
+            // owner 2026-09-28: every item goes into the table by the vanilla build hold (df_a1_build_hold, df_act1)
+            player df_s6_prompt_clear( "socket" );
+
+            if ( !player df_a1_build_hold( df_coord( "DF_SOCKET" ).origin, 170, 3 ) )
                 continue;
 
             if ( orb.state == "carried" && isdefined( orb.carrier ) && orb.carrier == player )

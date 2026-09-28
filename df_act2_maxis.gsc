@@ -63,6 +63,7 @@
 #include scripts\zm\zm_transit\df_systems;
 #include scripts\zm\zm_transit\df_steps;
 #include scripts\zm\zm_transit\df_coords;
+#include scripts\zm\zm_transit\df_act1; // df_a1_build_hold (owner 2026-09-28: table deposits)
 #include scripts\zm\zm_transit\df_scav;
 #include scripts\zm\zm_transit\df_act3_vacuum; // df_s6_any_jetgun (the Jet Gun warning at M2 completion)
 #include scripts\zm\zm_transit\df_act3_hold; // df_s7_tower_safety_volume (requested for df_systems, requests_D.md)
@@ -1411,10 +1412,16 @@ df_m1_skull_poll()
                     continue;
                 }
 
-                df_m1_skull_prompt_set( player, "Press [{+activate}] to place the lantern" );
+                df_m1_skull_prompt_set( player, "Hold [{+activate}] to place the lantern" );
 
-                if ( player df_press_use() )
-                    df_m1_skull_place_by( player );
+                // owner 2026-09-28: every item goes into the table by the vanilla build hold (df_a1_build_hold, df_act1)
+                if ( player usebuttonpressed() )
+                {
+                    df_m1_skull_prompt_clear( player );
+
+                    if ( player df_a1_build_hold( df_table_slot( 1 ), 160, 3 ) )
+                        df_m1_skull_place_by( player );
+                }
 
                 continue;
             }

@@ -6,6 +6,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- Everything that goes into the table (the relay, the key card, the R2 batteries, the lantern, the rock) is
+  built in with the vanilla build hold: builder hands, the build bar, 3 s. One hold puts in every battery the
+  player carries.
 - The eight step glows on the table relay are gone. From Step 4 on, a runner in the side's colour (blue
   Richtofen, red Maxis) leaves the relay every few seconds and climbs the tower to the top.
 
@@ -77,7 +80,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   follow the build first, then the ride. `!df goto step2` is an alias of `step3`; the relay
   mast shows eight step glows instead of nine.
 - R2: lamp quota lowered to 10 / 12 / 14 / 16 kills (was 12 / 15 / 18 / 18), and a punched
-  full lamp drops a BATTERY (was a wire spool): carried to the table, one per press, each one
+  full lamp drops a BATTERY (was a wire spool): carried to the table, each one
   stands under the table sparking.
 - R3 Blackout: the three switches must all be ON within one round (see Added).
 - Step 6: the rock's release is seen and heard by the whole team - a screen shake and a loud

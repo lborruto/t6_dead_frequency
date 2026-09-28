@@ -1876,8 +1876,9 @@ df_relay_orphan_return()
 // The table at the tower base (exists since boot): the step's AVAILABLE glint marks it until the relay is
 // lifted (df_step_focus, core), then our own marker (df_a1_socket_marker_set, same glint) until the plug;
 // while a relay carrier is within 400 it glows in the colour the power state would lock (audit section 4,
-// preview; silent on purpose, the colour is the message); a carrier standing within 150 gets the prompt; one
-// press plugs the relay in and the power state locks the side.
+// preview; silent on purpose, the colour is the message); a carrier standing within 150 gets the prompt and HOLDS
+// use to build the relay onto the table (owner 2026-09-28: the vanilla build hold of the bus roof, hands + bar, 3 s);
+// the build done, the power state locks the side.
 df_step4_socket()
 {
     level endon( "end_game" );
@@ -1904,12 +1905,18 @@ df_step4_socket()
                 preview = df_a1_side_of_power();
 
             near = carrier && distancesquared( player.origin, c.origin ) < 150 * 150;
-            player df_act1_prompt( near, "Press [{+activate}] to plug in the relay", "relay_socket" );
+            player df_act1_prompt( near, "Hold [{+activate}] to build the relay on the table", "relay_socket" );
 
-            if ( !near || !player df_press_use() )
+            if ( !near || !player usebuttonpressed() )
                 continue;
 
             player df_act1_prompt( 0, undefined, "relay_socket" );
+
+            // the same build as on the bus roof (df_a1_build_hold: builder hands, the vanilla bar, loop sound and
+            // dust, zmb_buildable_complete on success); released early = nothing lost, build again
+            if ( !player df_a1_build_hold( c.origin, 160, 3 ) )
+                continue;
+
             df_a1_socket_marker_set( 0 );
             df_step4_plug( player );
             return;
@@ -1997,8 +2004,8 @@ df_step4_plug( who )
 
     // owner 2026-09-25: no plug spark on the table (owner); the clink and the switch-on sound stay
 
-    df_cue_tick( level.df_socket.origin + ( 0, 0, 30 ) );
-    playsoundatposition( "zmb_buildable_complete", level.df_socket.origin ); // 1.4 s "built" (zmb_turn_on = 14 s)
+    df_cue_tick( level.df_socket.origin + ( 0, 0, 30 ) ); // the builder already heard zmb_buildable_complete (the build hold)
+    df_fx_once( "building_dust", level.df_socket.origin + ( 0, 0, 40 ) );
     df_tower_fx_start( side );
     level thread df_tower_fx_stop_after( 15 );
 

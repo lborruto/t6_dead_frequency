@@ -171,7 +171,8 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
 - Walk towards the table with power ON: NO light on the table (and no marker glint), only the console `table preview
   rich` from ~400 units. Walk away: `table preview off (no carrier within 400)`. `!df power off`, come back: `table
   preview maxis`, still nothing on the table.
-- One press within 150: clink + switch-on sound, NO spark or snap on the table, the relay
+- Hold F within 150: the vanilla build (builder hands, the bar, 3 s; let go = start again), then the clink,
+  building dust, NO spark or snap on the table, the relay
   stands on the LEFT slot, turned 45 degrees, with the coil box and the TALL post on it (`plugged relay at ..., top piece
   relay_mast`), no table light at any time, tower visuals 15 s, one vanilla voice line (Richtofen's `vox_zmba_sidequest_power_on_0` is 2D to Stuhlinger ONLY, console
   `vox vox_zmba_sidequest_power_on_0 -> <Stuhlinger>`, never `3D`; nobody else may hear it), D4 line,
@@ -229,8 +230,9 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
 - Buy the Galvaknuckles (Diner roof, through the hatch, 3000). Melee the post within 90: a spark on the post, `r2 lamp X
   punched by <you>, its battery is out`, the item STRIKE 40 from the pole towards the tower and a glinting BATTERY
   (`battery at lamp X`); Richtofen names the first one. "Press F to take the battery" within 100 (`battery taken (n in
-  hand, k inserted)`, notice "Battery (n/3)"): they stack. At the table (within 150) "Press F to insert a battery":
-  ONE per press (`battery inserted by <you>, k/3`), clink + spark at the relay slot, and the battery stands on the
+  hand, k inserted)`, notice "Battery (n/3)"): they stack. At the table (within 150) "Hold F to insert the batteries":
+  the vanilla build hold (3 s) puts in EVERY battery you carry (`n battery(ies) inserted by <you>, k/3`); one in hand =
+  one hold per battery, clink + spark at the relay slot, and the battery stands on the
   ground under the table with the power switch spark (played once per battery: it loops by itself). Knife the post instead (or any gun melee): deny buzz +
   "Bare steel? No." (once per 20 s), console `r2 <you> hit lamp X without the knuckles (<weapon>)`, no battery.
 - Last battery in: `step complete r2`, R2_DONE, the notice goes, M3 / R3 opens.
@@ -275,7 +277,7 @@ returns them to the tower first (owner 2026-09-25 fix; before, a goto mid-room l
 - Carry it (notice "Lantern" with the rock icon, TAB square, no lamp portals, drops at your feet if you go
   down: `m1 lantern dropped (<you> went down), take it again` - dropped on the bus it links and rides along
   instead, no spin while linked; left untaken 60 s it flies home to the tower return point by itself
-  (`df_m1_skull_home_timer`, owner 2026-09-25)). "Press F to place the lantern" within 150 of the table:
+  (`df_m1_skull_home_timer`, owner 2026-09-25)). "Hold F to place the lantern" within 150 of the table (the vanilla build hold, 3 s):
   the clink only (no snap), `m1 lantern placed by <you>`, `m1 lantern on the table, slot 1 (...)` (it lies at the burning lantern's
   pose, exactly where M2's burning lantern will rest; no spin, no glow, no flame), tower cue 12 s (the slow fire pulse at the
   top, no lightning), M1_DONE ("...The lantern still wants fire."), `step complete m1`.
@@ -455,8 +457,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - All charges: three clinks, `s6 orb fully charged, bring it to the tower socket`, D6_FULL_RICH / D6_FULL_MAXIS, aura +
   hum on the rock and on you (RICH powerup_on_caution, the same glow as Maxis's rock now - easy to see; MAXIS
   powerup_on_caution too; `!df fire orb_aura` cycles). At the
-  table with charges missing: "The rock needs N more charge(s)". Full, one press within 150: "Press F to place the rock
-  in the relay", the clink only (no snap on the table), the rock rests on the RIGHT slot with NO aura, the "Rock" notice is
+  table with charges missing: "The rock needs N more charge(s)". Full, within 150: "Hold F to place the rock
+  in the relay" (the vanilla build hold, 3 s), the clink only (no snap on the table), the rock rests on the RIGHT slot with NO aura, the "Rock" notice is
   cleared, D6_DONE, `step complete step6`.
 - `!df goto step6` MAXIS (after `!df side maxis`): console `m2 done: Step 6 node = the cabin hearth ...` and `s6 node 0
   hearth cabin hearth`; RICH `r1 done: Step 6 node = the transformer block ...`.

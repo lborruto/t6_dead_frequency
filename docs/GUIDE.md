@@ -90,7 +90,8 @@ moment you plug in is the choice (the patrons tell you so):
 - power OFF -> MAXIS. The four Town graves catch their small flame; the four power boxes in the barn stay
   standing, dark.
 
-Press F at the table to plug the relay in (a clink and the switch-on sound, no light on the table). The choice
+Hold F at the table to build the relay onto it (the same build as on the bus roof: hands, bar, 3 s; let go and
+start again, nothing is lost). The choice
 is final for this game. A white runner light now climbs the tower for the rest of the game, and the relay's mast
 gets one small glow per finished step (the steps done so far light at once), so it ends fully lit. If a
 carrier leaves the game, the relay he dropped moves onto the table by itself after 60 s untouched: take it
@@ -143,7 +144,7 @@ looking.
 
 A full lamp stops sparking and keeps a steady glow, and Richtofen tells you to punch the post. Buy the
 GALVAKNUCKLES (Diner roof, through the hatch, 3000 points) and melee the post with them: a BATTERY drops by the
-lamp. Take it (batteries stack, "Battery 1/3") and insert them at the table, one per press of F: each one stands
+lamp. Take it (batteries stack, "Battery 1/3") and hold F at the table to insert them (one build hold puts in all the batteries you carry): each one stands
 on the ground under the table, sparking. A knife or any other melee is refused ("Bare steel? No."). Go down with
 batteries and they drop where you fell (on the bus roof they ride along); left alone 60 s they fly back to their
 lamp.
@@ -276,8 +277,8 @@ in the team (your patron says so when the Act 2 step ends and nobody carries one
 - MAXIS: the fireplace of the hunter's cabin in the woods. Stand in front of it (crouched or standing) and fire
   into the opening. Denizens leave you alone near the cabin while this step is open.
 
-Fully charged (three clinks, your patron speaks, an aura and a hum on the rock and on you): press F at the table
-to place it (a clink, no light on the table). If you drop the rock (down, or you leave it) its
+Fully charged (three clinks, your patron speaks, an aura and a hum on the rock and on you): hold F at the table
+to place it (the build hold; a clink, no light on the table). If you drop the rock (down, or you leave it) its
 charges are kept, and after 60 s it flies back home by itself, to the landing spot or to the table front,
 whichever is nearer.
 
