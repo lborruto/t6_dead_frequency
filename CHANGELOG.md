@@ -6,6 +6,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- M1: the cold room's denizens rise from eight spots around the woods zone (three before).
 - M1: the rider carried under the tower jumps off and burrows like at a powered lamp (the vanilla animation and
   portal), within the vanilla lamp radius (256).
 - The finale no longer recolours the lamps: they stay vanilla, green only with power or a turbine.

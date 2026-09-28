@@ -1109,17 +1109,22 @@ df_m1_spawn_loop()
 // A Nacht anchor for the next denizen, as a fresh struct (screecher_prespawn reads .origin/.angles).
 df_m1_pick_spawn()
 {
-    // owner 2026-09-25: THREE rising spots (DF_NACHT_SPAWN_1..3), the one farthest from every player in the room;
-    // the same spot twice in a row gives way to the next farthest
+    // owner 2026-09-25: the rising spot farthest from every player in the room; the same spot twice in a row gives
+    // way to the next farthest. owner 2026-09-28: eight spots, DF_NACHT_SPAWN_1..3 + DF_M1_RISE_1..5 (on the ground)
     players = df_m1_room_players();
+    keys = array( "DF_NACHT_SPAWN_1", "DF_NACHT_SPAWN_2", "DF_NACHT_SPAWN_3", "DF_M1_RISE_1", "DF_M1_RISE_2", "DF_M1_RISE_3", "DF_M1_RISE_4", "DF_M1_RISE_5" );
     first = undefined;
     first_d2 = -1;
     second = undefined;
     second_d2 = -1;
 
-    for ( i = 1; i <= 3; i++ )
+    foreach ( i in keys )
     {
-        c = df_coord( "DF_NACHT_SPAWN_" + i );
+        c = df_coord( i );
+
+        if ( !isdefined( c ) )
+            continue;
+
         d2 = 999999999;
 
         foreach ( player in players )
@@ -1150,11 +1155,26 @@ df_m1_pick_spawn()
         pick = second;
 
     level.df_m1_last_spawn = pick;
-    c = df_coord( "DF_NACHT_SPAWN_" + pick );
+    c = df_coord( pick );
     spot = spawnstruct();
     spot.origin = c.origin;
+
+    if ( issubstr( pick, "DF_M1_RISE_" ) )
+        spot.origin = df_m1_ground( c.origin );
     spot.angles = c.angles;
     return spot;
+}
+
+// owner 2026-09-28: the ground under a rising spot: a long trace from 400 above to 500 below its hint (the woods drop
+// to -189 in places, beyond df_ground's reach); the hint itself if nothing is hit.
+df_m1_ground( pos )
+{
+    trace = bullettrace( ( pos[0], pos[1], pos[2] + 400 ), ( pos[0], pos[1], pos[2] - 500 ), 0, undefined );
+
+    if ( isdefined( trace["position"] ) && trace["fraction"] < 1 )
+        return trace["position"];
+
+    return pos;
 }
 
 // spawn_zombie( spawner, target_name, spawn_point ) as _zm_utility.gsc:236. The ground opens where it will

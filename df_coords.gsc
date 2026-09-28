@@ -169,6 +169,13 @@ df_coords_init()
     df_coord_set( "DF_NACHT_SPAWN_2", ( 13703, -862, -189 ), ( 0, 1, 0 ), undefined );
     df_coord_set( "DF_NACHT_SPAWN_3", ( 13703, -782, -189 ), ( 0, 1, 0 ), undefined );
     df_coord_set( "DF_NACHT_SPAWN_4", ( 13663, -822, -189 ), ( 0, 1, 0 ), undefined );
+    // owner 2026-09-28: five more cold-room rising spots, a ring 450 around DF_M1_ZONE (the woods behind the hunter's
+    // cabin); their z is only a hint: df_act2_maxis df_m1_ground snaps each to the ground. Tune with `!df setpos`.
+    df_coord_set( "DF_M1_RISE_1", ( 5927, 7813, -60 ), ( 0, 0, 0 ), undefined );
+    df_coord_set( "DF_M1_RISE_2", ( 5616, 8241, -60 ), ( 0, 0, 0 ), undefined );
+    df_coord_set( "DF_M1_RISE_3", ( 5113, 8078, -60 ), ( 0, 0, 0 ), undefined );
+    df_coord_set( "DF_M1_RISE_4", ( 5113, 7548, -60 ), ( 0, 0, 0 ), undefined );
+    df_coord_set( "DF_M1_RISE_5", ( 5616, 7385, -60 ), ( 0, 0, 0 ), undefined );
 
     df_apply_overrides();
     df_table_sync_socket();
