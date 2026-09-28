@@ -415,7 +415,11 @@ df_table_slots_init()
 
     df_table_slot_def( 0, ( 0, 18, 0 ) ); // owner in game 2026-09-23: the relay on the LEFT of the table     // relay: on the top, its own pivot is at its base
     df_table_slot_def( 1, ( -3, 8, 3.5 ) ); // owner composer 2026-09-23 (fixed viewer)
-    df_table_slot_def( 2, ( -7.5, -1, 2 ) ); // owner composer 2026-09-23 (fixed viewer)
+    df_table_slot_def( 2, ( -9.5, -3.5, 2.5 ) ); // owner composer 2026-09-28 (Richtofen table)
+
+    // owner composer 2026-09-28: the Maxis table has its own rock spot (the lantern stands where the Richtofen rock does)
+    level.df_table_slots_maxis = [];
+    df_table_slot_maxis_def( 2, ( -5.5, -10.5, 2.5 ) );
 }
 
 df_table_slot_def( n, offset )
@@ -423,23 +427,49 @@ df_table_slot_def( n, offset )
     level.df_table_slots[n] = offset;
 }
 
+// A slot's Maxis-side spot, used instead of df_table_slot_def's once the side is Maxis.
+df_table_slot_maxis_def( n, offset )
+{
+    level.df_table_slots_maxis[n] = offset;
+}
+
 // owner 2026-09-28: where the R2 batteries stand once inserted, ON THE GROUND under the table: one entry per
 // battery (four with a full lobby), in the table's own frame (x = towards its front, y = to its left) with z
-// from the table's own origin, which stands on the ground (df_table_point). Tuned in the prop composer
+// from the table's own origin, which stands on the ground (df_table_point), then its own yaw. Tuned in the prop composer
 // ("R2 batteries (under the table)"), which exports these lines.
 df_table_bats_init()
 {
     level.df_table_bats = [];
 
-    df_table_bat_def( 0, ( 8, 24, -1 ) );
-    df_table_bat_def( 1, ( 8, 8, -1 ) );
-    df_table_bat_def( 2, ( 8, -8, -1 ) );
-    df_table_bat_def( 3, ( 8, -24, -1 ) );
+    level.df_table_bat_yaws = [];
+
+    // owner composer 2026-09-28: two on the table top, two on the ground, each with its own turn
+    df_table_bat_def( 0, ( 3.5, -13, 44 ), 66.5 );
+    df_table_bat_def( 1, ( 3.5, -33, 44 ), 36 );
+    df_table_bat_def( 2, ( -0.5, -10.5, 0 ), 33 );
+    df_table_bat_def( 3, ( 0, -29.5, 0 ), 65 );
 }
 
-df_table_bat_def( n, offset )
+df_table_bat_def( n, offset, yaw )
 {
     level.df_table_bats[n] = offset;
+
+    if ( !isdefined( yaw ) )
+        yaw = 0;
+
+    level.df_table_bat_yaws[n] = yaw; // added to the table's front yaw
+}
+
+// Battery n's own turn on top of the table's front yaw.
+df_table_bat_yaw( n )
+{
+    if ( !isdefined( level.df_table_bats ) )
+        df_table_bats_init();
+
+    if ( isdefined( level.df_table_bat_yaws[n] ) )
+        return level.df_table_bat_yaws[n];
+
+    return 0;
 }
 
 // owner 2026-09-28: where the relay is built on the bus roof, set in the prop composer ("Relay on the bus"): an offset
@@ -449,6 +479,8 @@ df_relay_roof_init()
 {
     level.df_relay_roof_off = undefined;
     level.df_relay_roof_yaw = 0;
+
+    df_relay_roof_def( ( 144.5, -1, 150.5 ), 0 ); // owner composer 2026-09-28
 }
 
 df_relay_roof_def( offset, yaw )
@@ -465,11 +497,12 @@ df_s7_path_init()
 {
     level.df_s7_path = [];
 
-    df_s7_path_def( 0, ( 23, -16, 43 ) );
-    df_s7_path_def( 1, ( -80, 127, 43 ) );
-    df_s7_path_def( 2, ( -248, 72, 43 ) );
-    df_s7_path_def( 3, ( -248, -104, 43 ) );
-    df_s7_path_def( 4, ( -80, -159, 43 ) );
+    // owner composer 2026-09-28, height 60 above the ground (owner)
+    df_s7_path_def( 0, ( -35.5, -0.5, 60 ) );
+    df_s7_path_def( 1, ( -100, 120.5, 60 ) );
+    df_s7_path_def( 2, ( -213.5, 100, 60 ) );
+    df_s7_path_def( 3, ( -213.5, -100, 60 ) );
+    df_s7_path_def( 4, ( -100, -120, 60 ) );
 }
 
 df_s7_path_def( n, offset )
@@ -506,6 +539,9 @@ df_table_slot_offset( n )
 {
     if ( !isdefined( level.df_table_slots ) )
         df_table_slots_init();
+
+    if ( isdefined( level.df_side ) && level.df_side == "maxis" && isdefined( level.df_table_slots_maxis ) && isdefined( level.df_table_slots_maxis[n] ) )
+        return level.df_table_slots_maxis[n];
 
     if ( isdefined( level.df_table_slots[n] ) )
         return level.df_table_slots[n];
@@ -1575,7 +1611,7 @@ df_models_init_items()
     // the power switch hand piece p6_zm_buildable_pswitch_hand (zm_transit, 9 x 8 x 9) with a tiny flame.
     // Offset = its place in the TABLE's frame from the table origin (z from the floor; default = slot 2 on the top),
     // df_table_point; the owner poses it in the Prop Composer ("Table, Maxis loaded").
-    df_model_def( "ember", "p_lights_cagelight02_red_off", 180, 0, 0, ( -6, -12, 44 ) ); // owner 2026-09-25: the lantern (see "skull")
+    df_model_def( "ember", "p_lights_cagelight02_red_off", 180, 0, 0, ( 2.5, 11, 51.5 ) ); // owner 2026-09-25: the lantern (see "skull"); owner composer 2026-09-28 pose on the table
 }
 
 // =========================================================================================

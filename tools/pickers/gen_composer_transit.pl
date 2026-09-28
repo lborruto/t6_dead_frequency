@@ -103,8 +103,13 @@ my %slot_def;   # n -> [ x, y, z ]
 # owner 2026-09-28: the R2 batteries under the table, df_table_bats_init(): df_table_bat_def( n, ( x, y, z ) ); in the
 # table's frame with z from the table's own origin (on the ground)
 my %bat_def;
-while ( $gsc =~ /df_table_bat_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)\s*;/g ) {
-    $bat_def{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0 ];
+while ( $gsc =~ /df_table_bat_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*(?:,\s*(-?[\d.]+)\s*)?\)\s*;/g ) {
+    $bat_def{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0, ( $5 // 0 ) + 0 ];
+}
+# owner 2026-09-28: a slot's Maxis-side spot (df_table_slot_maxis_def), used by the "Table, Maxis loaded" preset
+my %slot_maxis;
+while ( $gsc =~ /df_table_slot_maxis_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)\s*;/g ) {
+    $slot_maxis{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0 ];
 }
 die "df_table_bats_init(): no df_table_bat_def( 0, ( x, y, z ) ); line found\n" unless $bat_def{0};
 # owner 2026-09-28: the Step 7 rock route (df_s7_path_def, table frame, z = hover above the ground) and the relay's
@@ -286,6 +291,7 @@ sub model_part {
     $p{path}    = $o{path}    if defined $o{path};
     $p{roof}    = 1           if $o{roof};
     $p{noexport} = 1          if $o{noexport};
+    $p{slotSide} = $o{slotSide} if $o{slotSide};
     return \%p;
 }
 
@@ -336,6 +342,12 @@ my @skull_pos = @slot1;
 # orb sits ON slot 2 (both sides), the slot's own z carrying the hover the owner gave it.
 my $orb_yaw  = $table_front_yaw + $model_def{orb}{yawoff};
 my @orb_pos  = @slot2;
+# owner 2026-09-28: the Maxis table's rock spot (df_table_slot_maxis_def 2), when there is one
+my @orb_pos_maxis = @slot2;
+if ( $slot_maxis{2} ) {
+    my ( $mx, $my ) = df_rotate_offset( $slot_maxis{2}[0], $slot_maxis{2}[1], 0, $table_front_yaw );
+    @orb_pos_maxis = ( r2($mx), r2($my), r2( $table_top_z + $slot_maxis{2}[2] ) );
+}
 
 # fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), and orb_aura/orb_glint (parent "orb").
 sub table_common_fx {
@@ -399,7 +411,7 @@ our @r2_bats;
     for my $n ( sort { $a <=> $b } keys %bat_def ) {
         my ( $bx, $by ) = df_rotate_offset( $bat_def{$n}[0], $bat_def{$n}[1], 0, $table_front_yaw );
         push @bats, model_part( kind => 'r2_battery', model => $model_def{r2_battery}{name}, x => r2($bx), y => r2($by), z => r2( $bat_def{$n}[2] ),
-                                pitch => $model_def{r2_battery}{pitch}, roll => $model_def{r2_battery}{roll}, yaw => $table_front_yaw + ( $model_def{r2_battery}{yawoff} // 0 ), bat => $n );
+                                pitch => $model_def{r2_battery}{pitch}, roll => $model_def{r2_battery}{roll}, yaw => $table_front_yaw + ( $model_def{r2_battery}{yawoff} // 0 ) + $bat_def{$n}[3], bat => $n, noexport => 1 );
     }
     add_preset(
         'r2_batteries', 'R2 batteries (under the table)',
@@ -576,7 +588,9 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
             parent => 'relay',
         ),
         @occupant,
-        model_part( kind => 'orb', model => $model_def{orb}{name}, x => $orb_pos[0], y => $orb_pos[1], z => $orb_pos[2], pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll}, yaw => $orb_yaw, slot => 2 ),
+        ( $is_rich
+          ? model_part( kind => 'orb', model => $model_def{orb}{name}, x => $orb_pos[0], y => $orb_pos[1], z => $orb_pos[2], pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll}, yaw => $orb_yaw, slot => 2 )
+          : model_part( kind => 'orb', model => $model_def{orb}{name}, x => $orb_pos_maxis[0], y => $orb_pos_maxis[1], z => $orb_pos_maxis[2], pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll}, yaw => $orb_yaw, slot => 2, slotSide => 'maxis' ) ),
         table_common_fx(),
         @occupant_fx,
         @hand,
@@ -1457,7 +1471,8 @@ __SCRIPTS__
           var loc = rotateXY(p.x - tablePart.x, p.y - tablePart.y, -tablePart.yaw);
           lx = loc[0]; ly = loc[1]; lz = p.z - tablePart.z - TABLE_TOP_Z;
         }
-        lines.push('df_table_slot_def( ' + p.slot + ', ( ' + round05(lx) + ', ' + round05(ly) + ', ' + round05(lz) + ' ) ); // ' + p.kind);
+        var fn = p.slotSide === 'maxis' ? 'df_table_slot_maxis_def' : 'df_table_slot_def';
+        lines.push(fn + '( ' + p.slot + ', ( ' + round05(lx) + ', ' + round05(ly) + ', ' + round05(lz) + ' ) ); // ' + p.kind);
       });
     }
 
@@ -1492,12 +1507,12 @@ __SCRIPTS__
       lines.push('');
       lines.push('// R2 batteries (df_table_bat_def in df_coords.gsc, df_table_bats_init(); z from the table origin = the ground)');
       bats.forEach(function(p){
-        var bx = p.x, by = p.y, bz = p.z;
+        var bx = p.x, by = p.y, bz = p.z, byaw = p.yaw;
         if (tbl) {
           var loc = rotateXY(p.x - tbl.x, p.y - tbl.y, -tbl.yaw);
-          bx = loc[0]; by = loc[1]; bz = p.z - tbl.z;
+          bx = loc[0]; by = loc[1]; bz = p.z - tbl.z; byaw = p.yaw - tbl.yaw;
         }
-        lines.push('df_table_bat_def( ' + p.bat + ', ( ' + round05(bx) + ', ' + round05(by) + ', ' + round05(bz) + ' ) );');
+        lines.push('df_table_bat_def( ' + p.bat + ', ( ' + round05(bx) + ', ' + round05(by) + ', ' + round05(bz) + ' ), ' + round2(byaw) + ' );');
       });
     }
 

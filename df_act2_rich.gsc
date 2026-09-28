@@ -2470,7 +2470,7 @@ df_r2_table_battery_show( i )
     b = spawnstruct();
     b.model = spawn( "script_model", pos );
     b.model setmodel( df_model( "r2_battery" ) );
-    b.model.angles = df_model_angles( "r2_battery", yaw );
+    b.model.angles = df_model_angles( "r2_battery", yaw + df_table_bat_yaw( i ) ); // owner composer 2026-09-28: each battery's own turn
     level.df_r2_table_bats[i] = b;
 
     // owner 2026-09-25: "just a spark, the same as the power switch turned ON, in a loop". switch_sparks
