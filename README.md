@@ -20,7 +20,8 @@ solution, one folded step at a time.
 
 - Plutonium T6, map **Green Run - TranZit**, mode **Original**.
 - [**Scavenger Project**](https://github.com/NickB05/Project_Scavenger) by NickB_05 (carry every buildable piece).
-  Not included: install it from its own page.
+  Not included: install it from its own page, **both** its `scripts` and its `images` folders (the images are its
+  TAB square frame, check mark and icons; without them every square shows a radio picture).
 - [**TranZit Enhanced**](https://forum.plutonium.pw/topic/46428/release-zm-tranzit-enhanced) by Myrix, the `noee`
   build. Attached to every release; see [companion/README.md](companion/README.md).
 
@@ -29,7 +30,9 @@ solution, one folded step at a time.
 1. Download the three files of the latest [release](../../releases):
    `zm_transit_dead_frequency_1.gsc`, `zm_transit_dead_frequency_2.gsc`, `zm_transit_enhanced_noee.gsc`.
 2. Put them in `%LOCALAPPDATA%\Plutonium\storage\t6\scripts\zm\zm_transit\`.
-3. Install Scavenger in `%LOCALAPPDATA%\Plutonium\storage\t6\scripts\zm\` as its page says.
+3. Install Scavenger as its page says: copy its `scripts` AND `images` folders into
+   `%LOCALAPPDATA%\Plutonium\storage\t6\` (so `zm_scavenger.gsc` lands in `scripts\zm\` and its eight `.iwi`
+   files in `images\`).
 4. Remove any other TranZit Easter Egg script from those folders, "solo Easter Egg" helpers included.
 5. Start TranZit. To check it loaded: console `set df_debug 1`, then `!df status` in the chat.
 

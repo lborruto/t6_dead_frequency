@@ -3,6 +3,16 @@
 All notable changes to Dead Frequency are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+- Pickup notices and the TAB square no longer use the six vanilla icons Scavenger's `images` folder repaints
+  (they showed a guillotine, gallows or nav table): our items use other TranZit buildable icons, and our TAB
+  square uses Scavenger's own frame so it matches its row.
+
+### Changed
+- Install: Scavenger's `images` folder is required too (README and release notes).
+
 ## [1.1.2] - 2026-09-28
 
 ### Changed

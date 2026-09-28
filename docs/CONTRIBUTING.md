@@ -104,7 +104,9 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   carries electric arcs, so `df_lamp_exploder_set` keeps it off there and the lava glow and bursts carry the look;
   `df_lamp_hum_set` swaps `zmb_avogadro_loop` for `zmb_fire_loop` on Maxis); the clientfield is held at 0 so no
   green shows, and the server power flag is kept silently so burrows still work (`df_lamp_power_silent`).
-- `df_scav.gsc` - the carry presentation layer in the style of Project Scavenger: the top-left pickup notice
+- `df_scav.gsc` - the carry presentation layer in the style of Project Scavenger: (icons: Scavenger's `images`
+  folder repaints zm_hud_icon_sq_tranceiver, _sq_scafold, _sq_meteor, _sq_powerbox, _battery and _fan, so our items use
+  _panel, _coil, _tvtube, _ladder, _jetgun_engine, _sq_keycard and hud_status_dead; the TAB frame is Scavenger's own) the top-left pickup notice
   (one row below Scavenger's), the "Dead Frequency" TAB square right after Scavenger's fifth, and
   `df_scav_carry_set / _clear`, the API the acts call. Touches nothing of `zm_scavenger.gsc`; every field is
   `df_scav_*`.

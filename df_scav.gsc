@@ -8,7 +8,7 @@
 //      vertalign top, default font, no sort, 2.5 s then a 0.5 s fade), one row lower (y +30) so both never
 //      overlap when they fire in the same second.
 //   2. A "Dead Frequency" square in Scavenger's TAB row (zm_scavenger.gsc:786 mc_tab_square_watch): same
-//      33x33 frame (a plain dark "white" plate, theirs is zm_hud_icon_sq_tranceiver = the radio picture) sort 1,
+//      33x33 frame (zm_hud_icon_sq_tranceiver, which Scavenger's images folder turns into its square frame) sort 1,
 //      inner icon 25x25 sort 3 alpha 0.9, counter "n/N"
 //      below (sort 3), check mark zm_hud_icon_sq_scafold 10x10 sort 4 when complete, square lifted 10 px while
 //      something is carried. Placed right after their fifth TranZit square (x 91 + 5 * 39 = 286; their
@@ -25,10 +25,8 @@
 // writes later on "buildables_setup" (mc_buildables_ready / mc_stub_by_name, :485). Any one of them counts, so
 // an older or newer version that renames one field still registers; the verdict "absent" is only settled after
 // a 5 s poll (df_scav_detect), and until then every read is live, so nothing depends on the load order.
-// Shaders: all vanilla, listed in tools/assets/shaders_zm_transit.txt (zm_hud_icon_battery :131,
-// zm_hud_icon_jetgun_wires :141, zm_hud_icon_spool :150, zm_hud_icon_sq_keycard :151, zm_hud_icon_sq_meteor :154,
-// zm_hud_icon_sq_powerbox :155, zm_hud_icon_sq_scafold :156, zm_hud_icon_sq_tranceiver :157), all precached by
-// the map (Scavenger only re-precaches four of them); plus hud_status_dead :40 for the skull (owner 2026-09-23),
+// Shaders: vanilla TranZit buildable icons (zm_hud_icon_panel, _coil, _tvtube, _ladder, _jetgun_engine,
+// _sq_keycard; see df_scav_icon for the ones Scavenger's images folder repaints), all precached by the map; plus hud_status_dead :40 for the skull (owner 2026-09-23),
 // which vanilla only registers as a status icon, so df_coords_precache precaches it as a shader. Sound on pickup stays in the acts: zmb_buildable_pickup,
 // the vanilla part pickup (zm_transit_buildables.gsc:249 onpickup_common) that a Scavenger collect also plays.
 // Polling: the only permanent loop is the per-player TAB loop, asleep on a waittill until TAB goes down and
@@ -177,32 +175,35 @@ df_scav_disconnect_watch()
 // orb (Step 6, charges). Unknown kind -> the powerbox.
 df_scav_icon( kind )
 {
+    // owner 2026-09-28: Scavenger's `images` folder (required) replaces six vanilla icon images with its own art:
+    // sq_tranceiver = its square frame, sq_scafold = its green check, sq_meteor = the guillotine, sq_powerbox = the
+    // nav table, battery = the gallows, fan = the red cross. Our items therefore use vanilla TranZit buildable icons
+    // it leaves alone (all precached by zm_transit_buildables.gsc; hud_status_dead by df_coords_precache).
     switch ( kind )
     {
         case "receiver":
-            return "zm_hud_icon_sq_powerbox"; // owner 2026-09-25: the power box (the coil is the fuse box again)
+            return "zm_hud_icon_panel"; // the power box: the power switch body's panel
         case "spool":
-            return "zm_hud_icon_battery"; // owner 2026-09-25: R2 carries batteries now
         case "battery":
-            return "zm_hud_icon_battery";
+            return "zm_hud_icon_coil"; // R2 batteries and the R1 fuse battery: the electric trap coil
         case "skull":
-            return "zm_hud_icon_sq_meteor"; // owner 2026-09-23: the scoreboard skull (precached by df_coords_precache)
+            return "hud_status_dead"; // Maxis's lantern, left by the dead of the cold room
         case "part_a":
-            return "zm_hud_icon_sq_tranceiver"; // the radio
+            return "zm_hud_icon_tvtube"; // the radio: the electric trap tube
         case "part_b":
-            return "zm_hud_icon_sq_scafold"; // the mast (no post icon in the map, the lattice is the nearest)
+            return "zm_hud_icon_ladder"; // the mast: the bus ladder
         case "part_c":
         case "parts":
-            return "zm_hud_icon_sq_powerbox";
+            return "zm_hud_icon_panel";
         case "relay":
-            return "zm_hud_icon_sq_tranceiver";
+            return "zm_hud_icon_tvtube";
         case "card":
             return "zm_hud_icon_sq_keycard";
         case "orb":
-            return "zm_hud_icon_sq_meteor";
+            return "zm_hud_icon_jetgun_engine"; // the rock the Jet Gun charges
     }
 
-    return "zm_hud_icon_sq_powerbox";
+    return "zm_hud_icon_panel";
 }
 
 // Kind -> the name printed in the notice, like Scavenger's mc_display_name (zm_scavenger.gsc:170): the name of
@@ -493,16 +494,16 @@ df_scav_tab_create()
     cfg = level.df_scav_cfg;
     x = df_scav_slot_x();
 
-    // a plain dark plate as the frame (owner 2026-09-22: the "border" shader Scavenger uses for every square,
-    // zm_hud_icon_sq_tranceiver, IS the radio picture on TranZit and drowned the item icon)
+    // owner 2026-09-28: Scavenger's own frame, exactly as theirs (its `images` folder turns zm_hud_icon_sq_tranceiver
+    // into the dark square frame; without those images it draws the vanilla radio picture)
     border = self df_scav_tab_elem( x, cfg.tab_y, 1 );
-    border.alpha = 0.55;
-    border.color = ( 0.08, 0.08, 0.08 );
-    border setshader( "white", cfg.sq + cfg.pad * 2, cfg.sq + cfg.pad * 2 );
+    border.alpha = 0.7;
+    border.color = ( 1, 1, 1 );
+    border setshader( "zm_hud_icon_sq_tranceiver", cfg.sq + cfg.pad * 2, cfg.sq + cfg.pad * 2 );
     self.df_scav_tab_border = border;
 
     icon = self df_scav_tab_elem( x, cfg.tab_y, 3 );
-    icon.alpha = 0.9;
+    icon.alpha = 0.5;
     self.df_scav_tab_icon = icon;
     self.df_scav_tab_icon_kind = undefined;
     self.df_scav_tab_rev = -1;

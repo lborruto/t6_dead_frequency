@@ -1682,7 +1682,7 @@ df_r1_empty_fuse_near( pos, radius )
     return best;
 }
 
-// Carry notice via df_scav (kind "battery", zm_hud_icon_battery), pickup sound zm_transit_buildables.gsc:249.
+// Carry notice via df_scav (kind "battery", zm_hud_icon_coil), pickup sound zm_transit_buildables.gsc:249.
 df_r1_battery_take( player )
 {
     b = level.df_r1_bat;
@@ -1745,7 +1745,7 @@ df_r1_battery_slot( fuse, player )
     level notify( "df_r1_refill_check" );
 }
 
-// The carrier's TAB notice shows charged boxes / 4 (df_scav kind "battery", zm_hud_icon_battery).
+// The carrier's TAB notice shows charged boxes / 4 (df_scav kind "battery", zm_hud_icon_coil).
 df_r1_battery_notice()
 {
     b = level.df_r1_bat;

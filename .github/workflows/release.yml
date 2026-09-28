@@ -112,7 +112,8 @@ jobs:
             1. Drop every `zm_transit_dead_frequency_*.gsc` file attached here into
                `%localappdata%\Plutonium\storage\t6\scripts\zm\zm_transit\` (a release always ships them all; replace the old ones).
             2. Drop `zm_transit_enhanced_noee.gsc` (attached here, required companion; credits in companion/README.md) into the same folder.
-            3. Install Scavenger Project v1.9 by NickB_05 into `...\scripts\zm\` (required, not included).
+            3. Install Scavenger Project v1.9 by NickB_05 (required, not included): copy BOTH its `scripts` and `images`
+               folders into `%localappdata%\Plutonium\storage\t6\` (without the images the TAB squares show a radio picture).
             Nothing else from the repository belongs in the game folders: the `df_*.gsc` sources are already inside
             these files, and a second copy of a function makes the game refuse the script.
 
