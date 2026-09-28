@@ -380,6 +380,7 @@ add_preset(
 
 # owner 2026-09-28: the R2 batteries once inserted, on the ground under the table (df_table_bat_def registry). Every
 # battery exports as a df_table_bat_def line: its offset in the table's frame, z from the table's own origin.
+our @r2_bats;
 {
     my @bats;
     for my $n ( sort { $a <=> $b } keys %bat_def ) {
@@ -397,6 +398,7 @@ add_preset(
         @bats,
     );
 }
+@r2_bats = map { { %$_ } } grep { $_->{kind} eq 'r2_battery' } map { @{ $presets{r2_batteries}{parts} } } 1;
 
 add_preset(
     'coil_drop', 'Coil drop',
@@ -521,6 +523,7 @@ for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 
         table_common_fx(),
         @occupant_fx,
         @hand,
+        ( $is_rich ? ( map { { %$_ } } @r2_bats ) : () ), # owner 2026-09-28: the R2 batteries under the table
     );
 }
 
