@@ -75,9 +75,16 @@ te_jetgun()
     fx_height      = 2;
     fx_forward     = 12;
     fx_stop_early  = 130;
+    fx_keep        = 5;
     block_trigger  = 1;
 
     level endon( "end_game" );
+
+    set_zombie_var( "jetgun_cylinder_radius", 1536 );
+    set_zombie_var( "jetgun_drag_range", 3072 );
+    set_zombie_var( "jetgun_knockdown_range", 384 );
+    set_zombie_var( "jetgun_gib_range", 384 );
+    set_zombie_var( "jetgun_grind_range", 166 );
 
     min_sq = move_min * move_min;
     sprint_cone = 0.5;
@@ -163,6 +170,12 @@ te_jetgun()
 
             if ( !isdefined( player ) || !isdefined( player.score ) )
                 continue;
+
+            if ( !isdefined( player.te_maw ) )
+            {
+                player.te_maw = 1;
+                player thread te_maxammo_watch();
+            }
 
             if ( !isdefined( player.equipment_damage ) )
                 player.equipment_damage = [];
@@ -413,7 +426,27 @@ te_jetgun()
                         player.jgx_fx = 0;
 
                         if ( isdefined( level._effect ) && isdefined( level._effect["jetgun_overheat"] ) )
-                            playfx( level._effect["jetgun_overheat"], level.jgx_prot.origin + ( 0, 0, fx_height ) + anglestoforward( level.jgx_prot.angles ) * fx_forward );
+                        {
+                            if ( !isdefined( player.jgx_fx_list ) )
+                                player.jgx_fx_list = [];
+
+                            ent = spawnfx( level._effect["jetgun_overheat"], level.jgx_prot.origin + ( 0, 0, fx_height ) + anglestoforward( level.jgx_prot.angles ) * fx_forward );
+                            triggerfx( ent );
+                            player.jgx_fx_list[player.jgx_fx_list.size] = ent;
+
+                            if ( player.jgx_fx_list.size > fx_keep )
+                            {
+                                if ( isdefined( player.jgx_fx_list[0] ) )
+                                    player.jgx_fx_list[0] delete();
+
+                                trimmed = [];
+
+                                for ( f = 1; f < player.jgx_fx_list.size; f++ )
+                                    trimmed[trimmed.size] = player.jgx_fx_list[f];
+
+                                player.jgx_fx_list = trimmed;
+                            }
+                        }
                     }
                 }
 
@@ -451,6 +484,17 @@ te_jetgun()
                     }
 
                     player.jgx_cooling = 0;
+
+                    if ( isdefined( player.jgx_fx_list ) )
+                    {
+                        for ( f = 0; f < player.jgx_fx_list.size; f++ )
+                        {
+                            if ( isdefined( player.jgx_fx_list[f] ) )
+                                player.jgx_fx_list[f] delete();
+                        }
+
+                        player.jgx_fx_list = [];
+                    }
                 }
             }
 
@@ -498,6 +542,7 @@ te_jetgun()
             if ( !player.jgx_cooling && heat >= drop_at )
             {
                 player notify( "jetgun_overheated" );
+                player playsound( "wpn_jetgun_explo" );
 
                 if ( isdefined( level.sq_volume ) && player istouching( level.sq_volume ) )
                 {
@@ -1270,6 +1315,8 @@ te_tweaks()
 
     level endon( "end_game" );
 
+    level thread te_mp5_wallbuy();
+
     if ( global_turbine_doors )
         level.power_local_doors_globally = 1;
 
@@ -1519,4 +1566,134 @@ te_jetgun_points()
         points = points * level.zombie_vars[self.attacker.team]["zombie_point_scalar"];
 
     self.attacker maps\mp\zombies\_zm_score::add_to_player_score( points );
+}
+
+te_mp5_wallbuy()
+{
+    wall_pos   = ( 612.413, -1000.963, 150 );
+    wall_yaw   = -87;
+    height_off = 29;
+    weapon     = "mp5k_zm";
+
+    level endon( "end_game" );
+
+    wait 5;
+
+    angles = ( 0, wall_yaw, 0 );
+    wall_pos = wall_pos + ( 0, 0, height_off );
+
+    model = maps\mp\zombies\_zm_utility::spawn_weapon_model( weapon, undefined, wall_pos - anglestoforward( angles ), angles );
+    model setmodel( getweaponmodel( weapon ) );
+    model useweaponhidetags( weapon );
+    model hide();
+
+    stub = spawnstruct();
+    stub.origin = wall_pos;
+    stub.angles = angles;
+
+    bounds = model getabsmaxs() - model getabsmins();
+    stub.script_length = bounds[0] * 0.25;
+    stub.script_width  = bounds[1];
+    stub.script_height = bounds[2];
+    stub.origin = stub.origin - anglestoright( angles ) * ( stub.script_length * 0.4 );
+
+    stub.targetname = "weapon_upgrade";
+    stub.cursor_hint = "HINT_NOICON";
+    stub.first_time_triggered = 0;
+    stub.hint_string = maps\mp\zombies\_zm_weapons::get_weapon_hint( weapon );
+    stub.cost = maps\mp\zombies\_zm_weapons::get_weapon_cost( weapon );
+    stub.hint_parm1 = stub.cost;
+    stub.weapon_upgrade = weapon;
+    stub.zombie_weapon_upgrade = weapon;
+    stub.script_unitrigger_type = "unitrigger_box_use";
+    stub.require_look_at = 1;
+    stub.prompt_and_visibility_func = maps\mp\zombies\_zm_weapons::wall_weapon_update_prompt;
+
+    maps\mp\zombies\_zm_unitrigger::unitrigger_force_per_player_triggers( stub, 1 );
+    maps\mp\zombies\_zm_unitrigger::register_static_unitrigger( stub, maps\mp\zombies\_zm_weapons::weapon_spawn_think );
+
+    if ( isdefined( level._effect[weapon + "_fx"] ) )
+        playfx( level._effect[weapon + "_fx"], wall_pos, anglestoforward( angles ) );
+
+    level thread te_mp5_purchase( stub, model );
+}
+
+te_mp5_purchase( stub, model )
+{
+    level endon( "end_game" );
+
+    for ( ;; )
+    {
+        level waittill( "weapon_bought", player, weapon, bought_stub );
+
+        if ( !isdefined( weapon ) || weapon != "mp5k_zm" )
+            continue;
+
+        if ( !isdefined( player ) )
+            continue;
+
+        if ( isdefined( model ) )
+            model playsound( "purchase" );
+
+        if ( isdefined( model ) && isdefined( player ) )
+            model thread maps\mp\zombies\_zm_weapons::weapon_show( player );
+
+        if ( !isdefined( level._spawned_wallbuys ) )
+            continue;
+
+        for ( i = 0; i < level._spawned_wallbuys.size; i++ )
+        {
+            other = level._spawned_wallbuys[i];
+
+            if ( !isdefined( other ) || !isdefined( other.zombie_weapon_upgrade ) )
+                continue;
+
+            if ( other.zombie_weapon_upgrade != weapon )
+                continue;
+
+            if ( isdefined( other.trigger_stub ) && isdefined( other.trigger_stub.clientfieldname ) )
+            {
+                level setclientfield( other.trigger_stub.clientfieldname, 1 );
+                continue;
+            }
+
+            if ( !isdefined( other.target ) )
+                continue;
+
+            other_model = getent( other.target, "targetname" );
+
+            if ( isdefined( other_model ) )
+                other_model thread maps\mp\zombies\_zm_weapons::weapon_show( player );
+        }
+    }
+}
+
+te_maxammo_watch()
+{
+    self endon( "disconnect" );
+
+    for ( ;; )
+    {
+        self waittill( "zmb_max_ammo" );
+
+        self.jgx_heat = 0;
+        self.jetgun_heatval = 0;
+
+        if ( isdefined( self.jgx_fx_list ) )
+        {
+            for ( f = 0; f < self.jgx_fx_list.size; f++ )
+            {
+                if ( isdefined( self.jgx_fx_list[f] ) )
+                    self.jgx_fx_list[f] delete();
+            }
+
+            self.jgx_fx_list = [];
+        }
+
+        if ( isdefined( self.jgx_cooling ) && self.jgx_cooling )
+            self.jgx_cool_left = 1;
+
+        if ( self getcurrentweapon() == "jetgun_zm" )
+            self setweaponoverheating( 0, 0 );
+    }
 }

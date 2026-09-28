@@ -27,6 +27,14 @@ scripts refer to that removed part.
 Do not install the regular `zm_transit_enhanced.gsc` next to Dead Frequency, and do not install any other
 "solo Easter Egg" script for TranZit: they alter the vanilla quest, which this mod disables.
 
+## Build shipped
+
+The script header carries no version number, so builds are told apart by the date they were received:
+
+- 2026-09-28: wider Jet Gun reach, overheat sound, overheat effects capped at five and cleared on cooldown, Max
+  Ammo clears the Jet Gun heat, MP5 wall buy in Town (shipped with Dead Frequency 1.1.2).
+- 2026-09-11: the first noee build (Dead Frequency 1.0.0-rc1 to 1.1.1).
+
 ## Credits
 
 TranZit Enhanced and its noee build: **Myrix**. The file is included unchanged from the build the author

@@ -1,9 +1,9 @@
 name: Release the packed script
 
-# Every push to main that touches a df_*.gsc source (or the packing tools) publishes a release with the packed
+# Every push to main that touches a df_*.gsc source (or the packing tools, or companion/) publishes a release with the packed
 # build attached: two files, zm_transit_dead_frequency_1.gsc and _2.gsc (a compiled T6 script is capped at 65535
-# bytes of unique strings, the sources need two). A push that only changes README.md, docs/, companion/ or
-# tools/pickers does not match the paths filter, so no release is created.
+# bytes of unique strings, the sources need two). A push that only changes README.md, docs/ or tools/pickers does
+# not match the paths filter, so no release is created.
 on:
   push:
     branches: [ main, master ]
@@ -19,6 +19,7 @@ on:
       - 'tools/assets/soundbank/**'
       - 'tools/vanilla_namespaces.txt'
       - '.github/workflows/release.yml'
+      - 'companion/**'         # a new TranZit Enhanced build ships with the next release
   workflow_dispatch:          # a release can also be started by hand from the Actions tab
     inputs:
       parts:

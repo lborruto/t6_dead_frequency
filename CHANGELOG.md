@@ -3,6 +3,16 @@
 All notable changes to Dead Frequency are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.2] - 2026-09-28
+
+### Changed
+- The required companion, TranZit Enhanced (noee build, Myrix), is updated to the build of
+  2026-09-28: wider Jet Gun reach, overheat sound, overheat effects capped at five and cleared on
+  cooldown, Max Ammo also clears the Jet Gun heat, and an MP5 wall buy in Town. Replace
+  `zm_transit_enhanced_noee.gsc` with the one attached to this release.
+- A new companion build now publishes a release on its own (the release workflow watches
+  `companion/`).
+
 ## [1.1.1] - 2026-09-27 (hotfix)
 
 ### Fixed
