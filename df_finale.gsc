@@ -10,7 +10,7 @@
 //   the tower is), the burst (tower fx in the side colour, the canon lightning orb, the side flash via
 //   df_cue_side_flash at the top and over the table, thunder, 3 s shake, ONE vanilla vox line via df_vox_once:
 //   vox_zmba_sidequest_4emp_mag_0 / vox_maxi_turbine_2light_on_0), the permanent world change (df_fin_world:
-//   every lamp of the map in the side colour, Avogadro banished and the denizens silenced on both sides
+//   Avogadro banished and the denizens silenced on both sides, the lamps left vanilla
 //   (owner 2026-09-28); then the keepsake line ITEM_KEEPSAKE_RICH / _MAXIS for the card / skull left glowing
 //   on slot 1), the rewards (sting, Max Ammo, the Jet Gun that never overheats, one screen message; both sides alike), the
 //   globe stat, then the lines. df_complete( "finale" ) last.
@@ -446,9 +446,9 @@ df_fin_orb_after_burst( ent, real )
 // ----------------------------------------------------------- world change ----
 
 // Permanent world change after the burst (audit #8 / 2.4 "after the finale"), once per game:
-//   every lamp of the map in the side colour for the rest of the game (df_lamps df_lamp_colour_all: blue / orange),
-//   and on BOTH sides (owner 2026-09-28) Avogadro banished (df_fin_avogadro_banish) and no denizen ever spawns again
-//   (level.zombie_ai_limit_screecher = 0, the director's cap, _zm_ai_screecher.gsc:35/82). No lamp power any more.
+//   on BOTH sides (owner 2026-09-28) Avogadro banished (df_fin_avogadro_banish) and no denizen ever spawns again
+//   (level.zombie_ai_limit_screecher = 0, the director's cap, _zm_ai_screecher.gsc:35/82). The lamps stay vanilla (owner 2026-09-28: no
+//   recolour; they follow the power, so a green lamp is a lamp a punch opens, df_fin_lamp_punch_loop).
 // Then FIN_WORLD_RICH / FIN_WORLD_MAXIS and the keepsake line (df_fin_keepsake). "!df fire finale_world"
 // runs it alone.
 df_fin_world( side )
@@ -457,7 +457,6 @@ df_fin_world( side )
         return;
 
     level.df_fin_world_done = 1;
-    df_lamp_colour_all( side );
 
     level thread df_fin_avogadro_banish();
     level.zombie_ai_limit_screecher = 0;

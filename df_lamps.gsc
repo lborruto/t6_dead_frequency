@@ -16,10 +16,8 @@
 //   the six lamps that are valid on BOTH sides"; only a pick made after a Maxis lock (never in a normal game)
 //   ignores the list.
 //   One exclusive look per state, every fx / sound of the previous state removed first
-//   (df_lamp_state_set): off, souls, filled, tuning, waiting, anchored, charged, drained, final.
-//   ALL EIGHT lamps (finale / Act 2 reward, audit #8 and 2.4): df_lamp_colour_all( side ) puts every safety
-//   light in state "final" (steady side colour, the same exploder logic + re-fire) and
-//   df_lamp_power_silent_all( on ) sets the server power flag on all of them (portals and burrows without a
+//   (df_lamp_state_set): off, souls, filled, tuning, waiting, anchored, charged, drained.
+//   ALL EIGHT lamps: df_lamp_power_silent_all( on ) (debug only since 2026-09-28) sets the server power flag on all of them (portals and burrows without a
 //   turbine). Non-set lamps get a lamp struct on first use (df_lamp_all_get, level.df_lamps_all); the keeper
 //   then covers them too.
 //   Every fx sits at the real BULB (df_lamp_bulb_pos): the position of the map's own blue-lamp exploder
@@ -261,32 +259,6 @@ df_lamp_all_get()
     return level.df_lamps_all;
 }
 
-// Permanent world change (audit #8): every lamp of the map in the side colour for the rest of the game,
-// through the same exploder logic as the set (state "final": steady colour, no beam, no sound, re-fired
-// after clientfield flips and vanilla power changes). `side` "rich" = blue, "maxis" = orange; it is
-// remembered (level.df_lamp_side_force) so the colour survives a later side change of level.df_side.
-df_lamp_colour_all( side )
-{
-    if ( isdefined( side ) && ( side == "rich" || side == "maxis" ) )
-        level.df_lamp_side_force = side;
-
-    foreach ( lamp in df_lamp_all_get() )
-    {
-        lamp.final = 1;
-
-        // a "final" lamp that already shows the colour only needs the new side, no rebuild
-        if ( lamp.state == "final" )
-        {
-            df_lamp_exploder_set( lamp, 1 );
-            continue;
-        }
-
-        df_lamp_state_set( lamp, "final" );
-    }
-
-    df_debug_print( "DF: lamps: all " + level.df_lamps_all.size + " lamps coloured " + df_lamp_side_text() );
-}
-
 // Server power flag on every lamp of the map (the flag a denizen burrow checks, zm_transit_ai_screecher.gsc:55):
 // lamp portals open and denizens burrow anywhere without a turbine, no green light forced (the client keeps
 // its own look). on = 0 gives every lamp back to the power system. Kept by df_lamp_keeper.
@@ -430,13 +402,10 @@ df_lamp_bulb_pos( lamp )
     return lamp.origin + level.df_lamp_bulb_fallback;
 }
 
-// The side every lamp colour follows: the finale's forced side (df_lamp_colour_all) wins over level.df_side;
-// undefined until a side is locked (every side-coloured helper then treats it as Richtofen blue).
+// The side every lamp colour follows: level.df_side; undefined until a side is locked (every side-coloured helper
+// then treats it as Richtofen blue).
 df_lamp_side()
 {
-    if ( isdefined( level.df_lamp_side_force ) )
-        return level.df_lamp_side_force;
-
     return level.df_side;
 }
 
@@ -482,8 +451,6 @@ df_lamp_burst_fx()
 //            every 3 s at the bulb (owner 2026-09-09: reads as "done" even if the exploder colour fails), silent
 //   charged  Step 6 drawable: side light + tower beam + meteor hum
 //   drained  Step 6 done here: everything off, the lamp stays dark
-//   final    finale world change (df_lamp_colour_all): steady side light, nothing else, for the rest of the game
-// A lamp marked .final (the finale ran) ignores every later state: the world change is permanent.
 df_lamp_state_set( lamp, state )
 {
     if ( !isdefined( lamp ) || !isdefined( state ) )
@@ -491,12 +458,6 @@ df_lamp_state_set( lamp, state )
 
     if ( isdefined( lamp.state ) && lamp.state == state )
         return;
-
-    if ( is_true( lamp.final ) && state != "final" )
-    {
-        df_debug_print( "DF: lamp " + lamp.name + " keeps its final colour, state " + state + " ignored" );
-        return;
-    }
 
     df_lamp_clear( lamp );
     lamp.state = state;
@@ -585,8 +546,6 @@ df_lamp_state_set( lamp, state )
         lamp.snd = spawn( "script_origin", bulb );
         lamp.snd playloopsound( "zmb_avogadro_loop" );
     }
-    else if ( state == "final" )
-        df_lamp_exploder_set( lamp, 1 );
     else if ( state != "drained" )
         df_debug_print( "DF: lamp " + lamp.name + " unknown state " + state + " (treated as drained)" );
 
@@ -983,14 +942,12 @@ df_lamp_keeper()
 
 // =========================================================================================
 // debug: "!df fire lamps" prints every known lamp (set first) and its state;
-//        "!df fire lamps_all" colours all eight in the locked side (power state if none: on = blue);
 //        "!df fire lamps_power" sets the silent power flag on all eight (portals without turbines).
 // =========================================================================================
 
 df_lamp_debug_hook()
 {
     level endon( "end_game" );
-    level thread df_lamp_debug_all_hook();
     level thread df_lamp_debug_power_hook();
 
     while ( true )
@@ -1006,27 +963,6 @@ df_lamp_debug_hook()
 
         foreach ( lamp in lamps )
             df_debug_print( "DF: lamp " + lamp.name + " set " + is_true( lamp.in_set ) + " state " + lamp.state + " souls " + lamp.souls + " at " + int( lamp.origin[0] ) + " " + int( lamp.origin[1] ) + " " + int( lamp.origin[2] ) + " bulb z " + int( df_lamp_bulb_pos( lamp )[2] ) + " power " + df_lamp_on_off( lamp.light.power_on ) + " silent " + lamp.silent_power + " dark " + lamp.vanilla_dark + " exploder " + df_lamp_exploder_text( lamp ) + " glow " + isdefined( lamp.glow ) );
-    }
-}
-
-df_lamp_debug_all_hook()
-{
-    level endon( "end_game" );
-
-    while ( true )
-    {
-        level waittill( "df_debug_lamps_all" );
-        side = level.df_side;
-
-        if ( !isdefined( side ) )
-        {
-            side = "maxis";
-
-            if ( flag( "power_on" ) )
-                side = "rich";
-        }
-
-        df_lamp_colour_all( side );
     }
 }
 

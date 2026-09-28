@@ -360,7 +360,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | Step 6 | `s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver`, `s6_restart`, `orb_aura` (next aura candidate) |
 | Step 7 | `s7_start`, `s7_time` (win), `s7_fail`, `s7_hp`, `s7_dmg` (100 dmg; solo 3000 hp: damaged under 900, destroyed at 0, strikes heal in between), `s7_strike` (one charge strike now) |
 | Finale | `finale`, `finale_nostat`, `finale_fx` (~15 s spectacle with a stand-in orb, repeatable), `finale_world` (the permanent world change alone, once), `perks` (give every perk + summary) |
-| Lamps | `lamps` (every known lamp with set / state / silent / exploder), `lamps_all` (all 8 lamps in the side colour), `lamps_power` (silent power flag on all 8) |
+| Lamps | `lamps` (every known lamp with set / state / silent / exploder), `lamps_power` (silent power flag on all 8) |
 | Misc | `scav` / `scav_slot` (Scavenger-style notice and TAB square demo), `table_demo` (table + slots preview: relay + coil box + mast on slot 0, card on slot 1, rock on slot 2), `beam_test` (20 s beam to the nearest lamp; `set df_beam_fx <alias>`, `set df_beam_flip 1`), `compat` (vanilla-EE state + disk stats dump), `busparts` (re-run the ladder / hatch pin and print the part pools) |
 
 Event hints: a step file may speak a hint the moment something happens (console `DF: event hint <KEY> (<step>)`);

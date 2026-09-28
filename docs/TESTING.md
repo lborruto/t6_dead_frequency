@@ -249,8 +249,12 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
 **M1 The Cold Room**. Skips: `!df fire m1_ride` (ride cue), `m1_latch`, `m1_kills`, `m1_skull` (the lantern in
 front of you; fire again = on the table). `!df goto` past M1 while a team is still inside the cold room now
 returns them to the tower first (owner 2026-09-25 fix; before, a goto mid-room left players stranded in the woods).
-- `!df goto m1`: console `m1 waiting for a denizen latched within 300 of the table`. The tower keeps its vanilla
+- `!df goto m1`: console `m1 waiting for a denizen latched within 300 of the table` (the drop-off itself is the
+  vanilla lamp radius, 256 around the portal spot). The tower keeps its vanilla
   safety box: no denizen rises or latches at the tower; get one on your head in the fog and walk it in.
+- Walk a rider to the table: within 256 of the portal spot it jumps off, walks to the spot and burrows (the vanilla
+  burrow animation and dig sound), the vanilla hole rises with its vortex (`m1 the denizen burrowed under the tower,
+  the portal is ours`, `m1 vanilla portal at ...`). Walk in: the cold room. Other lamp portals never lead there.
 - Let a denizen jump on you anywhere: the portal-open sound, Maxis's M1_EVENT line ("Wait. That one clings to you..."; it no
   longer names the table), console `m1 first ride:
   table cue + event line`. No light. Only the first time.
@@ -508,10 +512,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   ash column at the base, smoke column at the top; both shake), `finale orb rising to the tower top (6 s, stand-in 0)`:
   the rock lifts off the right slot with the reactor hum and its Step 7 glow, `finale burst, tower fx on`, RICH lightning at the top + Avogadro
   thunder / MAXIS the slow fire pulse at the top, no lightning, no thunder crack; side flash, 3 s shake, one vanilla
-  voice line, `s6 orb consumed by the finale`. Then EVERY fog lamp of the map is in the
-  side colour (`lamps: all 8 lamps coloured ...`; MAXIS: the lava glow in the bulb, never the vanilla exploder with its
-  electric arcs): check the depot lamp and the town lamp, far from the tower. Console
-  `finale world change done (X)`, the patron's world line, the keepsake line (RICH the card left on the table; MAXIS
+  voice line, `s6 orb consumed by the finale`. The lamps stay vanilla (green only with power or a turbine).
+  Console `finale world change done (X)`, the patron's world line, the keepsake line (RICH the card left on the table; MAXIS
   ITEM_KEEPSAKE_MAXIS "The lantern burnt out for this. Let the Spire remember whose fire it holds.", the lantern is
   gone since Step 6) (`finale keepsake on slot 1`), sting, Max Ammo (`finale power-up dropped`), `finale reward on (jet gun cool)` (both sides), screen
   message "Dead Frequency complete: ...", `finale stat written for side X`, three closing lines

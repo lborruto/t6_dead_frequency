@@ -6,12 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- M1: the rider carried under the tower jumps off and burrows like at a powered lamp (the vanilla animation and
+  portal), within the vanilla lamp radius (256).
+- The finale no longer recolours the lamps: they stay vanilla, green only with power or a turbine.
 - After the finale (no denizens), a Galvaknuckle punch on a powered lamp opens its teleport portal, as a burrowing
   denizen did: with the power ON any lamp, with the power OFF a lamp with a turbine by it.
 - Rewards are the same on both sides and come at the finale only: every perk, a Max Ammo and a Jet Gun that
   never overheats. The Act 2 rewards (turrets without a turbine, powered lamp posts, their Max Ammo) are gone.
-- Permanent world change: the lamps in the side's colour, and on both sides Avogadro is banished and the
-  denizens never spawn again.
+- Permanent world change: on both sides Avogadro is banished and the denizens never spawn again.
 - Finale: the hold to open the frequency is 1 s (was 2.5 s); until then the rock on the table sends a light up
   to the tower top every few seconds; it rises with its Step 7 glow.
 - Step 7: co-op capped at 105 s (4 players had 120 s). Each route point the rock reaches flashes the tower top.

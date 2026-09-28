@@ -167,7 +167,8 @@ loses its battery. When R2 completes every lamp of the set counts as full.
 
 
 Go into the fog and let a denizen jump on your head. The first time it happens Maxis speaks. Walk to the table
-with the denizen still on you (none rise at the tower itself: you have to bring one in from the fog): it dies in ash and an orange hole opens in front of the table. Walk INTO the
+with the denizen still on you (none rise at the tower itself: you have to bring one in from the fog): close to the spot
+in front of the table it jumps off and burrows there, exactly as at a powered lamp, and the vanilla portal opens. Walk INTO the
 hole (no F): you are in the woods behind the hunter's cabin. While you are there, no vanilla denizen
 comes near: only the cold room's own rise. Walk out of the area on foot and the woods are a normal fog zone again.
 
@@ -310,9 +311,9 @@ for 1 s at the table ("open the frequency"). Until then the rock on the table se
 few seconds. Wrong power state: a buzz and a complaint.
 
 Every perk first, a 6 s build-up, the rock rises into the tower top wearing its Step 7 glow, the burst (Richtofen: lightning and
-thunder; Maxis: a fire pulse at the top, no lightning, no thunder), then the permanent world change: every fog lamp of
-the map takes the side's colour (blue for Richtofen, a fire glow for Maxis), and on both sides Avogadro is banished
-and the denizens are gone for good. Then the rewards, the same on both sides: every perk (already given), a Max
+thunder; Maxis: a fire pulse at the top, no lightning, no thunder), then the permanent world change: on both sides Avogadro
+is banished and the denizens are gone for good (the lamps stay vanilla; with no denizen to open a lamp portal, punch a
+powered lamp with the Galvaknuckles to open it). Then the rewards, the same on both sides: every perk (already given), a Max
 Ammo and a Jet Gun that never overheats; a screen message, the closing lines, and the globe in the main menu lights up for your side.
 
 </details>

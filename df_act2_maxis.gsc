@@ -1,7 +1,7 @@
 // Dead Frequency - Act 2M "Maxis" (power stays OFF). Current design (refreshed 2026-09-25, design audit 6.12):
-//   M1 "The Cold Room": a denizen riding a player is carried within 300 of the table under the tower (the
-//                       relay socket: DF_SOCKET resolves to DF_TABLE); it dies there and an orange hole opens in
-//                       front of the table. Walking into it takes the whole team to the woods behind the hunter's
+//   M1 "The Cold Room": a denizen riding a player is carried within 256 (the vanilla lamp radius) of the portal
+//                       spot under the tower (DF_PORTAL); it jumps off and burrows there like at a powered lamp and
+//                       the vanilla portal opens (owner 2026-09-28). Walking into it takes the whole team to the woods behind the hunter's
 //                       cabin, where a timed denizen hunt takes place (cold_room_time / cold_room_kills). Timeout:
 //                       everyone is sent back and the latch starts again. The last kill leaves Maxis's LANTERN
 //                       (df_model "skull" = p_lights_cagelight02_red_off, a dead red cage lamp; ITEM_HAND_MAXIS):
@@ -305,6 +305,22 @@ df_m1_should_runaway( player )
 {
     if ( isdefined( player ) && isdefined( level.df_m1_mode ) )
     {
+        // owner 2026-09-28: the vanilla denizen burrow under the tower. A rider within the vanilla lamp radius (256,
+        // zm_transit.gsc:996 player_entered_safety_light) of our stand-in lamp (df_m1_green, at DF_PORTAL) jumps off
+        // like at a powered lamp: vanilla's screecher_detach reads player.green_light, burrows there
+        // (screecher_should_burrow) and opens the vanilla portal (create_portal); df_m1_latch_poll then takes it over.
+        if ( level.df_m1_mode == "latch" && isdefined( player.screecher ) && player.screecher == self )
+        {
+            green = df_m1_green();
+
+            if ( distance2dsquared( player.origin, green.origin ) < green.radius * green.radius )
+            {
+                player.green_light = green;
+                level.df_m1_rider = player;
+                return true;
+            }
+        }
+
         if ( level.df_m1_mode == "latch" && distancesquared( player.origin, df_coord( "DF_SOCKET" ).origin ) < 600 * 600 )
             return false;
 
@@ -378,8 +394,6 @@ df_m1_latch_poll()
     level endon( "df_skip_m1" );
     level endon( "df_m1_latch_poll_stop" );
 
-    socket = df_coord( "DF_SOCKET" ).origin;
-
     while ( true )
     {
         wait 0.1;
@@ -395,14 +409,36 @@ df_m1_latch_poll()
                 level thread df_m1_ride_cue();
             }
 
-            if ( distancesquared( player.origin, socket ) > 300 * 300 )
-                continue;
+        }
 
-            df_debug_print( "DF: m1 denizen latched at the table" );
-            level notify( "df_m1_latched", player.screecher, player );
+        // owner 2026-09-28: the denizen burrowed under the tower and vanilla's portal_think listed the portal: take it out of
+        // level.portals (a vanilla lamp portal would send the player to another lamp), it leads to the cold room
+        green = df_m1_green();
+
+        if ( isdefined( green.hole ) && isdefined( level.portals ) && isinarray( level.portals, green ) )
+        {
+            arrayremovevalue( level.portals, green );
+            df_debug_print( "DF: m1 the denizen burrowed under the tower, the portal is ours" );
+            level notify( "df_m1_latched", undefined, level.df_m1_rider );
             return;
         }
     }
+}
+
+// owner 2026-09-28: the stand-in lamp under the tower (a struct vanilla's burrow code accepts as a green_light: origin, power_on,
+// radius 256). Its hole and burrow flags are vanilla's own (create_portal, portal_think, transit_screecher_cleanup).
+df_m1_green()
+{
+    if ( isdefined( level.df_m1_green ) )
+        return level.df_m1_green;
+
+    g = spawnstruct();
+    g.origin = df_coord( "DF_PORTAL" ).origin;
+    g.power_on = 1;
+    g.radius = 256;
+    g.targetname = "df_m1_green";
+    level.df_m1_green = g;
+    return g;
 }
 
 // Once per game: the portal spawn cue at the table and M1_EVENT (the event line is the whole teaching; no
@@ -534,6 +570,19 @@ df_m1_portal_open()
     c = df_coord( "DF_PORTAL" );
     pos = c.origin;
     level.df_m1_portal_pos = pos;
+    green = df_m1_green();
+
+    // owner 2026-09-28: the vanilla portal the denizen opened (hole + vortex + loop sound already on it)
+    if ( isdefined( green.hole ) )
+    {
+        level.df_m1_hole = green.hole;
+        level.df_m1_portal_pos = groundpos( green.origin );
+        df_step_focus( "m1", level.df_m1_portal_pos + ( 0, 0, 20 ) );
+        df_say( "M1_PORTAL" );
+        df_debug_print( "DF: m1 vanilla portal at " + int( level.df_m1_portal_pos[0] ) + " " + int( level.df_m1_portal_pos[1] ) + " " + int( level.df_m1_portal_pos[2] ) );
+        return;
+    }
+
 
     level.df_m1_hole = spawn( "script_model", pos - ( 0, 0, 20 ) );
     level.df_m1_hole setmodel( df_model( "portal" ) );
@@ -596,6 +645,21 @@ df_m1_portal_remove()
     df_fx_stop( level.df_m1_portal_orbit );
     df_fx_stop( level.df_m1_portal_fx );
     level.df_m1_hole = undefined;
+
+    // owner 2026-09-28: the stand-in lamp is free again for the next burrow (vanilla's flags, zm_transit_ai_screecher.gsc)
+    green = df_m1_green();
+    green notify( "portal_stopped" );
+
+    if ( isdefined( level.portals ) && isinarray( level.portals, green ) )
+        arrayremovevalue( level.portals, green );
+
+    if ( isdefined( green.hole_fx ) )
+        green.hole_fx delete();
+
+    green.hole = undefined;
+    green.hole_fx = undefined;
+    green.burrow_active = 0;
+    green.claimed = undefined;
     level.df_m1_portal_light = undefined;
     level.df_m1_portal_orbit = undefined;
     level.df_m1_portal_fx = undefined;
