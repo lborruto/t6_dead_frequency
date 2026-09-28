@@ -113,7 +113,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Richtofen is heard only by the Stuhlinger player, recordings included: his Step 4 lock line
   played in 3D at the table, audible to everyone nearby.
-- Lights Out uses exactly three lamps at every player count (a full lobby had four).
+- Lights Out uses exactly three lamps at every player count (a full lobby had four); R2 too: always three lamps, so always three batteries.
 - Claymore kills at a Lights Out lamp count (the game reports them as weapon "none"); a splash
   kill counts only right after a nearby claymore detonates.
 - A grave could miss the shot: it now takes bullets on its trigger, its model and two bullet

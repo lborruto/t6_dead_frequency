@@ -274,8 +274,8 @@ df_dialogue_act2_maxis()
 // flips one back ON (refused while the grid is off, BO_NOPOWER_RICH) and sends a wave at it; at each end of
 // round while one is still OFF Maxis knocks EVERY ON switch OFF again (BO_OFF_MAXIS; owner 2026-09-25: all three
 // within one round, was one switch per round). All three ON wins at once (D5_DONE_RICH).
-// MAXIS "Lights Out" (df_act3_sweep.gsc): every lamp of the set hums with Richtofen's power (three, four with a
-// full lobby); a lamp goes dark only when a zombie dies to a CLAYMORE (Farm wall buy) at its base, any other kill
+// MAXIS "Lights Out" (df_act3_sweep.gsc): every lamp of the set hums with Richtofen's power (always
+// three); a lamp goes dark only when a zombie dies to a CLAYMORE (Farm wall buy) at its base, any other kill
 // there does nothing (LO_NOTHAND_MAXIS, once, after five such kills); each dark lamp says LO_DARK_MAXIS; at each
 // end of round Richtofen relights one (LO_RELIGHT). Three dark win (D5_DONE_MAXIS), a fourth goes out with the
 // win. The coop START lines say "one switch / lamp each". No line counts the lamps (true for every lobby size).

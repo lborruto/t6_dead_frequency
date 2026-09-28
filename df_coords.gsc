@@ -424,17 +424,16 @@ df_table_slot_def( n, offset )
 }
 
 // owner 2026-09-28: where the R2 batteries stand once inserted, ON THE GROUND under the table: one entry per
-// battery (four with a full lobby), in the table's own frame (x = towards its front, y = to its left) with z
+// battery (always three), in the table's own frame (x = towards its front, y = to its left) with z
 // from the table's own origin, which stands on the ground (df_table_point). Tuned in the prop composer
 // ("R2 batteries (under the table)"), which exports these lines.
 df_table_bats_init()
 {
     level.df_table_bats = [];
 
-    df_table_bat_def( 0, ( 8, 24, -1 ) );
-    df_table_bat_def( 1, ( 8, 8, -1 ) );
-    df_table_bat_def( 2, ( 8, -8, -1 ) );
-    df_table_bat_def( 3, ( 8, -24, -1 ) );
+    df_table_bat_def( 0, ( 8, 16, -1 ) );
+    df_table_bat_def( 1, ( 8, 0, -1 ) );
+    df_table_bat_def( 2, ( 8, -16, -1 ) );
 }
 
 df_table_bat_def( n, offset )
@@ -451,7 +450,7 @@ df_table_bat_pos( n )
     off = level.df_table_bats[n];
 
     if ( !isdefined( off ) )
-        off = ( 8, 24 - 16 * n, -1 );
+        off = ( 8, 16 - 16 * n, -1 );
 
     return df_table_point( off );
 }

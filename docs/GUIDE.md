@@ -135,8 +135,8 @@ Done: the four boxes hold his charge. Step 6's node is the sparking transformer 
 <details><summary><b>R2 - 115 on the Line (the fog lamps)</b> (click to reveal)</summary>
 
 
-Since round 1 three of the fog street lamps have shown a small spark every few seconds (four with a full lobby;
-one of them is always the lamp nearest the tower). These "set" lamps now turn hungry: a hum, a spark every 2 s.
+Since round 1 three of the fog street lamps have shown a small spark every few seconds (one of
+them is always the lamp nearest the tower). These "set" lamps now turn hungry: a hum, a spark every 2 s.
 Kill zombies close to a hungry lamp's post: 10 kills each solo (12 / 14 / 16), fixed when R2 opens. Standing
 near a hungry lamp pulls two zombies to you every few seconds (up to 12 around you), so you do not have to go
 looking.
@@ -240,7 +240,7 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
   within ONE round (they stand far apart: split up in co-op, or plan the route solo). The moment the third
   one goes ON, R3 is done. There are always three switches, whatever the lobby size.
 - MAXIS - Lights Out: the moment M3 opens, Richtofen feeds his power into the lamps of the same set as
-  before (three, four with a full lobby) - each one hums with a big electric spark, a blue glow and his hum. Only the dead can break his light:
+  before (always three) - each one hums with a big electric spark, a blue glow and his hum. Only the dead can break his light:
   a zombie dying to a CLAYMORE (sold at the Farm wall buy, or one already planted there) within 250 units of a
   humming lamp's base snaps his power off it - a blue spark flies away toward the tower and the lamp goes back
   to exactly the light the map gave it, nothing of his left on it. Kill it there any other

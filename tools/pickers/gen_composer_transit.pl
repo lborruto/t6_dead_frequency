@@ -391,8 +391,7 @@ add_preset(
         'r2_batteries', 'R2 batteries (under the table)',
         'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw . '. The '
           . scalar( keys %bat_def ) . ' batteries (kind "r2_battery", ' . $model_def{r2_battery}{name} . ') are df_table_bats_init() in df_coords.gsc, '
-          . 'one df_table_bat_def line each, in the table\'s frame with z from the table\'s origin (the ground). Batteries 0-2 are used with 1-3 players, '
-          . 'the 4th only with a full lobby. Drag them, then copy the "R2 batteries" block of the GSC export.',
+          . 'one df_table_bat_def line each, in the table\'s frame with z from the table\'s origin (the ground). Drag them, then copy the "R2 batteries" block of the GSC export.',
         model_part( kind => 'table', model => $model_def{table}{name}, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw ),
         @bats,
     );

@@ -95,7 +95,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   for props posed in the table frame: the M1 lantern and the burning lantern, at the same pose), the fx attach points (`df_fx_point_def`,
   e.g. `relay_step_glow_1..8`), the Step 6 landing-spot draw (once per game at boot) and the curated
   `df_catalog_models()`.
-- `df_lamps.gsc` - the ONE lamp set per game (3 lamps, 4 with a full lobby, picked at boot from the six lamps
+- `df_lamps.gsc` - the ONE lamp set per game (always 3 lamps, picked at boot from the six lamps
   valid on both sides, diner and townbridge excluded) and every lamp look (`df_lamp_state_set`: off, souls,
   filled, possessed, vanilla, charged, drained, final; `possessed` / `vanilla` owner 2026-09-25, Maxis M3 / R3
   "Lights Out" - `vanilla` renamed from `dark`, put out goes back to exactly the map's own light, his escaping
@@ -473,7 +473,7 @@ dvar `df_step_glow_fx`, default `fx_zmb_tranzit_key_glint`).
 
 ## Lamps
 
-ONE lamp set per game (3 lamps, 4 with a full lobby), picked at boot from the six lamps valid on both sides (diner and
+ONE lamp set per game (always 3 lamps), picked at boot from the six lamps valid on both sides (diner and
 townbridge are skipped) with the idle spark marker; R2 feeds THESE, M3 / R3 (Maxis: "Lights Out") fills THESE with
 Richtofen's power and darkens them with claymore kills.
 Richtofen's M3 / R3 is Blackout instead (`df_act3_blackout.gsc`, the three `DF_BLACKOUT_1..3` power switches) and

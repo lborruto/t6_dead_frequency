@@ -128,8 +128,8 @@ df_s5_collect_lamps()
     if ( !isdefined( set ) || set.size == 0 )
         return false;
 
-    // owner 2026-09-25: exactly three lamps at every player count (a full lobby's set has four; the fourth stays
-    // vanilla)
+    // owner 2026-09-25: exactly three lamps at every player count (the set is three since 2026-09-28; the cap
+    // stays as a guard)
     level.df_s5_lamps = [];
 
     for ( i = 0; i < set.size && i < 3; i++ )
