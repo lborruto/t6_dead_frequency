@@ -70,7 +70,7 @@ df_act3_hold_init()
     level.df_s7_cfg_hold[0] = 75;
     level.df_s7_cfg_hold[1] = 90;
     level.df_s7_cfg_hold[2] = 105;
-    level.df_s7_cfg_hold[3] = 120;
+    level.df_s7_cfg_hold[3] = 105; // owner 2026-09-28: co-op capped
     level.df_s7_cfg_strike_min = 10; // charge strikes every 10-20 s (df_s7_charge_strikes)
     level.df_s7_cfg_strike_max = 20;
     level.df_s7_cfg_strike_heal = 0.10; // a strike heals this fraction of max hp (audit v2: 10 % stays)

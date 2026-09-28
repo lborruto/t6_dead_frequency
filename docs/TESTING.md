@@ -14,7 +14,7 @@ Every `!df` answer and every quest event lands in the console as `[DF] ...`: pas
 ONE press of F = every pickup and placement (parts, power box, relay, card, fuse battery, R2 batteries, the M1 lantern, rock) and every
 pipe kick / grave touch / Blackout switch flip.
 Holds only: build the relay (3 s, vanilla bar + builder hands), power the relay (1.5 s,
-small bar "Powering the relay"), open the frequency (2.5 s, bar "Opening the frequency"). NO timer on screen anywhere:
+small bar "Powering the relay"), open the frequency (1 s, bar "Opening the frequency"). NO timer on screen anywhere:
 every clock is the Pack-a-Punch tick-tock loop on every player plus dry ticks in the last 30 s (every second, doubled
 under 10 s). `set df_hud_timers 1` before loading brings the old top-centre timers back for a test.
 Two switches: `!df hints on|off` = on-screen PUZZLE prompts (the Simon boxes, Jet Gun hints, "Take the lantern before
@@ -238,8 +238,8 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
 - Last battery in: `step complete r2`, R2_DONE, the notice goes, M3 / R3 opens.
   Every lamp of
   the set ends filled with its beam off. Nobody holding a Jet Gun: A2_JETGUN_RICH ("Before the end you will need a Jet Gun").
-- Act 2 reward at once: `act 2 reward given (rich): side reward + Max Ammo at the table`, Richtofen's reward line, blue
-  runners start climbing the tower next to the white one. Place a turret (`!gun turret_zm`) with no turbine: it fires.
+- No Act 2 reward any more (owner 2026-09-28): blue runners start climbing the tower next to the white one. A turret
+  (`!gun turret_zm`) still needs the turbine.
 - Side rules: hold the Jet Gun until the heat passes 50: the needle stalls. Power OFF and end a round: `power off: lamp X
   -5, n` + R2_POWER_RICH ("Lights out, Samuel!"); a filled lamp whose battery is still in the post reopens (hungry
   again), one whose battery is out never does. Avogadro comes back EVERY round (`avogadro returns next round`), except while
@@ -336,8 +336,8 @@ m2_ember` is GONE, 2026-09-25, with the whole old lantern take/carry/monitor cod
   the BURNING LANTERN, burning where it has lain the whole step. `step complete m2`, M2_DONE ("The ash carries the
   message. Now the fog will answer it." / Richtofen: "Shooting tombstones. He has reduced you to vandalism,
   Samuel."), tower
-  cue 12 s (fire pulse at the top, no lightning), `m2 smoke column at the tower top for 20 s`, act 2 reward at
-  once (`act 2 reward given (maxis)`, Max Ammo, Maxis line, orange runners on the tower). Nobody holding a Jet
+  cue 12 s (fire pulse at the top, no lightning), `m2 smoke column at the tower top for 20 s`, orange runners
+  on the tower (no Act 2 reward any more). Nobody holding a Jet
   Gun: A2_JETGUN_MAXIS ("Before the end you will need a Jet Gun"). `m2 done: Step 6 node = the cabin hearth at
   5430 6874 -24 (one draw: fire until the Jet Gun overheats)`. `!df fire lamps`: `silent 1` on all 8 lamps; a
   denizen dropping at any lamp opens a portal, no turbine.
@@ -501,18 +501,20 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - `finale waiting at the table (side X)`, NO marker glint on the table (the prompt leads), "Hold F to open the frequency". Power gate: RICH power ON;
   MAXIS power OFF now, OR the round STARTED with the power off (turn it ON mid-round, the hold is still accepted). Wrong:
   deny buzz while you hold, the patron complains once per 20 s, `finale refused, wrong power state for side X`.
-- Hold 2.5 s (bar "Opening the frequency"): `finale start, side X, nostat 0`. Order: all perks (one console line each),
+- Before: from Step 7 done, the rock on the table sends a side-coloured light up to the tower top every 3 s
+  (`finale beacon: ...`); it stops when the frequency opens.
+- Hold 1 s (bar "Opening the frequency"): `finale start, side X, nostat 0`. Order: all perks (one console line each),
   `finale build-up (6 s, X)` (RICH: electric hum, blue sparks and arcs over the table; MAXIS: fire crackle, fire pulses,
   ash column at the base, smoke column at the top; both shake), `finale orb rising to the tower top (6 s, stand-in 0)`:
-  the rock lifts off the right slot with the reactor hum, `finale burst, tower fx on`, RICH lightning at the top + Avogadro
+  the rock lifts off the right slot with the reactor hum and its Step 7 glow, `finale burst, tower fx on`, RICH lightning at the top + Avogadro
   thunder / MAXIS the slow fire pulse at the top, no lightning, no thunder crack; side flash, 3 s shake, one vanilla
   voice line, `s6 orb consumed by the finale`. Then EVERY fog lamp of the map is in the
   side colour (`lamps: all 8 lamps coloured ...`; MAXIS: the lava glow in the bulb, never the vanilla exploder with its
   electric arcs): check the depot lamp and the town lamp, far from the tower. Console
   `finale world change done (X)`, the patron's world line, the keepsake line (RICH the card left on the table; MAXIS
   ITEM_KEEPSAKE_MAXIS "The lantern burnt out for this. Let the Spire remember whose fire it holds.", the lantern is
-  gone since Step 6) (`finale keepsake on slot 1`), sting, Max Ammo (`finale power-up dropped`), `side reward already given (Act 2), not
-  repeated`, screen message "Dead Frequency complete: ...", `finale stat written for side X`, three closing lines
+  gone since Step 6) (`finale keepsake on slot 1`), sting, Max Ammo (`finale power-up dropped`), `finale reward on (jet gun cool)` (both sides), screen
+  message "Dead Frequency complete: ...", `finale stat written for side X`, three closing lines
   (6.5 s apart), `finale done`, `step complete finale`.
 - RICH: `avogadro banished to the cloud (return_round 9999)`; play two more rounds: he never returns. MAXIS: `denizen cap
   reset to 0 (finale)`; no denizen appears in the fog again.
@@ -579,8 +581,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   later with no side: `no side locked, defaulting to rich (use !df side maxis first to test Maxis)`; type `!df side
   maxis` FIRST for a Maxis test (it cannot be changed afterwards).
 - `!df goto m3` (Maxis) / `!df goto r3` (Richtofen) RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
-  (steady glow, no sparks), the relay runner on the tower, `act 2 reward given silently (goto)` (no Max Ammo, no
-  line). MAXIS: the lantern still lies where M1 left it, now the charged burning lantern, burning there (no prompt, nothing
+  (steady glow, no sparks), the relay runner on the tower. MAXIS: the lantern still lies where M1 left it, now the charged burning lantern, burning there (no prompt, nothing
   swapped in or out - it was never picked up); all four graves (outside the map, unreachable anyway) are GONE -
   `df_m2_fill` deletes each one quietly on a skip too (model, both bullet walls, trigger), same as a real fourth kill, just
   without the burst/sound/quake; nothing to see at `!df tp DF_BRAZIER_n` past this point.

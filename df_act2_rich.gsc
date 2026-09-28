@@ -2051,7 +2051,6 @@ df_r2_run()
     df_death_listen_remove( "r2" );
     df_r2_lamps_settle();
     df_scav_carry_clear( "spool" ); // every battery is in, the notice goes
-    level.equipment_turret_needs_power = 0; // _zm_equip_turret.gsc:224-238 startturretdeploy: no turbine needed
     df_say( "R2_DONE" );
 
     // owner 2026-09-23 (D14): the Jet Gun is a prerequisite of Step 6: hinted here with a line that does not name
@@ -2089,7 +2088,6 @@ df_r2_setup()
         level.df_r2_spool_ents = [];
 
     df_r2_spools_deliver_all();
-    level.equipment_turret_needs_power = 0;
 }
 
 // level.df_r2_lamps = the shared set (N = df_scaled "nodes", one lamp per fog area, df_lamp_pick_set).

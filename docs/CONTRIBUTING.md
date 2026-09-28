@@ -227,8 +227,8 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   only, no denizens since 2026-09-25), the song (one length constant,
   `df_s7_song_seconds`, for the restart guard and the after-hold waves), and the after-hold waves (never started
   after a skip; also end the moment the finale starts, owner 2026-09-25, `level endon( "df_fin_started" )`).
-- `df_finale.gsc` - the finale (power gate, hold 2.5 s, perks, build-up, orb rise, burst, permanent world change, rewards,
-  globe stat), the Act 2 reward listener, and the tower tracker (runner lights per act, and from Step 4 the side-coloured relay runner
+- `df_finale.gsc` - the finale (power gate, hold 1 s, the rock's beacon to the tower top until then, perks, build-up, orb rise, burst, permanent world change, rewards,
+  globe stat; the same rewards on both sides: perks, Max Ammo, the cool Jet Gun), and the tower tracker (runner lights per act, and from Step 4 the side-coloured relay runner
   from the table relay up the tower, `df_fin_relay_runner_loop`); the no-overheat Jet Gun reward (`df_fin_jetgun_cool_loop`).
 
 ## The build
@@ -359,7 +359,7 @@ there: paste those lines when reporting. The full protocol, step by step, is [TE
 | M3 / R3 (Richtofen Blackout) | `blackout_off` (all three switches OFF, a running step keeps going), `blackout_on` (all three ON, completes the step if it is open), `blackout_respawn` (deletes and respawns all three switches from their anchors at the current `df_bo_lever_on` / `df_bo_lever_off` poses, keeping each one's ON / OFF state; also fires itself when a `DF_BLACKOUT_n` anchor is tuned) |
 | Step 6 | `s6_orb` (rock to your feet), `s6_draw` (one charge), `s6_deliver`, `s6_restart`, `orb_aura` (next aura candidate) |
 | Step 7 | `s7_start`, `s7_time` (win), `s7_fail`, `s7_hp`, `s7_dmg` (100 dmg; solo 3000 hp: damaged under 900, destroyed at 0, strikes heal in between), `s7_strike` (one charge strike now) |
-| Finale | `finale`, `finale_nostat`, `finale_fx` (~15 s spectacle with a stand-in orb, repeatable), `finale_world` (the permanent world change alone, once), `a2_reward` (the Act 2 reward now, once), `perks` (give every perk + summary) |
+| Finale | `finale`, `finale_nostat`, `finale_fx` (~15 s spectacle with a stand-in orb, repeatable), `finale_world` (the permanent world change alone, once), `perks` (give every perk + summary) |
 | Lamps | `lamps` (every known lamp with set / state / silent / exploder), `lamps_all` (all 8 lamps in the side colour), `lamps_power` (silent power flag on all 8) |
 | Misc | `scav` / `scav_slot` (Scavenger-style notice and TAB square demo), `table_demo` (table + slots preview: relay + coil box + mast on slot 0, card on slot 1, rock on slot 2), `beam_test` (20 s beam to the nearest lamp; `set df_beam_fx <alias>`, `set df_beam_flip 1`), `compat` (vanilla-EE state + disk stats dump), `busparts` (re-run the ladder / hatch pin and print the part pools) |
 

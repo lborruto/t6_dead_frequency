@@ -6,6 +6,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- Rewards are the same on both sides and come at the finale only: every perk, a Max Ammo and a Jet Gun that
+  never overheats. The Act 2 rewards (turrets without a turbine, powered lamp posts, their Max Ammo) are gone.
+- Permanent world change: the lamps in the side's colour, and on both sides Avogadro is banished and the
+  denizens never spawn again.
+- Finale: the hold to open the frequency is 1 s (was 2.5 s); until then the rock on the table sends a light up
+  to the tower top every few seconds; it rises with its Step 7 glow.
+- Step 7: co-op capped at 105 s (4 players had 120 s). Each route point the rock reaches flashes the tower top.
 - The Step 7 rock follows a route of points (set in the prop composer) instead of random spots under the tower.
 - The relay's spot on the bus roof can be set in the prop composer (df_relay_roof_def); without it the old rule stands.
 - Everything that goes into the table (the relay, the key card, the R2 batteries, the lantern, the rock) is

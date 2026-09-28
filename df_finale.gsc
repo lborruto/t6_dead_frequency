@@ -1,6 +1,6 @@
 // Dead Frequency - Finale (spec section 5 "Finale", forked by level.df_side) + the quest's tracker and
 // mid-quest reward (design audit 2026-09-08, items #7, #8, section 3, 8d.1).
-//   Trigger: hold use 2.5 s at the table under the tower (DF_SOCKET resolves to DF_TABLE) with the right
+//   Trigger: hold use 1 s at the table under the tower (DF_SOCKET resolves to DF_TABLE) with the right
 //   power state (Richtofen: power on; Maxis: power off NOW or at the start of this round, df_fin_power_ok).
 //   Sequence: every perk first (never lost), a 6 s build-up at the tower in the SIDE'S ELEMENT (art audit
 //   2026-09-09 section 3 Finale / #9: Richtofen = electric trap hum, blue sparks and arcs over the table, the
@@ -10,22 +10,19 @@
 //   the tower is), the burst (tower fx in the side colour, the canon lightning orb, the side flash via
 //   df_cue_side_flash at the top and over the table, thunder, 3 s shake, ONE vanilla vox line via df_vox_once:
 //   vox_zmba_sidequest_4emp_mag_0 / vox_maxi_turbine_2light_on_0), the permanent world change (df_fin_world:
-//   every lamp of the map in the side colour; Richtofen banishes Avogadro, Maxis silences the denizens and
-//   powers every lamp; then the keepsake line ITEM_KEEPSAKE_RICH / _MAXIS for the card / skull left glowing
-//   on slot 1), the rewards (sting, Max Ammo, side reward if Act 2 did not give it, one screen message), the
+//   every lamp of the map in the side colour, Avogadro banished and the denizens silenced on both sides
+//   (owner 2026-09-28); then the keepsake line ITEM_KEEPSAKE_RICH / _MAXIS for the card / skull left glowing
+//   on slot 1), the rewards (sting, Max Ammo, the Jet Gun that never overheats, one screen message; both sides alike), the
 //   globe stat, then the lines. df_complete( "finale" ) last.
 //   Wrong power state at the table: df_cue_deny( presser ) + FIN_WRONG_POWER_* (once per 20 s).
-//   Mid-quest reward (#7): when Act 2 completes (df_step_done r2 / m2) the side reward is given at once and a
-//   Max Ammo drops at the table (df_fin_act2_listener); the finale then does not repeat it.
+//   No mid-quest reward any more (owner 2026-09-28: the Act 2 side rewards and their Max Ammo are gone).
 //   Tracker (8d.1): one permanent runner light on the tower per completed act (Act 1 white current, Act 2
-//   side sparks, Act 3 both) and one glow per finished step climbing the relay mast on
+//   side sparks, Act 3 both) and the relay runner from the table up
 //   the tower (df_fin_tracker_listener, df_fin_relay_runner_loop).
 //   Shared helpers this file uses from df_systems (core agent, 2026-09-09): df_cue_deny( player ),
 //   df_cue_side_flash( origin, side ), df_fx_burst( fx, origin, seconds ), df_vox_once( alias, origin ).
-//   Rewards: every perk (the six TranZit machines, df_fin_perk_list; down players get them on revive;
-//   "!df fire perks" tests it alone) + Max Ammo; Richtofen: turret needs no turbine (from Act 2), jet gun never
-//   overheats (finale only: Step 6 needs the overheat);
-//   Maxis: every lamp post powered server-side (portals / burrows without a turbine, df_lamp_power_silent_all).
+//   Rewards (both sides, owner 2026-09-28): every perk (df_fin_perk_list + the engine perks of df_fin_perks_extra; down players
+//   get them on revive; "!df fire perks" tests it alone), Max Ammo, and a Jet Gun that never overheats.
 //   The secret song is not here any more: it plays during the Step 7 wave (owner decision 2026-09-08).
 #include common_scripts\utility;
 #include maps\mp\_utility;
@@ -35,6 +32,7 @@
 #include scripts\zm\zm_transit\df_steps;
 #include scripts\zm\zm_transit\df_coords;
 #include scripts\zm\zm_transit\df_lamps;
+#include scripts\zm\zm_transit\df_act3_hold; // df_s7_aura_fx (the rising rock wears its Step 7 glow)
 
 // Registers the step; the debug hooks, the Act 2 reward listener, the tracker and the round power snapshot
 // listen from round 1 whatever the step state.
@@ -45,7 +43,6 @@ df_finale_init()
     level.df_fin_track = [];
     level thread df_fin_debug_listener();
     level thread df_fin_round_power_watch();
-    level thread df_fin_act2_listener();
     level thread df_fin_tracker_listener();
 }
 
@@ -115,7 +112,7 @@ df_fin_round_power_watch()
     }
 }
 
-// Players near the table under the tower get the prompt; a hold of 2.5 s with the right power state starts
+// Players near the table under the tower get the prompt; a hold of 1 s with the right power state starts
 // the finale. DF_SOCKET is the table (df_coords, owner 2026-09-08), so the radius and the marker sit on
 // it: marker fx fx_zmb_tranzit_light_glow at df_fx_point "socket_glow" over the table, the same glow
 // Step 4 uses. The shared STEP AVAILABLE sting (zmb_screecher_portal_arrive, df_steps df_step_available_cue) plays by
@@ -152,7 +149,7 @@ df_fin_socket_watch()
 
             player df_prompt( 0, undefined );
 
-            if ( !player df_hold_use( c.origin, 200, 2.5, "Opening the frequency" ) )
+            if ( !player df_hold_use( c.origin, 200, 1, "Opening the frequency" ) ) // owner 2026-09-28: shorter (was 2.5 s)
                 continue;
 
             df_fin_clear_prompts();
@@ -394,6 +391,13 @@ df_fin_orb_rise( top, real )
         level.df_fin_orb_temp = 1;
     }
 
+    // owner 2026-09-28: the same glow as while it was protected (df_s7_aura_fx), riding the rock up
+    df_fx_stop( level.df_fin_rise_aura );
+    level.df_fin_rise_aura = df_fx_loop( df_s7_aura_fx(), ent.origin );
+
+    if ( isdefined( level.df_fin_rise_aura ) )
+        level.df_fin_rise_aura linkto( ent );
+
     ent playsound( "zmb_power_rise_start" );
     ent playloopsound( "zmb_power_rise_loop", 0.75 );
     ent moveto( top, 6, 1, 1 );
@@ -413,6 +417,9 @@ df_fin_orb_rise( top, real )
 // "df_fin_orb_consumed", Step 6 owner hides it and its aura) and stays at the top until then.
 df_fin_orb_after_burst( ent, real )
 {
+    df_fx_stop( level.df_fin_rise_aura ); // the rise glow goes with the burst
+    level.df_fin_rise_aura = undefined;
+
     if ( is_true( level.df_fin_orb_temp ) )
         df_fx_stop( ent );
 
@@ -427,11 +434,9 @@ df_fin_orb_after_burst( ent, real )
 // ----------------------------------------------------------- world change ----
 
 // Permanent world change after the burst (audit #8 / 2.4 "after the finale"), once per game:
-//   Richtofen: every lamp of the map blue for the rest of the game (df_lamps df_lamp_colour_all) and
-//              Avogadro banished (df_fin_avogadro_banish).
-//   Maxis:     every lamp orange and powered server-side (portals / burrows without a turbine) and no denizen
-//              ever spawns again (level.zombie_ai_limit_screecher = 0, the director's cap,
-//              _zm_ai_screecher.gsc:35/82).
+//   every lamp of the map in the side colour for the rest of the game (df_lamps df_lamp_colour_all: blue / orange),
+//   and on BOTH sides (owner 2026-09-28) Avogadro banished (df_fin_avogadro_banish) and no denizen ever spawns again
+//   (level.zombie_ai_limit_screecher = 0, the director's cap, _zm_ai_screecher.gsc:35/82). No lamp power any more.
 // Then FIN_WORLD_RICH / FIN_WORLD_MAXIS and the keepsake line (df_fin_keepsake). "!df fire finale_world"
 // runs it alone.
 df_fin_world( side )
@@ -442,18 +447,14 @@ df_fin_world( side )
     level.df_fin_world_done = 1;
     df_lamp_colour_all( side );
 
+    level thread df_fin_avogadro_banish();
+    level.zombie_ai_limit_screecher = 0;
+    level thread df_fin_denizen_keeper();
+
     if ( side == "rich" )
-    {
-        level thread df_fin_avogadro_banish();
         df_say( "FIN_WORLD_RICH" );
-    }
     else
-    {
-        df_lamp_power_silent_all( 1 );
-        level.zombie_ai_limit_screecher = 0;
-        level thread df_fin_denizen_keeper();
         df_say( "FIN_WORLD_MAXIS" );
-    }
 
     df_fin_keepsake( side );
     df_debug_print( "DF: finale world change done (" + side + ")" );
@@ -904,79 +905,12 @@ df_fin_rewards( side, socket )
 {
     df_fin_reward_sting( socket );
     df_fin_reward_powerup( socket );
-    df_fin_side_reward( side );
 
-    // rc5: the Jet Gun that never overheats is a FINALE reward only. Given at Act 2 it zeroed the heat every tick
-    // and the Richtofen Step 6 draw (fire at the block until the gun overheats) could never complete.
-    if ( side == "rich" )
-        df_fin_reward_rich_jetgun();
+    // rc5: the Jet Gun that never overheats is a FINALE reward only (at Act 2 it broke the Step 6 overheat draw);
+    // owner 2026-09-28: both sides get it
+    df_fin_reward_jetgun();
 
     df_fin_reward_message( side );
-}
-
-// The side reward, once per game whoever asks first (Act 2 completion or the finale).
-df_fin_side_reward( side )
-{
-    if ( is_true( level.df_fin_side_given ) )
-    {
-        df_debug_print( "DF: side reward already given (Act 2), not repeated" );
-        return;
-    }
-
-    level.df_fin_side_given = 1;
-
-    if ( side == "rich" )
-        df_fin_reward_rich();
-    else
-        df_fin_reward_maxis();
-}
-
-// Mid-quest reward (audit #7 / 8d.2): the moment Act 2 completes (df_complete "r2" / "m2" -> level notify
-// "df_step_done", key; there is no "df_act2_done" notify, the pseudo key only sets level.df_done["act2"]) the
-// side reward is given and a Max Ammo drops at the table, with A2_REWARD_RICH / A2_REWARD_MAXIS. During a
-// "!df goto" fabrication (level.df_goto_busy) only the reward itself is given: no drop, no line.
-df_fin_act2_listener()
-{
-    level endon( "end_game" );
-
-    while ( true )
-    {
-        level waittill( "df_step_done", key );
-
-        if ( !isdefined( key ) || ( key != "r2" && key != "m2" ) )
-            continue;
-
-        side = "maxis";
-
-        if ( key == "r2" )
-            side = "rich";
-
-        df_fin_act2_grant( side, is_true( level.df_goto_busy ) );
-    }
-}
-
-// The Act 2 reward itself; silent = side reward only (goto fabrication).
-df_fin_act2_grant( side, silent )
-{
-    if ( is_true( level.df_fin_side_given ) )
-        return;
-
-    df_fin_side_reward( side );
-
-    if ( silent )
-    {
-        df_debug_print( "DF: act 2 reward given silently (goto)" );
-        return;
-    }
-
-    df_fin_reward_powerup( df_coord( "DF_SOCKET" ).origin );
-
-    if ( side == "rich" )
-        df_say( "A2_REWARD_RICH" );
-    else
-        df_say( "A2_REWARD_MAXIS" );
-
-    df_debug_print( "DF: act 2 reward given (" + side + "): side reward + Max Ammo at the table" );
 }
 
 // The Juggernog machine sting, once. Alias mus_perks_jugganog_sting (_zm_perks.gsc:2961, script_label of
@@ -1014,32 +948,17 @@ df_fin_reward_powerup( socket )
 // One screen line per player listing what was won (df_out: screen + console).
 df_fin_reward_message( side )
 {
-    text = "Dead Frequency complete: every perk, Max Ammo, ";
-
-    if ( side == "rich" )
-        text += "turrets need no turbine, the jet gun never overheats, Avogadro is gone";
-    else
-        text += "every lamp post is powered, the denizens are gone";
+    text = "Dead Frequency complete: every perk, Max Ammo, the Jet Gun never overheats, Avogadro and the denizens are gone";
 
     foreach ( player in getplayers() )
         player df_out( text );
 }
 
-// Richtofen side reward (Act 2 or the finale, whichever comes first): turrets deploy powered without a turbine
-// (zm_transit.gsc:1627 sets level.equipment_turret_needs_power = 1; with it off, _zm_equip_turret.gsc:224-238
-// startturretdeploy sets weapon.power_on = 1 and runs turretdecay, 60 s of fire). NOT the Jet Gun: Step 6 still
-// needs it to overheat (df_fin_reward_rich_jetgun, finale only).
-df_fin_reward_rich()
-{
-    level.equipment_turret_needs_power = 0;
-    df_debug_print( "DF: richtofen reward on (turret self-powered)" );
-}
-
-// Richtofen finale reward: the Jet Gun never overheats (nothing needs its heat after Step 7).
-df_fin_reward_rich_jetgun()
+// The finale's Jet Gun reward (both sides, owner 2026-09-28): the Jet Gun never overheats (nothing needs its heat after Step 7).
+df_fin_reward_jetgun()
 {
     level thread df_fin_jetgun_cool_loop();
-    df_debug_print( "DF: richtofen finale reward on (jet gun cool)" );
+    df_debug_print( "DF: finale reward on (jet gun cool)" );
 }
 
 // never_overheat() in _zm_weap_jetgun.gsc:143-158 is dev-only (whole body inside /# #/), but the builtin
@@ -1077,15 +996,6 @@ df_fin_jetgun_cool_loop()
 
         wait 0.05;
     }
-}
-
-// Maxis: every lamp post powered for the match, server-side (df_lamps df_lamp_power_silent_all: the
-// light.power_on flag a burrow / portal checks, kept by df_lamp_keeper; no forced green clientfield, which
-// would fight the lamp colours df_lamps holds and kill their exploders). Portals open without a turbine.
-df_fin_reward_maxis()
-{
-    df_lamp_power_silent_all( 1 );
-    df_debug_print( "DF: maxis reward on (every lamp powered silently)" );
 }
 
 // ---------------------------------------------------------------- tracker ----
@@ -1135,6 +1045,7 @@ df_fin_tracker_apply( key )
     {
         level thread df_fin_runner_loop( "white", 4 );
         level thread df_fin_runner_loop( "side", 4 );
+        level thread df_fin_orb_beacon_loop( 3 );
     }
     else
         return;
@@ -1170,6 +1081,46 @@ df_fin_relay_runner_loop( gap )
 
         wait( gap + randomfloat( 1 ) );
     }
+}
+
+// owner 2026-09-28: while the frequency waits to be opened, the rock on the table (slot 2) shoots a side-coloured light
+// straight up to the top of the tower every `gap` s: one runner at a time (df_fin_orb_beacon), it ends with the
+// finale's start.
+df_fin_orb_beacon_loop( gap )
+{
+    level endon( "end_game" );
+    level endon( "df_fin_started" );
+
+    if ( is_true( level.df_fin_started ) || is_true( level.df_completed ) )
+        return;
+
+    top = df_tower_top();
+
+    if ( !isdefined( top ) )
+        top = ( 7644, -464, -132 ) + ( 0, 0, 900 );
+
+    df_debug_print( "DF: finale beacon: the rock lights the tower top every " + gap + " s until the frequency opens" );
+
+    while ( true )
+    {
+        level thread df_fin_orb_beacon( df_fin_runner_fx( "side" ), df_table_slot( 2 ) + ( 0, 0, 6 ), top );
+        wait( gap );
+    }
+}
+
+// One light: settles 0.15 s on the rock, rises to the tower top in 1.2 s, then goes. Threaded, no endon: a flight
+// always ends and deletes its light, even when the finale starts mid-flight.
+df_fin_orb_beacon( fx, from, top )
+{
+    ent = df_fx_loop( fx, from );
+
+    if ( !isdefined( ent ) )
+        return;
+
+    wait 0.15;
+    ent moveto( top, 1.2 );
+    wait 1.2;
+    df_fx_stop( ent );
 }
 
 // One runner: settles 0.15 s at the relay (a trail moved on its spawn frame is not always seen), flies to the chain's
@@ -1295,7 +1246,6 @@ df_fin_lines( side )
 // "!df fire finale" runs the whole finale with the stat write, "!df fire finale_nostat" without it,
 // "!df fire finale_fx" replays only the ~15 s spectacle with a stand-in orb (no rewards, no stat, repeatable),
 // "!df fire finale_world" runs the permanent world change alone (lamps, Avogadro / denizens, once),
-// "!df fire a2_reward" gives the Act 2 reward now (side reward + Max Ammo + line, once),
 // "!df fire perks" gives every perk to every player now, with the summary line (no finale).
 df_fin_debug_listener()
 {
@@ -1306,7 +1256,6 @@ df_fin_debug_listener()
     level thread df_fin_debug_fx_wait();
     level thread df_fin_debug_perks_wait();
     level thread df_fin_debug_world_wait();
-    level thread df_fin_debug_a2_wait();
 }
 
 // "!df fire finale_world": the world change for the locked side (power state if none: on = Richtofen).
@@ -1318,25 +1267,6 @@ df_fin_debug_world_wait()
     {
         level waittill( "df_debug_finale_world" );
         df_fin_world( df_fin_debug_side() );
-    }
-}
-
-// "!df fire a2_reward": the Act 2 reward as if r2 / m2 had just completed (needs the side reward not given yet).
-df_fin_debug_a2_wait()
-{
-    level endon( "end_game" );
-
-    while ( true )
-    {
-        level waittill( "df_debug_a2_reward" );
-
-        if ( is_true( level.df_fin_side_given ) )
-        {
-            df_debug_print( "DF: side reward already given, a2_reward ignored" );
-            continue;
-        }
-
-        df_fin_act2_grant( df_fin_debug_side(), 0 );
     }
 }
 

@@ -37,7 +37,7 @@
 //   dropped in solo by df_say ("one lamp each").
 //   Event keys added by the audit pass (2026-09-08), listed with their step: R1_RICH_CHAMBER, M1_EVENT,
 //   S6_NOJETGUN_RICH / _MAXIS,
-//   S7_AVOGADRO_RICH, A2_REWARD_RICH / _MAXIS, FIN_WORLD_RICH / _MAXIS, ITEM_RECEIVER, ITEM_BATTERY_RICH,
+//   S7_AVOGADRO_RICH, FIN_WORLD_RICH / _MAXIS, ITEM_RECEIVER, ITEM_BATTERY_RICH,
 //   ITEM_SPOOL_RICH, ITEM_HAND_MAXIS (tools/audit_A.md says who calls each; renamed from
 //   ITEM_SKULL_MAXIS, owner 2026-09-25), and
 //   M2_POWER_MAXIS (dialogue audit v2, 2026-09-09). Dead keys cut by that audit (no caller, string budget):
@@ -434,15 +434,12 @@ df_dialogue_finale()
     df_add_line( "FIN_MAXIS_2", "maxis", "Richtofen. Your noise bought you nothing. This Spire is no longer yours." );
     df_add_line( "FIN_MAXIS_3", "maxis", "Your help has been invaluable. The other sites must be likewise empowered." );
     df_add_line( "FIN_MAXIS_3", "rich", "Silence! He gave you SILENCE, Samuel! Enjoy it. I am still in your head." );
-    // A2_REWARD_*: the side reward given early when Act 2 completes, Max Ammo at the table (audit #7)
-    df_add_line( "A2_REWARD_RICH", "rich", "A gift, Samuel! Bullets, and my toys no longer need his little windmills." );
-    df_add_line( "A2_REWARD_MAXIS", "maxis", "A small return. The little ones' doors open for you, without a turbine." );
     // A2_JETGUN_*: Act 2 completes, the Jet Gun is announced ahead of Step 6 (df_steps, owner 2026-09-23)
     df_add_line( "A2_JETGUN_RICH", "rich", "Before the end you will need a Jet Gun, Samuel. Four parts lie in the fog." );
     df_add_line( "A2_JETGUN_MAXIS", "maxis", "Before the end you will need a Jet Gun. Its four parts lie in the fog." );
     // FIN_WORLD_*: the permanent world change after the spectacle (audit #8)
-    df_add_line( "FIN_WORLD_RICH", "rich", "The lamps, Samuel! All sparking, all mine. And Avogadro? The obelisk ate him!" );
-    df_add_line( "FIN_WORLD_MAXIS", "maxis", "The lamps answer to me now. The fog is quiet. The little ones will not return." );
+    df_add_line( "FIN_WORLD_RICH", "rich", "The lamps, Samuel! All mine. Avogadro, gone. The little ones too. Wunderbar!" );
+    df_add_line( "FIN_WORLD_MAXIS", "maxis", "The lamps answer to me now. His storm is gone, and the little ones with it." );
     // residue lines, once, right after FIN_WORLD_* (df_finale df_fin_keepsake): the card / the hand stay on the table
     df_add_line( "ITEM_KEEPSAKE_RICH", "rich", "Keep the card, Samuel. A souvenir of the day you made me very happy." );
     df_add_line( "ITEM_KEEPSAKE_MAXIS", "maxis", "The lantern burnt out for this. Let the Spire remember whose fire it holds." );

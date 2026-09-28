@@ -10,7 +10,7 @@
 A few things that are true for the whole quest:
 
 - Every pickup and placement is ONE press of F. Only three actions are holds: building the relay (3 s),
-  powering the relay (1.5 s) and opening the frequency (2.5 s).
+  powering the relay (1.5 s) and opening the frequency (1 s).
 - No timer is ever drawn on screen. When something is on a clock you HEAR it: the Pack-a-Punch tick-tock rides
   you, and dry ticks join in the last 30 seconds.
 - One sound always means the same thing: a portal-like whoosh + a glint on an object = a step is available;
@@ -149,7 +149,7 @@ on the ground under the table, sparking. A knife or any other melee is refused (
 batteries and they drop where you fell (on the bus roof they ride along); left alone 60 s they fly back to their
 lamp.
 
-Every lamp's battery in the table = R2 done, and the Act 2 reward drops at once (see below). If nobody in the team carries a Jet Gun, Richtofen says you will
+Every lamp's battery in the table = R2 done. If nobody in the team carries a Jet Gun, Richtofen says you will
 need one before the end.
 
 Richtofen side rules from here on: Avogadro returns every round (not while Step 6 is open); turrets work
@@ -203,7 +203,7 @@ A kill outside a lit zone, or at a grave that has not been shot, simply does not
 leave you alone inside the kill zone of a lit grave while M2 runs.
 
 All four gone: chime, and the lantern waiting on the table becomes the BURNING LANTERN by itself, burning where it lies
-- nothing to carry back to the table. That completes M2 and the Act 2 reward drops at once. If nobody in the
+- nothing to carry back to the table. That completes M2. If nobody in the
 team carries a Jet Gun, Maxis says you will need one before the end.
 
 Ending a round with the power ON makes the lit, unfinished grave with the most kills forget them.
@@ -215,12 +215,6 @@ places). After M2 the lamp portals open without a turbine.
 ---
 
 </details>
-
-## Act 2 reward (both sides)
-
-When R2 or M2 completes: a Max Ammo drops at the table, plus the side reward for the rest of the game.
-Richtofen: turrets need no turbine (the Jet Gun that never overheats comes with the finale: Step 6 needs the
-overheat). Maxis: every lamp is powered, so portals and denizen burrows work without a turbine.
 
 ---
 
@@ -288,7 +282,7 @@ whichever is nearer.
 
 
 HOLD F for 1.5 s at the table ("power the relay"). The rock leaves its slot and hovers under the tower for 75 s
-solo (90 / 105 / 120) while the Easter Egg song plays. Fast zombies keep rising around the tower and run at the
+solo (90 / 105 / 105) while the Easter Egg song plays. Fast zombies keep rising around the tower and run at the
 rock. Your job is to keep it alive and to STAY AT THE TOWER: 10 s of cumulative absence from the tower area
 fails the step (a horn and a warning from your patron at 5 s - on Richtofen only Stuhlinger hears the warning; 5 s continuously back inside resets the count).
 A player who is down inside the area still counts as there.
@@ -312,12 +306,13 @@ you can start the finale meanwhile.
 
 
 Set the right power state: RICHTOFEN power ON; MAXIS power OFF now, or off at the start of this round. HOLD F
-for 2.5 s at the table ("open the frequency"). Wrong power state: a buzz and a complaint.
+for 1 s at the table ("open the frequency"). Until then the rock on the table sends a light up to the tower top every
+few seconds. Wrong power state: a buzz and a complaint.
 
-Every perk first, a 6 s build-up, the rock rises into the tower top, the burst (Richtofen: lightning and
-thunder; Maxis: a fire pulse at the top, no lightning, no thunder), then the permanent world change: on Richtofen
-every fog lamp of the map turns blue and Avogadro is banished for good; on Maxis every lamp burns with a fire
-glow and the denizens are gone for good. Then the sting, a Max Ammo, the side reward if Act 2 did not already
-give it, a screen message, the closing lines, and the globe in the main menu lights up for your side.
+Every perk first, a 6 s build-up, the rock rises into the tower top wearing its Step 7 glow, the burst (Richtofen: lightning and
+thunder; Maxis: a fire pulse at the top, no lightning, no thunder), then the permanent world change: every fog lamp of
+the map takes the side's colour (blue for Richtofen, a fire glow for Maxis), and on both sides Avogadro is banished
+and the denizens are gone for good. Then the rewards, the same on both sides: every perk (already given), a Max
+Ammo and a Jet Gun that never overheats; a screen message, the closing lines, and the globe in the main menu lights up for your side.
 
 </details>
