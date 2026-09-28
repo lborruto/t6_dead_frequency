@@ -2874,14 +2874,15 @@ df_m2_flame_keep( ent, fxname )
     }
 }
 
-// owner 2026-09-25: the fire hand's own, smaller flame (the zombie fire of the graves looked big on a hand): the hellhound
-// trail fire by default, `set df_m2_hand_fx <fx key>` swaps it at the next spawn (character_fire_death_sm = the old one).
+// The burning lantern's small flame: character_fire_death_sm (env/fire/fx_fire_zombie_md, the smallest fire that shows
+// on a still object; owner 2026-09-28: the hellhound trail fire of 2026-09-25 only draws while it moves, the lantern
+// showed none), replayed every 2 s by df_m2_flame_keep. `set df_m2_hand_fx <fx key>` swaps it at the next spawn.
 df_m2_hand_fire_fx()
 {
     fxname = getdvar( "df_m2_hand_fx" );
 
     if ( !isdefined( fxname ) || fxname == "" )
-        fxname = "dog_trail_fire";
+        fxname = "character_fire_death_sm";
 
     return fxname;
 }
