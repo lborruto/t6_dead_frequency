@@ -391,13 +391,21 @@ df_fin_orb_rise( top, real )
         level.df_fin_orb_temp = 1;
     }
 
-    // owner 2026-09-28: the same glow as while it was protected (df_s7_aura_fx), riding the rock up
-    df_fin_rest_aura_off();
+    // owner 2026-09-28: the rock keeps the glow it had while protected: the resting glow already rides it (linked);
+    // only a stand-in (debug) gets its own, settled 0.15 s before the move so the client draws it
+    level.df_fin_rising = 1;
     df_fx_stop( level.df_fin_rise_aura );
-    level.df_fin_rise_aura = df_fx_loop( df_s7_aura_fx(), ent.origin );
+    level.df_fin_rise_aura = undefined;
 
-    if ( isdefined( level.df_fin_rise_aura ) )
-        level.df_fin_rise_aura linkto( ent );
+    if ( !isdefined( level.df_fin_rest_aura ) || !isdefined( level.df_fin_rest_on ) || level.df_fin_rest_on != ent )
+    {
+        level.df_fin_rise_aura = df_fx_loop( df_s7_aura_fx(), ent.origin );
+
+        if ( isdefined( level.df_fin_rise_aura ) )
+            level.df_fin_rise_aura linkto( ent );
+
+        wait 0.15;
+    }
 
     ent playsound( "zmb_power_rise_start" );
     ent playloopsound( "zmb_power_rise_loop", 0.75 );
@@ -419,7 +427,9 @@ df_fin_orb_rise( top, real )
 df_fin_orb_after_burst( ent, real )
 {
     df_fx_stop( level.df_fin_rise_aura ); // the rise glow goes with the burst
+    level.df_fin_rise_aura = undefined;
     df_fin_rest_aura_off();
+    level.df_fin_rising = 0;
     level.df_fin_rise_aura = undefined;
 
     if ( is_true( level.df_fin_orb_temp ) )
@@ -1036,6 +1046,10 @@ df_fin_tracker_apply( key )
 
     level.df_fin_track[key] = 1;
 
+    // owner 2026-09-28: from the charged rock on the table (Step 6 done) to the finale burst, the rock never loses its glow
+    if ( key == "step6" || key == "step7" )
+        level thread df_fin_rest_aura_watch();
+
     if ( key == "step4" )
     {
         level thread df_fin_runner_loop( "white", 5 );
@@ -1048,7 +1062,7 @@ df_fin_tracker_apply( key )
         level thread df_fin_runner_loop( "white", 4 );
         level thread df_fin_runner_loop( "side", 4 );
         level thread df_fin_orb_beacon_loop( 3 );
-        df_fin_rest_aura_on(); // owner 2026-09-28: the rock back on the table keeps its Step 7 glow
+        level thread df_fin_rest_aura_watch();
     }
     else
         return;
@@ -1111,29 +1125,60 @@ df_fin_orb_beacon_loop( gap )
     }
 }
 
-// owner 2026-09-28: the rock resting on the table after Step 7 wears the glow it had while protected (df_s7_aura_fx),
-// until the finale lifts it (df_fin_orb_rise swaps it for the rise glow) or the finale is aborted.
-df_fin_rest_aura_on()
+// owner 2026-09-28: "the glow should never leave the rock": from Step 6 done to the finale burst the rock wears the
+// glow it has while protected (df_s7_aura_fx). Step 7 carries its own (the wave rock, df_s7_orb_aura_on); outside a
+// wave this watcher keeps one glow linked to the Step 6 rock resting on the table, and it stays linked while the
+// finale lifts that rock (level.df_fin_rising) until the burst removes it. One watcher per game, 0.25 s ticks.
+df_fin_rest_aura_watch()
 {
-    if ( is_true( level.df_fin_started ) || is_true( level.df_completed ) )
+    level endon( "end_game" );
+
+    if ( is_true( level.df_fin_rest_watching ) )
         return;
 
-    df_fx_stop( level.df_fin_rest_aura );
-    pos = df_table_slot( 2 );
+    level.df_fin_rest_watching = 1;
 
-    if ( isdefined( level.df_s6_orb ) && isdefined( level.df_s6_orb.ent ) )
-        pos = level.df_s6_orb.ent.origin;
+    while ( !is_true( level.df_completed ) )
+    {
+        rock = undefined;
 
-    level.df_fin_rest_aura = df_fx_loop( df_s7_aura_fx(), pos );
+        if ( isdefined( level.df_s6_orb ) && isdefined( level.df_s6_orb.ent ) && isdefined( level.df_s6_orb.state ) && level.df_s6_orb.state == "placed" )
+            rock = level.df_s6_orb.ent;
 
-    if ( isdefined( level.df_fin_rest_aura ) && isdefined( level.df_s6_orb ) && isdefined( level.df_s6_orb.ent ) )
-        level.df_fin_rest_aura linkto( level.df_s6_orb.ent );
+        if ( is_true( level.df_fin_rising ) )
+        {
+            // the rise keeps the glow it has
+        }
+        else if ( isdefined( rock ) && !is_true( level.df_s7_active ) )
+        {
+            if ( !isdefined( level.df_fin_rest_aura ) || !isdefined( level.df_fin_rest_on ) || level.df_fin_rest_on != rock )
+                df_fin_rest_aura_on( rock );
+        }
+        else if ( isdefined( level.df_fin_rest_aura ) )
+            df_fin_rest_aura_off();
+
+        wait 0.25;
+    }
+
+    df_fin_rest_aura_off();
+}
+
+// One glow on `rock`, linked (spawned while the rock rests, so the client has drawn it before any move).
+df_fin_rest_aura_on( rock )
+{
+    df_fin_rest_aura_off();
+    level.df_fin_rest_aura = df_fx_loop( df_s7_aura_fx(), rock.origin );
+    level.df_fin_rest_on = rock;
+
+    if ( isdefined( level.df_fin_rest_aura ) )
+        level.df_fin_rest_aura linkto( rock );
 }
 
 df_fin_rest_aura_off()
 {
     df_fx_stop( level.df_fin_rest_aura );
     level.df_fin_rest_aura = undefined;
+    level.df_fin_rest_on = undefined;
 }
 
 // One light: settles 0.15 s on the rock, rises to the tower top in 1.2 s, then goes. Threaded, no endon: a flight
