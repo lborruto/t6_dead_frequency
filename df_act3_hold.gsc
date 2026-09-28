@@ -809,7 +809,8 @@ df_s7_charge_strike()
 }
 
 // owner 2026-09-28: the rock follows the route set in the prop composer (df_coords df_s7_path_init): it starts at the
-// point nearest to it, glides from point to point in order (4-6 s per leg, 1-2 s pauses) and loops.
+// point nearest to it, glides from point to point in order (4-6 s per leg, 1-2 s pauses) and loops; each arrival flashes
+// the top of the tower in the side's colour (df_cue_side_flash: a one-shot blue spark, or 0.8 s of fire, never stacking).
 df_s7_orb_wander()
 {
     level endon( "end_game" );
@@ -840,6 +841,12 @@ df_s7_orb_wander()
         time = randomfloatrange( 4, 6 );
         level.df_s7_orb moveto( df_s7_orb_path_pos( i ), time );
         wait( time );
+
+        // owner 2026-09-28: every arrival lights the top of the tower in the side's colour (blue spark / fire)
+        top = df_tower_top();
+
+        if ( isdefined( top ) && isdefined( level.df_s7_orb ) )
+            df_cue_side_flash( top, level.df_side );
         wait( randomfloatrange( 1, 2 ) );
         i = ( i + 1 ) % path.size;
     }
