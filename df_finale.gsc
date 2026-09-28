@@ -392,6 +392,7 @@ df_fin_orb_rise( top, real )
     }
 
     // owner 2026-09-28: the same glow as while it was protected (df_s7_aura_fx), riding the rock up
+    df_fin_rest_aura_off();
     df_fx_stop( level.df_fin_rise_aura );
     level.df_fin_rise_aura = df_fx_loop( df_s7_aura_fx(), ent.origin );
 
@@ -418,6 +419,7 @@ df_fin_orb_rise( top, real )
 df_fin_orb_after_burst( ent, real )
 {
     df_fx_stop( level.df_fin_rise_aura ); // the rise glow goes with the burst
+    df_fin_rest_aura_off();
     level.df_fin_rise_aura = undefined;
 
     if ( is_true( level.df_fin_orb_temp ) )
@@ -1046,6 +1048,7 @@ df_fin_tracker_apply( key )
         level thread df_fin_runner_loop( "white", 4 );
         level thread df_fin_runner_loop( "side", 4 );
         level thread df_fin_orb_beacon_loop( 3 );
+        df_fin_rest_aura_on(); // owner 2026-09-28: the rock back on the table keeps its Step 7 glow
     }
     else
         return;
@@ -1106,6 +1109,31 @@ df_fin_orb_beacon_loop( gap )
         level thread df_fin_orb_beacon( df_fin_runner_fx( "side" ), df_table_slot( 2 ) + ( 0, 0, 6 ), top );
         wait( gap );
     }
+}
+
+// owner 2026-09-28: the rock resting on the table after Step 7 wears the glow it had while protected (df_s7_aura_fx),
+// until the finale lifts it (df_fin_orb_rise swaps it for the rise glow) or the finale is aborted.
+df_fin_rest_aura_on()
+{
+    if ( is_true( level.df_fin_started ) || is_true( level.df_completed ) )
+        return;
+
+    df_fx_stop( level.df_fin_rest_aura );
+    pos = df_table_slot( 2 );
+
+    if ( isdefined( level.df_s6_orb ) && isdefined( level.df_s6_orb.ent ) )
+        pos = level.df_s6_orb.ent.origin;
+
+    level.df_fin_rest_aura = df_fx_loop( df_s7_aura_fx(), pos );
+
+    if ( isdefined( level.df_fin_rest_aura ) && isdefined( level.df_s6_orb ) && isdefined( level.df_s6_orb.ent ) )
+        level.df_fin_rest_aura linkto( level.df_s6_orb.ent );
+}
+
+df_fin_rest_aura_off()
+{
+    df_fx_stop( level.df_fin_rest_aura );
+    level.df_fin_rest_aura = undefined;
 }
 
 // One light: settles 0.15 s on the rock, rises to the tower top in 1.2 s, then goes. Threaded, no endon: a flight
@@ -1350,5 +1378,6 @@ df_fin_skip_cleanup()
     df_fin_clear_prompts();
     df_fin_hum_stop();
     df_fin_fx_clear();
+    df_fin_rest_aura_off();
     df_debug_print( "DF: finale skipped, the prompt at the table and every fx removed" );
 }
