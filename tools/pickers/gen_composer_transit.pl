@@ -765,7 +765,7 @@ __LIST__
 <div class="presets"><select id="presetSel">
 <option value="">Load a preset...</option>
 __PRESET_OPTIONS__
-</select></div>
+</select><button class="pickbtn" type="button" id="rollbackBtn" title="Put every part of the loaded preset back where the game has it now">Rollback</button></div>
 <p class="preset-note" id="presetNote"></p>
 </div>
 
@@ -802,7 +802,8 @@ __SCRIPTS__
   var STORE_KEY = 'df_composer_transit';
 
   function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(e){ return null; } }
-  function saveStore(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({parts:parts, sel:selected})); }catch(e){} }
+  var currentPreset = null;   // owner 2026-09-28: the preset the scene came from, for Rollback
+  function saveStore(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({parts:parts, sel:selected, preset:currentPreset})); }catch(e){} }
 
   // parts is a mix of two part shapes:
   //   model: {ptype:'model', kind, model, x,y,z, pitch,yaw,roll, parent?, fxAlias?, anchor?, snapTop?, slot?}
@@ -1447,6 +1448,7 @@ __SCRIPTS__
     var preset = PRESETS[key];
     if (!preset) return;
     parts = preset.parts.map(function(p){ var c = {}; for (var k in p) c[k] = p[k]; return c; });
+    currentPreset = key;
     selected = parts.length ? 0 : -1;
     var note = document.getElementById('presetNote'); if (note) note.textContent = preset.note || '';
     saveStore(); renderParts(); rebuildScene();
@@ -1463,7 +1465,7 @@ __SCRIPTS__
   document.getElementById('presetSel').addEventListener('change', function(){
     var key = this.value;
     if (key === 'empty') {
-      parts = []; selected = -1;
+      parts = []; selected = -1; currentPreset = null;
       var note = document.getElementById('presetNote'); if (note) note.textContent = 'Empty scene.';
       saveStore(); renderParts(); rebuildScene();
     } else if (key) { applyPreset(key); }
@@ -1473,6 +1475,21 @@ __SCRIPTS__
   // ---------- boot ----------
   var saved = loadStore();
   if (saved && saved.parts && saved.parts.length) { parts = saved.parts; selected = (typeof saved.sel === 'number') ? saved.sel : 0; }
+  if (saved && saved.preset && PRESETS[saved.preset]) currentPreset = saved.preset;
+  // a scene saved before Rollback existed: the preset whose parts are the same kinds in the same order
+  if (!currentPreset && parts.length) {
+    var sig = parts.map(function(p){ return p.ptype === 'fx' ? 'fx:' + p.name : p.kind; }).join('|');
+    Object.keys(PRESETS).forEach(function(k){
+      if (PRESETS[k].parts.map(function(p){ return p.ptype === 'fx' ? 'fx:' + p.name : p.kind; }).join('|') === sig) currentPreset = k;
+    });
+  }
+  // Rollback: the loaded preset again, at the positions the game uses now (this page was built from df_coords.gsc)
+  document.getElementById('rollbackBtn').addEventListener('click', function(){
+    if (!currentPreset) { mgDiag('rollback: load a preset first (the scene did not come from one)'); return; }
+    if (!window.confirm('Put every part of "' + PRESETS[currentPreset].label + '" back to its default position? Your moves are lost.')) return;
+    applyPreset(currentPreset);
+    updateExport(); updateReadout();
+  });
   renderParts();
   rebuildScene();
 })();
