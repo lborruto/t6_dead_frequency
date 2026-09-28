@@ -201,7 +201,7 @@ df_dialogue_act2_rich()
     df_add_line( "R2_PUNCH_HINT_3", "rich", "Galvaknuckles, Samuel! Diner roof. Then punch the full lamp's post with them!" );
     // R2 phase CARRY: a battery is out (on the ground or in hand) and not in the table yet
     df_add_line( "R2_CARRY_HINT_1", "rich", "A battery lies loose in the fog, Samuel. My obelisk is starving for it." );
-    df_add_line( "R2_CARRY_HINT_2", "rich", "Batteries go where the relay sleeps, Samuel. One at a time, if you like." );
+    df_add_line( "R2_CARRY_HINT_2", "rich", "Batteries go where the relay sleeps, Samuel. Bring them all, the table drinks!" );
     df_add_line( "R2_CARRY_HINT_3", "rich", "Carry each battery to the table under the obelisk and insert it there." );
     df_add_line( "R2_RICH_FULL", "rich", "Full! Now it wants a punch, Samuel. And not from your little knife." );
     df_add_line( "R2_RICH_NOFISTS", "rich", "Bare steel? No. Electricity wants electricity. Galvaknuckles, Samuel." );
@@ -438,8 +438,8 @@ df_dialogue_finale()
     df_add_line( "A2_JETGUN_RICH", "rich", "Before the end you will need a Jet Gun, Samuel. Four parts lie in the fog." );
     df_add_line( "A2_JETGUN_MAXIS", "maxis", "Before the end you will need a Jet Gun. Its four parts lie in the fog." );
     // FIN_WORLD_*: the permanent world change after the spectacle (audit #8)
-    df_add_line( "FIN_WORLD_RICH", "rich", "The lamps, Samuel! All mine. Avogadro, gone. The little ones too. Wunderbar!" );
-    df_add_line( "FIN_WORLD_MAXIS", "maxis", "The lamps answer to me now. His storm is gone, and the little ones with it." );
+    df_add_line( "FIN_WORLD_RICH", "rich", "Avogadro, gone! The little ones too! The fog is ours now, Samuel. Wunderbar!" );
+    df_add_line( "FIN_WORLD_MAXIS", "maxis", "The fog is quiet now. His storm is gone, and the little ones with it." );
     // residue lines, once, right after FIN_WORLD_* (df_finale df_fin_keepsake): the card / the hand stay on the table
     df_add_line( "ITEM_KEEPSAKE_RICH", "rich", "Keep the card, Samuel. A souvenir of the day you made me very happy." );
     df_add_line( "ITEM_KEEPSAKE_MAXIS", "maxis", "The lantern burnt out for this. Let the Spire remember whose fire it holds." );

@@ -24,8 +24,9 @@ A few things that are true for the whole quest:
   switches around the map - stands in the world from the moment you load in, on both sides, and none of them is
   ever removed. Only the look follows your side and the step: a fuse box only glows once Richtofen is locked, a
   grave only flames once Maxis is locked, and a spent grave stays standing, cold, once its flame goes out.
-- The table under the tower never lights up: what you put on it just clinks. The lasting look is on the relay's
-  mast (one small glow per finished step).
+- The table under the tower never lights up: what you put on it is built in with the vanilla build hold (hands,
+  bar, 3 s) and just clinks. From Step 3 on, a light in your side's colour (blue for Richtofen, red for Maxis)
+  leaves the relay every few seconds and climbs the tower.
 - Richtofen talks to the Stuhlinger player only, as in vanilla (his subtitles and his recorded lines alike):
   without Stuhlinger in the game Richtofen stays silent. Maxis is heard by everyone.
 - The vanilla Easter Egg is off. The NavCard and its table still work as usual.
@@ -92,8 +93,8 @@ moment you plug in is the choice (the patrons tell you so):
 
 Hold F at the table to build the relay onto it (the same build as on the bus roof: hands, bar, 3 s; let go and
 start again, nothing is lost). The choice
-is final for this game. A white runner light now climbs the tower for the rest of the game, and the relay's mast
-gets one small glow per finished step (the steps done so far light at once), so it ends fully lit. If a
+is final for this game. A white runner light now climbs the tower for the rest of the game, and a light in your
+side's colour leaves the relay every few seconds and climbs the tower too. If a
 carrier leaves the game, the relay he dropped moves onto the table by itself after 60 s untouched: take it
 there and plug it in.
 
@@ -111,8 +112,8 @@ one box sparks, then two, then three, and so on. After each sequence press the s
 wrong press buzzes, the fail thump sounds and a NEW sequence starts from one spark. Twenty seconds without a press abandons the round; press a
 box to start again. The final sequence is 6 long (7 with 3 or 4 players).
 
-Solved: an arpeggio, every box sparks, and the KEY CARD arrives by a strike on the barn wall. Take it and press F
-at the table to insert it. Then:
+Solved: an arpeggio, every box sparks, and the KEY CARD arrives by a strike on the barn wall. Take it and hold F
+at the table to insert it (the build hold, 3 s). Then:
 
 - If nobody has visited the power room's core yet in this game, Avogadro is still asleep: Richtofen tells you
   to wake him. Go to the Power station, look at the core, and he is called down and carried to the tower.
@@ -178,8 +179,8 @@ to the tower; get a denizen on your head again and repeat.
 
 Success: a LANTERN (Maxis's lantern, dead and red) arrives by a strike where the last denizen died. You have 30 s
 to take it (F) before everyone is sent back; if nobody takes it, it comes along and lies at the return point at
-the tower, still pickable. Carry it (no lamp portals; dropped at your feet if you go down) and press F at the
-table to place it (a clink): it lies on the table, cold and still. That completes M1.
+the tower, still pickable. Carry it (no lamp portals; dropped at your feet if you go down) and hold F at the
+table to place it (the build hold, 3 s; a clink): it lies on the table, cold and still. That completes M1.
 
 </details>
 
@@ -283,8 +284,9 @@ whichever is nearer.
 <details><summary><b>Step 5 - The Line Holds (the tower)</b> (click to reveal)</summary>
 
 
-HOLD F for 1.5 s at the table ("power the relay"). The rock leaves its slot and hovers under the tower for 75 s
-solo (90 / 105 / 105) while the Easter Egg song plays. Fast zombies keep rising around the tower and run at the
+HOLD F for 1.5 s at the table ("power the relay"). The rock leaves its slot, now glowing (it keeps that glow until the
+finale), and glides from point to point along a route under the tower for 75 s solo (90 / 105 / 105) while the Easter
+Egg song plays; each time it reaches a point the top of the tower flashes in your side's colour. Fast zombies keep rising around the tower and run at the
 rock. Your job is to keep it alive and to STAY AT THE TOWER: 10 s of cumulative absence from the tower area
 fails the step (a horn and a warning from your patron at 5 s - on Richtofen only Stuhlinger hears the warning; 5 s continuously back inside resets the count).
 A player who is down inside the area still counts as there.
@@ -297,7 +299,7 @@ charge strikes that hit it every 10-20 s heal it more. Below 30 % health it flic
 - MAXIS: no boss and no denizens: the fast zombies carry the wave, with a smoke column at the top. On this side
   the charge strikes are fire bursts (no thunder) and the rock flickers with fire when it is hit.
 
-Fail: the rock bursts and the CHARGED rock reappears in front of the table. Take it, place it, hold again (the
+Fail: the rock bursts and the CHARGED rock reappears in front of the table. Take it, place it (the build hold), hold F to power the relay again (the
 song does not restart while it is still playing). Win: the rock glides back onto the table. After the hold the
 song keeps playing to its end (about four minutes after it started) and zombies keep rising near you until then;
 you can start the finale meanwhile.

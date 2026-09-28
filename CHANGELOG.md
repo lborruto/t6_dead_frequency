@@ -3,40 +3,49 @@
 All notable changes to Dead Frequency are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [1.1.3] - 2026-09-28
 
 ### Changed
-- Steps renumbered the way they are played: Step 1-3 (Act 1), R1-R3 / M1-M3 (Act 2, Blackout and Lights Out
-  are the side's third step), Step 4-5 (Act 3), finale. `!df goto` and the console use the new names; `step6` /
-  `step7` still work.
-- M3: putting out a lamp plays the sub-goal chime to every player and an arc crack at the lamp.
-- M1: the cold room's denizens rise from eight spots around the woods zone (three before).
-- M1: the rider carried under the tower jumps off and burrows like at a powered lamp (the vanilla animation and
-  portal), within the vanilla lamp radius (256).
-- The finale no longer recolours the lamps: they stay vanilla, green only with power or a turbine.
-- After the finale (no denizens), a Galvaknuckle punch on a powered lamp opens its teleport portal, as a burrowing
-  denizen did: with the power ON any lamp, with the power OFF a lamp with a turbine by it.
-- Rewards are the same on both sides and come at the finale only: every perk, a Max Ammo and a Jet Gun that
-  never overheats. The Act 2 rewards (turrets without a turbine, powered lamp posts, their Max Ammo) are gone.
-- Permanent world change: on both sides Avogadro is banished and the denizens never spawn again.
-- Finale: the hold to open the frequency is 1 s (was 2.5 s); until then the rock on the table sends a light up
-  to the tower top every few seconds; it rises with its Step 7 glow.
-- Step 7: co-op capped at 105 s (4 players had 120 s). Each route point the rock reaches flashes the tower top.
-- The Step 7 rock follows a route of points (set in the prop composer) instead of random spots under the tower.
-- The relay's spot on the bus roof can be set in the prop composer (df_relay_roof_def); without it the old rule stands.
+- Steps renumbered the way they are played: Step 1-3 (Act 1), R1-R3 / M1-M3 (Act 2: Blackout and Lights Out
+  are the side's third step), Step 4-5 (Act 3), finale. `!df goto` and the console use the new names;
+  `step6` / `step7` still work.
 - Everything that goes into the table (the relay, the key card, the R2 batteries, the lantern, the rock) is
-  built in with the vanilla build hold: builder hands, the build bar, 3 s. One hold puts in every battery the
-  player carries.
-- The eight step glows on the table relay are gone. From Step 4 on, a runner in the side's colour (blue
-  Richtofen, red Maxis) leaves the relay every few seconds and climbs the tower to the top.
+  built in with the vanilla build hold: builder hands, the build bar, 3 s. One hold puts in every battery
+  the player carries.
+- The step glows on the table relay are gone. From Step 3 on, a light in the side's colour (blue Richtofen,
+  red Maxis) leaves the relay every few seconds and climbs the tower.
+- R1: a wrong Simon press starts a new sequence; a failed capture needs the bus battery in all four boxes
+  and the Simon again. The battery charges a box from the box's own use zone (the Simon's).
+- R2: the batteries stand where they were placed under / on the table, each with its own turn.
+- M1: the rider carried under the tower jumps off and burrows like at a powered lamp (the vanilla
+  animation and portal), within the vanilla lamp radius (256). The cold room's denizens rise from eight
+  spots around the woods zone (three before).
+- M2: the burning lantern shows a small flame (the old one never drew on a still lantern).
+- M3: putting out a lamp plays the sub-goal chime to every player and an arc crack at the lamp.
+- Step 5: the rock follows a route of points under the tower and glows from "Hold F to power the relay"
+  to the finale; each point it reaches flashes the tower top. Co-op capped at 105 s (4 players had 120 s).
+- Finale: the hold to open the frequency is 1 s (was 2.5 s); until then the rock sends a light up to the
+  tower top every few seconds; it rises with its glow.
+- Rewards are the same on both sides and come at the finale only: every perk, a Max Ammo and a Jet Gun
+  that never overheats. The Act 2 rewards (turrets without a turbine, powered lamp posts, their Max Ammo)
+  are gone.
+- Permanent world change: on both sides Avogadro is banished and the denizens never spawn again. The lamps
+  are no longer recoloured: they stay vanilla, green only with power or a turbine. With no denizen to
+  open a lamp portal, a Galvaknuckle punch on a powered lamp opens it (power ON: any lamp; power OFF: a
+  lamp with a turbine by it).
+- Positions set in the prop composer: the relay on the bus roof, the R1 battery on the bus dashboard, the
+  R2 batteries, the Maxis lantern and each side's rock spot on the table, the Step 5 rock route.
+- Install: Scavenger's `images` folder is required too (README and release notes list its eight files).
 
 ### Fixed
 - Pickup notices and the TAB square no longer use the six vanilla icons Scavenger's `images` folder repaints
   (they showed a guillotine, gallows or nav table): our items use other TranZit buildable icons, and our TAB
   square uses Scavenger's own frame so it matches its row.
 
-### Changed
-- Install: Scavenger's `images` folder is required too (README and release notes).
+### Testers and modders
+- Prop composer: drag parts with the mouse (Shift = height), drop onto the surface below, full screen,
+  Rollback, bus and rock-route presets; the export lists only the changed lines.
+- `lint_calls.pl` flags `waittill_any` / `_return` / `_timeout` / `waittill_either` calls with too many names.
 
 ## [1.1.2] - 2026-09-28
 
