@@ -31,8 +31,14 @@ solution, one folded step at a time.
    `zm_transit_dead_frequency_1.gsc`, `zm_transit_dead_frequency_2.gsc`, `zm_transit_enhanced_noee.gsc`.
 2. Put them in `%LOCALAPPDATA%\Plutonium\storage\t6\scripts\zm\zm_transit\`.
 3. Install Scavenger as its page says: copy its `scripts` AND `images` folders into
-   `%LOCALAPPDATA%\Plutonium\storage\t6\` (so `zm_scavenger.gsc` lands in `scripts\zm\` and its eight `.iwi`
-   files in `images\`).
+   `%LOCALAPPDATA%\Plutonium\storage\t6\`, so you end up with:
+   - `...\t6\scripts\zm\zm_scavenger.gsc`
+   - `...\t6\images\` with its eight `.iwi` files: `zom_hud_icon_sq_tranceiver.iwi` (its square frame),
+     `zom_hud_icon_sq_scafold.iwi` (its check mark), `zom_hud_icon_sq_meteor.iwi`, `zom_hud_icon_sq_powerbox.iwi`,
+     `zom_hud_icon_buildable_item_battery.iwi`, `zom_hud_icon_buildable_item_fan.iwi`,
+     `zom_hud_icon_buildable_chop_a.iwi`, `zom_hud_icon_buildable_slip_ext.iwi`.
+
+   Without the images, every TAB square shows a radio picture behind its icon.
 4. Remove any other TranZit Easter Egg script from those folders, "solo Easter Egg" helpers included.
 5. Start TranZit. To check it loaded: console `set df_debug 1`, then `!df status` in the chat.
 
