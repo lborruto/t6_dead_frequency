@@ -48,10 +48,11 @@ for my $zone ( 'zm_transit', 'so_zclassic_zm_transit', 'common_zm', 'patch_zm' )
     for my $f ( sort readdir $dh ) {
         next unless $f =~ /^(.+)\.gltf$/;
         my $name = $1;
-        next if $name =~ /^(c_|t6_|veh_|fx_|weapon_|tag_|skybox|world|projectile|fxanim|defaultvehicle)/;
+        my $bus = $name eq 'veh_t6_civ_bus_zombie'; # owner 2026-09-28: the "Relay on the bus" preset needs it (2.6 MB)
+        next if !$bus && $name =~ /^(c_|t6_|veh_|fx_|weapon_|tag_|skybox|world|projectile|fxanim|defaultvehicle)/;
         my $path = "$viewer/$zone/$f";
         my $size = -s $path;
-        next if $size > 420_000;
+        next if !$bus && $size > 420_000;
         open my $fh, '<:raw', $path or die "$path: $!";
         local $/;
         my $json = <$fh>;
@@ -106,6 +107,17 @@ while ( $gsc =~ /df_table_bat_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]
     $bat_def{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0 ];
 }
 die "df_table_bats_init(): no df_table_bat_def( 0, ( x, y, z ) ); line found\n" unless $bat_def{0};
+# owner 2026-09-28: the Step 7 rock route (df_s7_path_def, table frame, z = hover above the ground) and the relay's
+# pose on the bus roof (df_relay_roof_def, bus frame; absent = the game's roof-trigger rule, shown at its spot)
+my %path_def;
+while ( $gsc =~ /df_s7_path_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)\s*;/g ) {
+    $path_def{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0 ];
+}
+die "df_s7_path_init(): no df_s7_path_def( 0, ( x, y, z ) ); line found\n" unless $path_def{0};
+my @roof_def;
+if ( $gsc =~ /^\s*df_relay_roof_def\(\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*,\s*(-?[\d.]+)\s*\)\s*;/m ) {
+    @roof_def = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
+}
 while ( $gsc =~ /df_table_slot_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)\s*;/g ) {
     $slot_def{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0 ];
 }
@@ -165,7 +177,7 @@ printf STDERR "df_coords.gsc: table slots (df_table_slot_def, z from the top %s)
 printf STDERR "df_coords.gsc: %d df_fx_point_def(...) points parsed from df_fx_points_init()\n", scalar @fx_order;
 
 # The preset's own models must be embedded no matter what the size budget below does to the general list.
-my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool r2_battery pswitch_body pswitch_lever);
+my %required = ( veh_t6_civ_bus_zombie => 1, map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool r2_battery pswitch_body pswitch_lever) );
 
 # ---- 16 MB page budget: if the embedded glTF payload would push the page over it, drop the largest
 #      glTF files first (never a model any preset needs) and remember how many were dropped. -------------
@@ -271,6 +283,9 @@ sub model_part {
     $p{snapTop} = 1           if $o{snapTop};
     $p{slot}    = $o{slot}    if defined $o{slot};
     $p{bat}     = $o{bat}     if defined $o{bat};
+    $p{path}    = $o{path}    if defined $o{path};
+    $p{roof}    = 1           if $o{roof};
+    $p{noexport} = 1          if $o{noexport};
     return \%p;
 }
 
@@ -431,6 +446,58 @@ add_preset(
     fx_part( name => 'relay_glow',      parent => 'relay' ),
     fx_part( name => 'relay_glint',     parent => 'relay' ),
 );
+
+# owner 2026-09-28: the relay as the game builds it on the bus roof. Base = the bus (veh_t6_civ_bus_zombie, 2.6 MB,
+# embedded for this preset) at the origin, yaw 0 = its front along +x. The relay's own spot is df_relay_roof_def in
+# df_coords.gsc (bus frame), exported by this preset; with no such line the game uses the roof surface under the roof
+# trigger, (145, -1) from the bus origin in the map file (bus -7768 6000 -64, bus_roof_watch -7623 5999 132): the relay
+# starts there at the trigger height (196): G sets it down on the roof.
+{
+    my ( $rx, $ry, $rz, $ryaw ) = @roof_def ? @roof_def : ( 145, -1, 196, 0 );
+    my @relay = (
+        model_part( kind => 'relay', model => $model_def{relay}{name}, x => $rx, y => $ry, z => $rz,
+                    pitch => $model_def{relay}{pitch}, roll => $model_def{relay}{roll}, yaw => $ryaw, roof => 1 ),
+        model_part( kind => 'relay_coil', model => $model_def{relay_coil}{name},
+                    x => $rx + $model_def{relay_coil}{ox}, y => $ry + $model_def{relay_coil}{oy}, z => ( $rz ) + $model_def{relay_coil}{oz},
+                    pitch => $model_def{relay_coil}{pitch}, roll => $model_def{relay_coil}{roll}, yaw => $ryaw + $model_def{relay_coil}{yawoff}, parent => 'relay', noexport => 1 ),
+        model_part( kind => 'relay_top', model => $model_def{relay_top}{name},
+                    x => $rx + $model_def{relay_top}{ox}, y => $ry + $model_def{relay_top}{oy}, z => ( $rz ) + $model_def{relay_top}{oz},
+                    pitch => $model_def{relay_top}{pitch}, roll => $model_def{relay_top}{roll}, yaw => $ryaw + $model_def{relay_top}{yawoff}, parent => 'relay', noexport => 1 ),
+    );
+    add_preset(
+        'relay_bus', 'Relay on the bus',
+        'Base = the bus (veh_t6_civ_bus_zombie) at (0,0,0), its front along +X. The relay (with its coil box and top piece) '
+          . 'stands where the game builds it: df_relay_roof_def in df_coords.gsc, an offset in the bus frame plus a yaw. '
+          . ( @roof_def ? 'Current line: ( ' . join( ', ', @roof_def[0..2] ) . ' ), yaw ' . $roof_def[3] . '.' : 'No line yet: the game uses the roof under the roof trigger, (145, -1) from the bus origin, shown here at the roof trigger height: press G to set it down on the roof.' )
+          . ' Drag the relay (drop it on the roof with G); the export gives the df_relay_roof_def line. The coil and the top follow in the game (their own offsets are the "Relay (bus roof)" preset).',
+        model_part( kind => 'bus', model => 'veh_t6_civ_bus_zombie', noexport => 1 ),
+        @relay,
+    );
+}
+
+# owner 2026-09-28: the Step 7 rock's route under the tower (df_s7_path_def, table frame, z = height above the ground).
+# The tower is map geometry: a marker shows its centre (level.sq_volume, 7644 -464, i.e. (-127, -16) from DF_TABLE).
+{
+    my @pts;
+    for my $n ( sort { $a <=> $b } keys %path_def ) {
+        my ( $px, $py ) = df_rotate_offset( $path_def{$n}[0], $path_def{$n}[1], 0, $table_front_yaw );
+        push @pts, model_part( kind => 'orb', model => $model_def{orb}{name}, x => r2($px), y => r2($py), z => r2( $path_def{$n}[2] ),
+                               pitch => $model_def{orb}{pitch}, roll => $model_def{orb}{roll}, yaw => 0, path => $n, noexport => 1 );
+    }
+    my ( $tx, $ty ) = df_rotate_offset( -127, -16, 0, $table_front_yaw );
+    my $tower = anchor_part('tower_centre');
+    $tower->{x} = r2($tx); $tower->{y} = r2($ty); $tower->{noexport} = 1;
+    add_preset(
+        'rock_path', 'Step 7 rock path',
+        'Base = kind "table" at (0,0,0), front yaw ' . $table_front_yaw . '; the marker is the tower centre. The ' . scalar( keys %path_def )
+          . ' rocks are the Step 7 route (df_s7_path_init in df_coords.gsc): the rock glides from point 0 to 1, 2, ... and loops. '
+          . 'Each point exports as a df_s7_path_def line in the table frame; its z is the rock\'s height above the ground there (the game traces the ground at each spot). '
+          . 'Duplicate a rock to add a point (its number follows the last), remove one to shorten the route.',
+        model_part( kind => 'table', model => $model_def{table}{name}, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw, noexport => 1 ),
+        $tower,
+        @pts,
+    );
+}
 
 add_preset(
     'relay_table', 'Relay (table, plugged)',
@@ -793,7 +860,9 @@ __SCRIPTS__
 
   function loadStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(e){ return null; } }
   var currentPreset = null;   // owner 2026-09-28: the preset the scene came from, for Rollback
-  function saveStore(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({parts:parts, sel:selected, preset:currentPreset})); }catch(e){} }
+  var defaultParts = null;    // owner 2026-09-28: that preset as loaded (snapTop resolved): the export's reference
+  function snapshotDefaults(){ defaultParts = parts.map(function(p){ var c = {}; for (var k in p) c[k] = p[k]; return c; }); }
+  function saveStore(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({parts:parts, sel:selected, preset:currentPreset, defaults:defaultParts})); }catch(e){} }
 
   // parts is a mix of two part shapes:
   //   model: {ptype:'model', kind, model, x,y,z, pitch,yaw,roll, parent?, fxAlias?, anchor?, snapTop?, slot?}
@@ -892,16 +961,25 @@ __SCRIPTS__
     // ---------- mouse: pick, drag, drop (owner 2026-09-28) ----------
     // Scene axes: toThree(x, y, z) = (x, z, -y), so a three point P is the logical (P.x, -P.z, P.y).
     var raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2(), drag = null;
+    // owner 2026-09-28: a part's children (parts whose .parent is its kind: the relay's coil box and top) ride along
+    function shiftChildren(p, dx, dy, dz){
+      parts.forEach(function(q, j){
+        if (q === p || q.ptype === 'fx' || q.parent !== p.kind) return;
+        q.x = round2(q.x + dx); q.y = round2(q.y + dy); q.z = round2(q.z + dz);
+        if (partGroups[j]) setPose(partGroups[j], q);
+      });
+    }
     function rayFrom(ev){
       var r = canvas.getBoundingClientRect();
       ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
       ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
       raycaster.setFromCamera(ndc, camera);
     }
-    function modelMeshes(skip){
+    function modelMeshes(skip, skipKidsOf){
       var objs = [], owner = [];
       partGroups.forEach(function(grp, i){
         if (!grp || i === skip || !parts[i] || parts[i].ptype === 'fx') return;
+        if (skipKidsOf && parts[i].parent === skipKidsOf) return;
         grp.traverse(function(o){ if (o.isMesh) { objs.push(o); owner.push(i); } });
       });
       return { objs: objs, owner: owner };
@@ -926,6 +1004,7 @@ __SCRIPTS__
       ev.stopImmediatePropagation();
       var p = parts[drag.i];
       if (!p) { drag = null; return; }
+      var bx = p.x, by = p.y, bz = p.z;
       if (ev.shiftKey) {
         p.z = round2(drag.sz + (drag.sy - ev.clientY) * 0.25);
       } else {
@@ -935,6 +1014,7 @@ __SCRIPTS__
         drag.sy = ev.clientY; drag.sz = p.z;
       }
       if (partGroups[drag.i]) setPose(partGroups[drag.i], p);
+      shiftChildren(p, p.x - bx, p.y - by, p.z - bz);
       updateReadout();
     }, true);
     function endDrag(ev){
@@ -958,7 +1038,7 @@ __SCRIPTS__
       if (!p || p.ptype === 'fx' || !grp) return;
       grp.updateMatrixWorld(true);
       var box = new THREE.Box3().setFromObject(grp);
-      var targets = modelMeshes(i).objs, best = 0, rc = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0);
+      var targets = modelMeshes(i, p.kind).objs, best = 0, rc = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0);
       var cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2;
       var hx = (box.max.x - box.min.x) * 0.35, hz = (box.max.z - box.min.z) * 0.35;
       [[cx, cz], [cx - hx, cz - hz], [cx + hx, cz - hz], [cx - hx, cz + hz], [cx + hx, cz + hz]].forEach(function(q){
@@ -966,7 +1046,9 @@ __SCRIPTS__
         var hs = rc.intersectObjects(targets, false);
         if (hs.length && hs[0].point.y > best) best = hs[0].point.y;
       });
-      p.z = round2(p.z + (best - box.min.y));
+      var dz = round2(best - box.min.y);
+      p.z = round2(p.z + dz);
+      shiftChildren(p, 0, 0, dz);
       saveStore(); renderParts(); rebuildScene(); updateExport(); updateReadout();
     };
   } else {
@@ -1317,9 +1399,31 @@ __SCRIPTS__
 
   // ---------- export / import ----------
   function round05(n){ return Math.round(n * 2) / 2; }
+  // owner 2026-09-28: the export lists only the lines that differ from the scene as it was loaded (the game's
+  // current positions): the preset's own export is computed the same way and every identical line is left out.
   function gscText(){
+    var full = gscFull();
+    if (!defaultParts || !defaultParts.length) return full;
+    var live = parts;
+    parts = defaultParts.map(function(p){ var c = {}; for (var k in p) c[k] = p[k]; return c; });
+    var def = gscFull();
+    parts = live;
+    var known = {};
+    def.split('\n').forEach(function(l){ known[l] = 1; });
+    var out = [], header = null;
+    full.split('\n').forEach(function(l){
+      if (!l.trim()) return;
+      if (l.indexOf('//') === 0) { header = l; return; }
+      if (known[l]) return;
+      if (header) { out.push(''); out.push(header); header = null; }
+      out.push(l);
+    });
+    if (!out.length) return '// Nothing moved yet: every part still sits where the game has it. Move a part, then copy this.';
+    return '// Only the lines you changed from the game\'s current positions:' + '\n' + out.join('\n');
+  }
+  function gscFull(){
     if (!parts.length) return '';
-    var modelParts = parts.filter(function(p){ return p.ptype !== 'fx' && !p.anchor; });
+    var modelParts = parts.filter(function(p){ return p.ptype !== 'fx' && !p.anchor && !p.noexport; });
     var lines = modelParts.map(function(p){
       var dx = 0, dy = 0, dz = 0, yaw = p.yaw;
       // A part's own df_model_def offset is only meaningful relative to ANOTHER part when it carries an
@@ -1355,6 +1459,29 @@ __SCRIPTS__
         }
         lines.push('df_table_slot_def( ' + p.slot + ', ( ' + round05(lx) + ', ' + round05(ly) + ', ' + round05(lz) + ' ) ); // ' + p.kind);
       });
+    }
+
+    // owner 2026-09-28: the Step 7 route (parts carrying .path, in part order: a duplicated rock is the next point)
+    var pathParts = parts.filter(function(p){ return p.ptype !== 'fx' && typeof p.path === 'number'; });
+    if (pathParts.length) {
+      var tb = findParentPart('table');
+      lines.push('');
+      lines.push('// Step 7 rock route (df_s7_path_def in df_coords.gsc, df_s7_path_init(); z = height above the ground)');
+      pathParts.forEach(function(p, n){
+        var qx = p.x, qy = p.y, qz = p.z;
+        if (tb) { var lq = rotateXY(p.x - tb.x, p.y - tb.y, -tb.yaw); qx = lq[0]; qy = lq[1]; qz = p.z - tb.z; }
+        lines.push('df_s7_path_def( ' + n + ', ( ' + round05(qx) + ', ' + round05(qy) + ', ' + round05(qz) + ' ) );');
+      });
+    }
+    // owner 2026-09-28: the relay on the bus roof (the part carrying .roof), in the bus frame
+    var roofPart = parts.filter(function(p){ return p.ptype !== 'fx' && p.roof; })[0];
+    if (roofPart) {
+      var bus = findParentPart('bus');
+      var ox = roofPart.x, oy = roofPart.y, oz = roofPart.z, oyaw = roofPart.yaw;
+      if (bus) { var lb = rotateXY(roofPart.x - bus.x, roofPart.y - bus.y, -bus.yaw); ox = lb[0]; oy = lb[1]; oz = roofPart.z - bus.z; oyaw = roofPart.yaw - bus.yaw; }
+      lines.push('');
+      lines.push('// relay on the bus roof (df_relay_roof_def in df_coords.gsc, df_relay_roof_init(); bus frame + yaw)');
+      lines.push('df_relay_roof_def( ( ' + round05(ox) + ', ' + round05(oy) + ', ' + round05(oz) + ' ), ' + round2(oyaw) + ' );');
     }
 
     // owner 2026-09-28: the R2 batteries (a part carrying .bat) export as df_table_bat_def lines: the offset in the
@@ -1439,6 +1566,7 @@ __SCRIPTS__
     if (!preset) return;
     parts = preset.parts.map(function(p){ var c = {}; for (var k in p) c[k] = p[k]; return c; });
     currentPreset = key;
+    snapshotDefaults();
     selected = parts.length ? 0 : -1;
     var note = document.getElementById('presetNote'); if (note) note.textContent = preset.note || '';
     saveStore(); renderParts(); rebuildScene();
@@ -1448,6 +1576,8 @@ __SCRIPTS__
       ensureModel(baseModel, function(entry){
         var topZ = entry ? entry.bounds.maxz : 0;
         parts.forEach(function(p){ if (p.ptype !== 'fx' && p.snapTop) p.z = topZ; });
+        snapshotDefaults();
+        updateExport();
         saveStore(); renderParts(); rebuildScene();
       });
     }
@@ -1455,7 +1585,7 @@ __SCRIPTS__
   document.getElementById('presetSel').addEventListener('change', function(){
     var key = this.value;
     if (key === 'empty') {
-      parts = []; selected = -1; currentPreset = null;
+      parts = []; selected = -1; currentPreset = null; defaultParts = null;
       var note = document.getElementById('presetNote'); if (note) note.textContent = 'Empty scene.';
       saveStore(); renderParts(); rebuildScene();
     } else if (key) { applyPreset(key); }
@@ -1466,6 +1596,7 @@ __SCRIPTS__
   var saved = loadStore();
   if (saved && saved.parts && saved.parts.length) { parts = saved.parts; selected = (typeof saved.sel === 'number') ? saved.sel : 0; }
   if (saved && saved.preset && PRESETS[saved.preset]) currentPreset = saved.preset;
+  if (saved && saved.defaults && saved.defaults.length) defaultParts = saved.defaults;
   // a scene saved before Rollback existed: the preset whose parts are the same kinds in the same order
   if (!currentPreset && parts.length) {
     var sig = parts.map(function(p){ return p.ptype === 'fx' ? 'fx:' + p.name : p.kind; }).join('|');
@@ -1473,6 +1604,7 @@ __SCRIPTS__
       if (PRESETS[k].parts.map(function(p){ return p.ptype === 'fx' ? 'fx:' + p.name : p.kind; }).join('|') === sig) currentPreset = k;
     });
   }
+  if (!defaultParts && currentPreset) defaultParts = PRESETS[currentPreset].parts.map(function(p){ var c = {}; for (var k in p) c[k] = p[k]; return c; });
   // Rollback: the loaded preset again, at the positions the game uses now (this page was built from df_coords.gsc)
   document.getElementById('rollbackBtn').addEventListener('click', function(){
     if (!currentPreset) { mgDiag('rollback: load a preset first (the scene did not come from one)'); return; }

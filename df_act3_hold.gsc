@@ -808,48 +808,50 @@ df_s7_charge_strike()
     level.df_s7_striking = 0;
 }
 
-// Wander under the tower: random points within 250 of the centre, on the ground, reachable in a straight
-// line from where the orb is (a bullettrace that hits something is rejected); moveto 4-6 s per leg, 1-2 s pauses.
+// owner 2026-09-28: the rock follows the route set in the prop composer (df_coords df_s7_path_init): it starts at the
+// point nearest to it, glides from point to point in order (4-6 s per leg, 1-2 s pauses) and loops.
 df_s7_orb_wander()
 {
     level endon( "end_game" );
     level endon( "df_skip_step7" );
     level endon( "df_s7_wave_over" );
 
-    center = df_s7_tower_center();
+    path = df_s7_path_get();
+
+    if ( !isdefined( path ) || path.size == 0 || !isdefined( level.df_s7_orb ) )
+        return;
+
+    i = 0;
+    best = undefined;
+
+    for ( k = 0; k < path.size; k++ )
+    {
+        d = distancesquared( level.df_s7_orb.origin, df_s7_orb_path_pos( k ) );
+
+        if ( !isdefined( best ) || d < best )
+        {
+            best = d;
+            i = k;
+        }
+    }
 
     while ( isdefined( level.df_s7_orb ) )
     {
-        dest = df_s7_orb_pick_point( center );
-
-        if ( isdefined( dest ) )
-        {
-            time = randomfloatrange( 4, 6 );
-            level.df_s7_orb moveto( dest, time );
-            wait( time );
-        }
-
+        time = randomfloatrange( 4, 6 );
+        level.df_s7_orb moveto( df_s7_orb_path_pos( i ), time );
+        wait( time );
         wait( randomfloatrange( 1, 2 ) );
+        i = ( i + 1 ) % path.size;
     }
 }
 
-// A ground point within 60-250 of the centre with a clear straight line from the ball, or undefined after 8 tries.
-df_s7_orb_pick_point( center )
+// World position of route point n: its table-frame spot, the ground there, then its hover (the rock model's origin
+// height above the ground, exactly what the composer shows).
+df_s7_orb_path_pos( n )
 {
-    for ( tries = 0; tries < 8; tries++ )
-    {
-        dir = anglestoforward( ( 0, randomint( 360 ), 0 ) );
-        flat = center + dir * randomfloatrange( 60, 250 );
-        dest = df_ground( ( flat[0], flat[1], center[2] + 40 ) ) + df_s7_orb_rest_offset() + ( 0, 0, 40 ); // hovers 40 up (owner 2026-09-11: hard to see on the ground)
-        trace = bullettrace( level.df_s7_orb.origin, dest, 0, level.df_s7_orb );
-
-        if ( isdefined( trace["fraction"] ) && trace["fraction"] < 1 )
-            continue;
-
-        return dest;
-    }
-
-    return undefined;
+    off = df_s7_path_get()[n];
+    flat = df_table_point( ( off[0], off[1], 0 ) );
+    return df_ground( flat + ( 0, 0, 40 ) ) + ( 0, 0, off[2] );
 }
 
 // Success: the tower lights up in the side colour (df_tower_fx_start) and the orb glides back ONTO ITS

@@ -221,7 +221,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   the cabin fireplace `DF_CABIN_HEARTH`, aim point `cabin_hearth_node`), the aura, home-flight of a dropped rock (60 s)
   or of one never touched (3 min, to the table front), the Step 7 restart contract (`df_s6_restart` /
   `df_s6_redelivered`, `df_s6_place_silent` when a skip ends a restart cycle).
-- `df_act3_hold.gsc` - Step 7 The Line Holds: the 1.5 s "Hold F to power the relay" start, the wandering orb under the tower, our own sprinter spawner and
+- `df_act3_hold.gsc` - Step 7 The Line Holds: the 1.5 s "Hold F to power the relay" start, the orb gliding along its route (df_s7_path_def, set in the prop composer) under the tower, our own sprinter spawner and
   alive cap, the orb hp and guard bonus, the zone rule (a player downed inside counts as present; horn + D7_ZONE
   line at 5 s), charge strikes, per-side pressure (Avogadro boss on Richtofen; on Maxis the fast zombies and the smoke column
   only, no denizens since 2026-09-25), the song (one length constant,

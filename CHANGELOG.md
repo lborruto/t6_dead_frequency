@@ -6,6 +6,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- The Step 7 rock follows a route of points (set in the prop composer) instead of random spots under the tower.
+- The relay's spot on the bus roof can be set in the prop composer (df_relay_roof_def); without it the old rule stands.
 - Everything that goes into the table (the relay, the key card, the R2 batteries, the lantern, the rock) is
   built in with the vanilla build hold: builder hands, the build bar, 3 s. One hold puts in every battery the
   player carries.

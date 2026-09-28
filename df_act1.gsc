@@ -656,7 +656,19 @@ df_a1_build_relay()
     if ( isdefined( trace["position"] ) && trace["fraction"] < 1 )
         pos = trace["position"];
 
-    relay = df_a1_relay_spawn( pos, bus.angles[1] ); // upright, front along the bus
+    yaw = bus.angles[1];
+
+    // owner 2026-09-28: the pose chosen in the prop composer, when there is one (df_coords df_relay_roof_def)
+    if ( !isdefined( level.df_relay_roof_yaw ) )
+        df_relay_roof_init();
+
+    if ( isdefined( level.df_relay_roof_off ) )
+    {
+        pos = bus.origin + df_offset_rotate( level.df_relay_roof_off, bus.angles[1] );
+        yaw = bus.angles[1] + level.df_relay_roof_yaw;
+    }
+
+    relay = df_a1_relay_spawn( pos, yaw ); // upright, front along the bus
     relay linkto( bus );
     level.df_relay = relay;
     df_step_phase( "step3", undefined ); // owner 2026-09-25: the build is over, the ladder speaks the ride again

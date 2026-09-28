@@ -442,6 +442,50 @@ df_table_bat_def( n, offset )
     level.df_table_bats[n] = offset;
 }
 
+// owner 2026-09-28: where the relay is built on the bus roof, set in the prop composer ("Relay on the bus"): an offset
+// in the BUS's own frame (x = towards its front, y = to its left, z = up, from the bus origin) and a yaw added to the
+// bus's. With no df_relay_roof_def line the old rule stands: the roof surface under the roof trigger, along the bus.
+df_relay_roof_init()
+{
+    level.df_relay_roof_off = undefined;
+    level.df_relay_roof_yaw = 0;
+}
+
+df_relay_roof_def( offset, yaw )
+{
+    level.df_relay_roof_off = offset;
+    level.df_relay_roof_yaw = yaw;
+}
+
+// owner 2026-09-28: the Step 7 rock's route under the tower, chosen in the prop composer ("Step 7 rock path"): the
+// rock glides from point to point in this order and loops. Each point is in the table's frame (x towards its front,
+// y to its left, from the table's origin) and z is the hover ABOVE THE GROUND at that spot (df_s7_orb_path_pos
+// traces the ground there). The defaults ring the tower centre, as the old random wander did.
+df_s7_path_init()
+{
+    level.df_s7_path = [];
+
+    df_s7_path_def( 0, ( 23, -16, 43 ) );
+    df_s7_path_def( 1, ( -80, 127, 43 ) );
+    df_s7_path_def( 2, ( -248, 72, 43 ) );
+    df_s7_path_def( 3, ( -248, -104, 43 ) );
+    df_s7_path_def( 4, ( -80, -159, 43 ) );
+}
+
+df_s7_path_def( n, offset )
+{
+    level.df_s7_path[n] = offset;
+}
+
+// The route's points (df_s7_path_init on first use).
+df_s7_path_get()
+{
+    if ( !isdefined( level.df_s7_path ) )
+        df_s7_path_init();
+
+    return level.df_s7_path;
+}
+
 // World position of R2 battery n under the table.
 df_table_bat_pos( n )
 {
