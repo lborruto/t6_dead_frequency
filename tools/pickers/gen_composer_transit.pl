@@ -99,6 +99,13 @@ die sprintf( "df_fx_points_init(): no df_fx_point_def(...) lines found in $coord
 #      own layout since 2026-09-22 (it replaced the old "three slots 18 apart" rule), so the presets below draw
 #      exactly what the game does and the page exports these very lines back. -------------------------------
 my %slot_def;   # n -> [ x, y, z ]
+# owner 2026-09-28: the R2 batteries under the table, df_table_bats_init(): df_table_bat_def( n, ( x, y, z ) ); in the
+# table's frame with z from the table's own origin (on the ground)
+my %bat_def;
+while ( $gsc =~ /df_table_bat_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)\s*;/g ) {
+    $bat_def{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0 ];
+}
+die "df_table_bats_init(): no df_table_bat_def( 0, ( x, y, z ) ); line found\n" unless $bat_def{0};
 while ( $gsc =~ /df_table_slot_def\(\s*(\d+)\s*,\s*\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\)\s*\)\s*;/g ) {
     $slot_def{ $1 + 0 } = [ $2 + 0, $3 + 0, $4 + 0 ];
 }
@@ -123,7 +130,7 @@ $table_front_yaw = defined($table_front_yaw) ? $table_front_yaw + 0 : 0;
 # The card / skull / orb lifts are gone from the callers: each item's own lift is the z of its slot in the
 # registry above (df_table_slot( n ) returns the item's FINAL rest position).
 
-for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a portal spool pswitch_body pswitch_lever)) {
+for my $kind (qw(relay relay_top relay_coil relay_mast table brazier ember card skull orb tv fuse receiver part_a portal spool r2_battery pswitch_body pswitch_lever)) {
     die "df_model_def for kind \"$kind\" not found in $coords -- needed for a preset\n" unless $model_def{$kind};
 }
 
@@ -158,7 +165,7 @@ printf STDERR "df_coords.gsc: table slots (df_table_slot_def, z from the top %s)
 printf STDERR "df_coords.gsc: %d df_fx_point_def(...) points parsed from df_fx_points_init()\n", scalar @fx_order;
 
 # The preset's own models must be embedded no matter what the size budget below does to the general list.
-my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool pswitch_body pswitch_lever);
+my %required = map { $model_def{$_}{name} => 1 } qw(relay relay_coil relay_mast relay_top table brazier ember card skull orb tv fuse receiver part_a portal spool r2_battery pswitch_body pswitch_lever);
 
 # ---- 16 MB page budget: if the embedded glTF payload would push the page over it, drop the largest
 #      glTF files first (never a model any preset needs) and remember how many were dropped. -------------
@@ -263,6 +270,7 @@ sub model_part {
     $p{anchor}  = 1           if $o{anchor};
     $p{snapTop} = 1           if $o{snapTop};
     $p{slot}    = $o{slot}    if defined $o{slot};
+    $p{bat}     = $o{bat}     if defined $o{bat};
     return \%p;
 }
 
@@ -314,7 +322,7 @@ my @skull_pos = @slot1;
 my $orb_yaw  = $table_front_yaw + $model_def{orb}{yawoff};
 my @orb_pos  = @slot2;
 
-# fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), the nine
+# fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), the eight
 # relay_step_glow_N (parent "relay") and orb_aura/orb_glint (parent "orb").
 sub table_common_fx {
     my @fx = (
@@ -322,7 +330,7 @@ sub table_common_fx {
         fx_part( name => 'socket_glow',   parent => 'table' ),
         fx_part( name => 'socket_marker', parent => 'table' ),
     );
-    push @fx, map { fx_part( name => "relay_step_glow_$_", parent => 'relay' ) } 1 .. 9; # owner 2026-09-23: one glow per step up the mast
+    push @fx, map { fx_part( name => "relay_step_glow_$_", parent => 'relay' ) } 1 .. 8; # owner 2026-09-23: one glow per step up the mast
     push @fx, fx_part( name => 'orb_aura', parent => 'orb' ), fx_part( name => 'orb_glint', parent => 'orb' );
     return @fx;
 }
@@ -369,6 +377,26 @@ add_preset(
     model_part( kind => 'spool', model => $model_def{spool}{name}, pitch => $model_def{spool}{pitch}, roll => $model_def{spool}{roll} ),
     fx_part( name => 'pickup_glint', parent => 'spool' ),
 );
+
+# owner 2026-09-28: the R2 batteries once inserted, on the ground under the table (df_table_bat_def registry). Every
+# battery exports as a df_table_bat_def line: its offset in the table's frame, z from the table's own origin.
+{
+    my @bats;
+    for my $n ( sort { $a <=> $b } keys %bat_def ) {
+        my ( $bx, $by ) = df_rotate_offset( $bat_def{$n}[0], $bat_def{$n}[1], 0, $table_front_yaw );
+        push @bats, model_part( kind => 'r2_battery', model => $model_def{r2_battery}{name}, x => r2($bx), y => r2($by), z => r2( $bat_def{$n}[2] ),
+                                pitch => $model_def{r2_battery}{pitch}, roll => $model_def{r2_battery}{roll}, yaw => $table_front_yaw + ( $model_def{r2_battery}{yawoff} // 0 ), bat => $n );
+    }
+    add_preset(
+        'r2_batteries', 'R2 batteries (under the table)',
+        'Base = kind "table" (' . $model_def{table}{name} . ') at (0,0,0), front yaw ' . $table_front_yaw . '. The '
+          . scalar( keys %bat_def ) . ' batteries (kind "r2_battery", ' . $model_def{r2_battery}{name} . ') are df_table_bats_init() in df_coords.gsc, '
+          . 'one df_table_bat_def line each, in the table\'s frame with z from the table\'s origin (the ground). Batteries 0-2 are used with 1-3 players, '
+          . 'the 4th only with a full lobby. Drag them, then copy the "R2 batteries" block of the GSC export.',
+        model_part( kind => 'table', model => $model_def{table}{name}, pitch => $model_def{table}{pitch}, roll => $model_def{table}{roll}, yaw => $table_front_yaw ),
+        @bats,
+    );
+}
 
 add_preset(
     'coil_drop', 'Coil drop',
@@ -433,7 +461,6 @@ add_preset(
     fx_part( name => 'relay_step_glow_6', parent => 'relay' ),
     fx_part( name => 'relay_step_glow_7', parent => 'relay' ),
     fx_part( name => 'relay_step_glow_8', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_9', parent => 'relay' ),
 );
 
 for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 'Table, Maxis loaded' ] ) {
@@ -1237,6 +1264,23 @@ __SCRIPTS__
           lx = loc[0]; ly = loc[1]; lz = p.z - tablePart.z - TABLE_TOP_Z;
         }
         lines.push('df_table_slot_def( ' + p.slot + ', ( ' + round05(lx) + ', ' + round05(ly) + ', ' + round05(lz) + ' ) ); // ' + p.kind);
+      });
+    }
+
+    // owner 2026-09-28: the R2 batteries (a part carrying .bat) export as df_table_bat_def lines: the offset in the
+    // table's own frame, z from the table's own origin (it stands on the ground), like df_table_point.
+    var bats = parts.filter(function(p){ return p.ptype !== 'fx' && typeof p.bat === 'number'; }).slice().sort(function(a, b){ return a.bat - b.bat; });
+    if (bats.length) {
+      var tbl = findParentPart('table');
+      lines.push('');
+      lines.push('// R2 batteries (df_table_bat_def in df_coords.gsc, df_table_bats_init(); z from the table origin = the ground)');
+      bats.forEach(function(p){
+        var bx = p.x, by = p.y, bz = p.z;
+        if (tbl) {
+          var loc = rotateXY(p.x - tbl.x, p.y - tbl.y, -tbl.yaw);
+          bx = loc[0]; by = loc[1]; bz = p.z - tbl.z;
+        }
+        lines.push('df_table_bat_def( ' + p.bat + ', ( ' + round05(bx) + ', ' + round05(by) + ', ' + round05(bz) + ' ) );');
       });
     }
 

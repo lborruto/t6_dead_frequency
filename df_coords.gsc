@@ -423,6 +423,39 @@ df_table_slot_def( n, offset )
     level.df_table_slots[n] = offset;
 }
 
+// owner 2026-09-28: where the R2 batteries stand once inserted, ON THE GROUND under the table: one entry per
+// battery (four with a full lobby), in the table's own frame (x = towards its front, y = to its left) with z
+// from the table's own origin, which stands on the ground (df_table_point). Tuned in the prop composer
+// ("R2 batteries (under the table)"), which exports these lines.
+df_table_bats_init()
+{
+    level.df_table_bats = [];
+
+    df_table_bat_def( 0, ( 8, 24, -1 ) );
+    df_table_bat_def( 1, ( 8, 8, -1 ) );
+    df_table_bat_def( 2, ( 8, -8, -1 ) );
+    df_table_bat_def( 3, ( 8, -24, -1 ) );
+}
+
+df_table_bat_def( n, offset )
+{
+    level.df_table_bats[n] = offset;
+}
+
+// World position of R2 battery n under the table.
+df_table_bat_pos( n )
+{
+    if ( !isdefined( level.df_table_bats ) )
+        df_table_bats_init();
+
+    off = level.df_table_bats[n];
+
+    if ( !isdefined( off ) )
+        off = ( 8, 24 - 16 * n, -1 );
+
+    return df_table_point( off );
+}
+
 // The registered offset of slot n in the table's frame (z from the table top). An unknown slot is
 // ( 0, 0, 0 ) plus a console warning (same rule as df_model / df_fx_point): a typo never throws.
 df_table_slot_offset( n )

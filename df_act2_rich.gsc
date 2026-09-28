@@ -2443,18 +2443,9 @@ df_r2_table_battery_show( i )
     if ( isdefined( level.df_r2_table_bats[i] ) )
         return;
 
-    c = df_coord( "DF_TABLE" );
+    // owner 2026-09-28: the spots are the df_table_bat_def registry (df_coords.gsc), tuned in the prop composer
     yaw = df_table_yaw();
-    need = level.df_r2_spools_need;
-
-    if ( !isdefined( need ) || need < 1 )
-        need = 3;
-
-    side = ( i - ( need - 1 ) * 0.5 ) * 16;
-    // owner 2026-09-25: ON THE GROUND under the table: a ground trace hits the table top, so the floor height is
-    // the table's own (DF_TABLE stands on the ground + 1)
-    pos = c.origin + anglestoforward( ( 0, yaw, 0 ) ) * 8 + anglestoright( ( 0, yaw, 0 ) ) * side;
-    pos = ( pos[0], pos[1], c.origin[2] - 1 );
+    pos = df_table_bat_pos( i );
     b = spawnstruct();
     b.model = spawn( "script_model", pos );
     b.model setmodel( df_model( "r2_battery" ) );
