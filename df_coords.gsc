@@ -500,7 +500,7 @@ df_relay_roof_def( offset, yaw )
 // in the bus frame (x forward, y left, z up, from the bus origin) and a yaw added to the bus's. Default = the old spot.
 df_bus_battery_init()
 {
-    df_bus_battery_def( ( 190, 0, 64 ), 0 );
+    df_bus_battery_def( ( -53.5, -20, 67.5 ), -70.5 ); // owner composer 2026-09-28: on the dashboard
 }
 
 df_bus_battery_def( offset, yaw )
