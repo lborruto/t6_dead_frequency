@@ -240,7 +240,7 @@ Each side gets its own third Act 2 step: R3 for Richtofen, M3 for Maxis.
   within ONE round (they stand far apart: split up in co-op, or plan the route solo). The moment the third
   one goes ON, R3 is done. There are always three switches, whatever the lobby size.
 - MAXIS - Lights Out: the moment M3 opens, Richtofen feeds his power into the lamps of the same set as
-  before (three, four with a full lobby) - each one hums with a big electric spark, a blue glow and his hum. Only the dead can break his light:
+  before (always three: a full lobby's fourth set lamp stays normal) - each one hums with a big electric spark, a blue glow and his hum. Only the dead can break his light:
   a zombie dying to a CLAYMORE (sold at the Farm wall buy, or one already planted there) within 250 units of a
   humming lamp's base snaps his power off it - a blue spark flies away toward the tower and the lamp goes back
   to exactly the light the map gave it, nothing of his left on it. Kill it there any other
