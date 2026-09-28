@@ -1562,16 +1562,6 @@ df_fx_points_init()
     df_fx_point_def( "relay_burst_mid", "relay", ( 0, 0, 24 ) );    // df_a1_burst takes the z only
     df_fx_point_def( "relay_glow", "relay", ( 0, 0, 30 ) );         // idle glow, roof and plugged, and the idle pulse z
     df_fx_point_def( "relay_glint", "relay", ( 0, 0, 34 ) );
-    // owner 2026-09-23: ONE glow per finished step on the table, climbing the plugged relay mast from bottom (step 1) to top
-    // (step 7), df_finale df_fin_step_glow; parent "relay" so the offset turns with the relay
-    df_fx_point_def( "relay_step_glow_1", "relay", ( -5, 3, 16.5 ) ); // step 1
-    df_fx_point_def( "relay_step_glow_2", "relay", ( -5, 3, 28.5 ) ); // step 3 (owner 2026-09-25: step2 merged into it)
-    df_fx_point_def( "relay_step_glow_3", "relay", ( -5, 3, 40.5 ) ); // step 4
-    df_fx_point_def( "relay_step_glow_4", "relay", ( -5, 3, 52.5 ) ); // r1 / m1
-    df_fx_point_def( "relay_step_glow_5", "relay", ( -5, 3, 64.5 ) ); // r2 / m2
-    df_fx_point_def( "relay_step_glow_6", "relay", ( -5, 3, 76.5 ) ); // step 5
-    df_fx_point_def( "relay_step_glow_7", "relay", ( -5, 3, 88.5 ) ); // step 6
-    df_fx_point_def( "relay_step_glow_8", "relay", ( -5, 3, 100.5 ) ); // step 7
     df_fx_point_def( "relay_array_node", "relay", ( 0, 0, 40 ) );   // base: table slot 0 (the plugged relay)
     df_fx_point_def( "relay_array_step", "relay", ( 0, 0, 16 ) );   // multiplied by the array level, on top of relay_array_node
 

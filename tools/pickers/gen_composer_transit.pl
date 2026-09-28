@@ -322,15 +322,13 @@ my @skull_pos = @slot1;
 my $orb_yaw  = $table_front_yaw + $model_def{orb}{yawoff};
 my @orb_pos  = @slot2;
 
-# fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), the eight
-# relay_step_glow_N (parent "relay") and orb_aura/orb_glint (parent "orb").
+# fx points shared by both "Table, ... loaded" presets: the socket points (parent "table" directly), and orb_aura/orb_glint (parent "orb").
 sub table_common_fx {
     my @fx = (
         fx_part( name => 'socket_spark',  parent => 'table' ),
         fx_part( name => 'socket_glow',   parent => 'table' ),
         fx_part( name => 'socket_marker', parent => 'table' ),
     );
-    push @fx, map { fx_part( name => "relay_step_glow_$_", parent => 'relay' ) } 1 .. 8; # owner 2026-09-23: one glow per step up the mast
     push @fx, fx_part( name => 'orb_aura', parent => 'orb' ), fx_part( name => 'orb_glint', parent => 'orb' );
     return @fx;
 }
@@ -455,14 +453,6 @@ add_preset(
     ),
     fx_part( name => 'relay_array_node', parent => 'relay' ),
     fx_part( name => 'relay_array_step', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_1', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_2', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_3', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_4', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_5', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_6', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_7', parent => 'relay' ),
-    fx_part( name => 'relay_step_glow_8', parent => 'relay' ),
 );
 
 for my $variant ( [ 'table_rich', 'Table, Richtofen loaded' ], [ 'table_maxis', 'Table, Maxis loaded' ] ) {

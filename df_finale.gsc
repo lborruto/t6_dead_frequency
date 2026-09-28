@@ -19,7 +19,7 @@
 //   Max Ammo drops at the table (df_fin_act2_listener); the finale then does not repeat it.
 //   Tracker (8d.1): one permanent runner light on the tower per completed act (Act 1 white current, Act 2
 //   side sparks, Act 3 both) and one glow per finished step climbing the relay mast on
-//   the table (df_fin_tracker_listener, df_fin_step_glow).
+//   the tower (df_fin_tracker_listener, df_fin_relay_runner_loop).
 //   Shared helpers this file uses from df_systems (core agent, 2026-09-09): df_cue_deny( player ),
 //   df_cue_side_flash( origin, side ), df_fx_burst( fx, origin, seconds ), df_vox_once( alias, origin ).
 //   Rewards: every perk (the six TranZit machines, df_fin_perk_list; down players get them on revive;
@@ -1094,7 +1094,8 @@ df_fin_reward_maxis()
 //   step4 (Act 1 done)  -> permanent white runner on the tower
 //   r2 / m2 (Act 2)     -> permanent side-coloured runner
 //   step7 (Act 3)       -> a second pair of runners (white + side)
-//   every step          -> its glow up the relay mast (df_fin_step_glow)
+//   step4 also          -> the relay runner: a side-coloured runner leaves the plugged relay every few seconds and
+//                          climbs the nearest tower chain to the top (owner 2026-09-28: it replaces the step glows)
 // Runners are our own copy of df_systems' df_tower_fx_runner: the shared one dies with every
 // df_tower_fx_stop (each act's 12 s cue calls it), these survive until end_game. The side of a runner is
 // re-read at every launch so the colour follows the locked side.
@@ -1122,10 +1123,12 @@ df_fin_tracker_apply( key )
         return;
 
     level.df_fin_track[key] = 1;
-    df_fin_step_glow( key ); // owner 2026-09-23: one glow per finished step, up the relay
 
     if ( key == "step4" )
+    {
         level thread df_fin_runner_loop( "white", 5 );
+        level thread df_fin_relay_runner_loop( 4 );
+    }
     else if ( key == "r2" || key == "m2" )
         level thread df_fin_runner_loop( "side", 5 );
     else if ( key == "step7" )
@@ -1139,92 +1142,72 @@ df_fin_tracker_apply( key )
     df_debug_print( "DF: tracker: " + key + " marked" );
 }
 
-// owner 2026-09-23: ONE glow per finished step on the table, climbing the plugged relay mast from bottom to top
-// (df_coords relay_step_glow_1..8: step1, step3, step4, r1/m1, r2/m2, step5, step6, step7; owner 2026-09-25: eight
-// since the old step2 merged into step3), so the relay ends fully lit instead of every item stacking its own light.
-// Steps done before the relay stands on the table (1-2) light the moment it is plugged (df_fin_step_glow_wait).
-// 0 = not a glow step.
-df_fin_step_glow_index( key )
-{
-    switch ( key )
-    {
-        case "step1":
-            return 1;
-        case "step3":
-            return 2;
-        case "step4":
-            return 3;
-        case "r1":
-        case "m1":
-            return 4;
-        case "r2":
-        case "m2":
-            return 5;
-        case "step5":
-            return 6;
-        case "step6":
-            return 7;
-        case "step7":
-            return 8;
-    }
-
-    return 0;
-}
-
-df_fin_step_glow( key )
-{
-    i = df_fin_step_glow_index( key );
-
-    if ( i == 0 )
-        return;
-
-    if ( !isdefined( level.df_fin_step_fx ) )
-        level.df_fin_step_fx = [];
-
-    if ( isdefined( level.df_fin_step_fx[i] ) )
-        return;
-
-    // the R2 relay array lights were R2's progress; once R2 is done its step glow says it
-    if ( i == 5 && isdefined( level.df_r2_array_fx ) )
-    {
-        foreach ( fx in level.df_r2_array_fx )
-            df_fx_stop( fx );
-
-        level.df_r2_array_fx = [];
-    }
-
-    relay = level.df_socket_relay;
-
-    if ( !isdefined( relay ) )
-    {
-        level thread df_fin_step_glow_wait( key );
-        return;
-    }
-
-    // owner 2026-09-23: the xsm light glow was too strong; the tiny bulb glow by default, `set df_step_glow_fx <fx key>`
-    // swaps it for the glows lit after the change
-    fxname = getdvar( "df_step_glow_fx" );
-
-    if ( !isdefined( fxname ) || fxname == "" )
-        fxname = "fx_zmb_tranzit_key_glint"; // owner 2026-09-25: the bulb glow was still too strong
-
-    fx = df_fx_loop( fxname, relay.origin + df_fx_point_at( "relay_step_glow_" + i, relay.angles[1] ) );
-
-    if ( isdefined( fx ) )
-        level.df_fin_step_fx[i] = fx;
-}
-
-// A step finished before the relay stands on the table: its glow comes when the relay does.
-df_fin_step_glow_wait( key )
+// owner 2026-09-28: "instead of the relay glows, a light from the relay to the top of the tower, red / blue for
+// Maxis / Richtofen": from Step 4 on, every `gap` s a side-coloured runner (df_fin_runner_fx "side") rises off the
+// plugged relay, flies to the foot of the tower chain nearest to it and climbs that chain to the top.
+df_fin_relay_runner_loop( gap )
 {
     level endon( "end_game" );
-    level notify( "df_fin_step_glow_wait_" + key );
-    level endon( "df_fin_step_glow_wait_" + key );
+
+    structs = getstructarray( "sq_common_pole_fx", "targetname" );
+
+    if ( !isdefined( structs ) || structs.size == 0 )
+    {
+        df_debug_print( "DF: tracker: sq_common_pole_fx structs not found, no relay runner" );
+        return;
+    }
 
     while ( !isdefined( level.df_socket_relay ) )
         wait 1;
 
-    df_fin_step_glow( key );
+    start = getclosest( level.df_socket_relay.origin, structs );
+    df_debug_print( "DF: tracker: relay runner up the tower every " + gap + " s" );
+
+    while ( true )
+    {
+        if ( isdefined( level.df_socket_relay ) )
+            level thread df_fin_relay_runner( df_fin_runner_fx( "side" ), level.df_socket_relay.origin + ( 0, 0, 40 ), start );
+
+        wait( gap + randomfloat( 1 ) );
+    }
+}
+
+// One runner: settles 0.15 s at the relay (a trail moved on its spawn frame is not always seen), flies to the chain's
+// foot (700 units/s, 0.4-1.5 s, like df_soul_fly), then climbs the chain (df_fin_runner's 1.4 s per segment).
+df_fin_relay_runner( fx, from, struct )
+{
+    level endon( "end_game" );
+
+    ent = df_fx_loop( fx, from );
+
+    if ( !isdefined( ent ) )
+        return;
+
+    wait 0.15;
+    t = distance( from, struct.origin ) / 700;
+
+    if ( t < 0.4 )
+        t = 0.4;
+
+    if ( t > 1.5 )
+        t = 1.5;
+
+    ent moveto( struct.origin, t );
+    ent waittill( "movedone" );
+
+    while ( isdefined( struct.target ) )
+    {
+        next = getstruct( struct.target, "targetname" );
+
+        if ( !isdefined( next ) )
+            break;
+
+        struct = next;
+        ent moveto( struct.origin, 1.4 );
+        ent waittill( "movedone" );
+    }
+
+    df_fx_stop( ent );
 }
 
 // The runner fx of a colour: "white" = the power-station rising current (fx_zmb_tranzit_power_rising,

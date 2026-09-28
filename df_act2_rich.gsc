@@ -2485,9 +2485,8 @@ df_r2_spools_deliver_all()
 
 // The antenna array on the plugged relay (table slot 0): the act1 owner's stacking hook when present
 // (level.df_relay_array_func( n, total ), requested), else a console line only.
-// Owner 2026-09-23 (P8): the n stacked fx_zmb_tranzit_light_glow_xsm glows on the table mast are gone: they
-// overlapped the per-step glows of df_finale, which carry the look now. level.df_r2_array_fx is no longer
-// filled (df_finale's cleanup of it is a no-op).
+// Owner 2026-09-23 (P8): the n stacked fx_zmb_tranzit_light_glow_xsm glows on the table mast are gone (no glow on
+// the relay; since 2026-09-28 the relay runner up the tower carries the look, df_finale).
 df_r2_array_set( n )
 {
     if ( isdefined( level.df_relay_array_func ) )

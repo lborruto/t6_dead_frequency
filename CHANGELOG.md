@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- The eight step glows on the table relay are gone. From Step 4 on, a runner in the side's colour (blue
+  Richtofen, red Maxis) leaves the relay every few seconds and climbs the tower to the top.
+
 ### Fixed
 - Pickup notices and the TAB square no longer use the six vanilla icons Scavenger's `images` folder repaints
   (they showed a guillotine, gallows or nav table): our items use other TranZit buildable icons, and our TAB

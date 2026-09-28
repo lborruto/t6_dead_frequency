@@ -92,8 +92,7 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   `fuse`, `card`, `brazier`, `skull`, `orb`, `pswitch_body`, `pswitch_lever`, ...) to a model plus facing
   convention; step files never name a model, they call `df_model( kind )`. `df_apply_overrides()` is where `!df grab` output is pasted; overrides
   always win. Also the table (`DF_TABLE`, three slots; `DF_SOCKET` is moved onto it; `df_table_point( offset )`
-  for props posed in the table frame: the M1 lantern and the burning lantern, at the same pose), the fx attach points (`df_fx_point_def`,
-  e.g. `relay_step_glow_1..8`), the Step 6 landing-spot draw (once per game at boot) and the curated
+  for props posed in the table frame: the M1 lantern and the burning lantern, at the same pose), the fx attach points (`df_fx_point_def`), the Step 6 landing-spot draw (once per game at boot) and the curated
   `df_catalog_models()`.
 - `df_lamps.gsc` - the ONE lamp set per game (3 lamps, 4 with a full lobby, picked at boot from the six lamps
   valid on both sides, diner and townbridge excluded) and every lamp look (`df_lamp_state_set`: off, souls,
@@ -229,8 +228,8 @@ vanilla facts the file relies on (with line numbers into the decompiled scripts)
   `df_s7_song_seconds`, for the restart guard and the after-hold waves), and the after-hold waves (never started
   after a skip; also end the moment the finale starts, owner 2026-09-25, `level endon( "df_fin_started" )`).
 - `df_finale.gsc` - the finale (power gate, hold 2.5 s, perks, build-up, orb rise, burst, permanent world change, rewards,
-  globe stat), the Act 2 reward listener, and the tower tracker (runner lights per act, one glow per step up the
-  table relay); the no-overheat Jet Gun reward (`df_fin_jetgun_cool_loop`).
+  globe stat), the Act 2 reward listener, and the tower tracker (runner lights per act, and from Step 4 the side-coloured relay runner
+  from the table relay up the tower, `df_fin_relay_runner_loop`); the no-overheat Jet Gun reward (`df_fin_jetgun_cool_loop`).
 
 ## The build
 
@@ -389,7 +388,6 @@ touch. `!df texthints off` silences the ladder (prompts have their own switch).
 | `df_m2_fire_fx` | `character_fire_death_sm` | the small M2 flame on every standing grave, replayed every 2 s |
 | `df_m2_hand_fx` | `dog_trail_fire` | the burning lantern's own, smaller flame on the table (only once the four graves are ash), replayed every 2 s; read at the next spawn (`character_fire_death_sm` = the old one) |
 | `df_bo_lever_on` / `df_bo_lever_off` | `0 0 0` / `0 0 90` | pitch yaw roll ADDED to the `pswitch_lever` registry angle for the Blackout switch's ON / OFF pose (vanilla: OFF = roll 90, ON = roll 0, `zm_transit_power.gsc:56`); after changing either, `!df fire blackout_respawn` re-poses the three live switches |
-| `df_step_glow_fx` | `fx_zmb_tranzit_key_glint` | the per-step glow on the table relay mast (applies to glows lit after the change) |
 | `df_catalog` | "" | `0` skips precaching `df_catalog_models()` (the registry models are always precached) |
 | `df_scav_slot` | "" (auto) | forces the TAB square slot for a Scavenger version whose row has another length |
 
@@ -467,9 +465,8 @@ Note: the M1 item is Maxis's lantern (since 2026-09-25; `zombie_skull` from 2026
 `!df catalog pick <n> skull` swaps it, `!df orb <name>` the Step 6 rock. `!df model` lists every kind; `!df fire
 table_demo` previews relay + coil box + mast, card and rock on the three slots. The table under the tower carries NO fx of
 ours (no Step 4 preview light, no plug spark, no marker glint at Step 4 / the R1 card insert / the finale, no placing
-snap; the burning burning lantern between M2 and Step 6 is the one exception): the lasting look is one glow per finished step up the plugged relay mast (fx points
-`relay_step_glow_1..8` = step1, step3, step4, r1/m1, r2/m2, step5, step6, step7 (eight since step2 merged into step3); `df_fin_step_glow`,
-dvar `df_step_glow_fx`, default `fx_zmb_tranzit_key_glint`).
+snap; the burning burning lantern between M2 and Step 6 is the one exception): the lasting look is the relay runner, from Step 4 a side-coloured trail from the plugged relay up
+the nearest tower leg every ~4 s (`df_fin_relay_runner_loop`, owner 2026-09-28: it replaced the eight step glows).
 
 ## Lamps
 

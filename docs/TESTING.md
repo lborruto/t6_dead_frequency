@@ -120,7 +120,7 @@ list the same sets as `!df snd list` / `!df fx list`. In game: `!df snd <n>` / `
 full volume and prints its name; `!df fx <n>` / `!df fx next` plays an effect 8 s where you aim (`[FX n/150] name`);
 `!df fx grid` puts a whole page of effects on pedestals in front of you (`gridnext` / `gridprev` / `gridbig` for the
 huge ones / `gridoff`), walk to a pedestal and the bottom label reads `[n] name`. Paste the numbers or names you want,
-and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, step glow, rock aura, ...).
+and for what (pipe flash, signal light, lamp hungry / full / dark, grave flame, rock aura, ...).
 
 ## 3. Act 1 (shared)
 **Step 1 Dead Air** (depot, no power). Skip: `!df fire a1_solve1` or `!df goto step3` (`step2` still works as its alias; the coil arrives in both cases).
@@ -176,7 +176,8 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
   relay_mast`), no table light at any time, tower visuals 15 s, one vanilla voice line (Richtofen's `vox_zmba_sidequest_power_on_0` is 2D to Stuhlinger ONLY, console
   `vox vox_zmba_sidequest_power_on_0 -> <Stuhlinger>`, never `3D`; nobody else may hear it), D4 line,
   `relay plugged by <you>, power 1, side rich`. A white runner starts climbing a tower leg every ~5 s and stays for the
-  game. Three small step glows appear on the relay mast, bottom up (steps 1, 3, 4; eight glows in all since 2026-09-25; default fx_zmb_tranzit_key_glint, `set df_step_glow_fx <fx>` swaps the glow).
+  game. From here on a side-coloured runner (blue Richtofen, red Maxis) leaves the relay every ~4 s and climbs the
+  nearest tower leg to the top (`tracker: relay runner up the tower every 4 s`); the relay itself carries no step glows.
 - Side lock: `DF: side locked rich` (power ON) or `DF: side locked maxis` (power OFF). Boxes and graves are NEVER
   removed any more (owner 2026-09-25): power ON -> rich turns on the boxes' faint boot glow (no console line for
   it) and prints `DF: Richtofen side locked, the four graves stay dark` (check Town: four cold tombstones, still
@@ -211,7 +212,7 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
 - While he is alive within 900 of the tower there is no table fx, only the no-fail rule. The last 30 s of the
   240 s clock tick once a second; stay near him past it: NO fail while he is within 900.
 - Knife him 3 times (vanilla's defeat): `avogadro captured at the tower`, soul trails from the table into the 4 boxes, a
-  blue burst on each, `step complete r1`, the fourth step glow on the relay. Maxis's vanilla stab line once.
+  blue burst on each, `step complete r1`. Maxis's vanilla stab line once.
 - Wrong: paste `simon ...`, `avogadro ...` lines.
 
 **R2 115 on the Line**. Skips: `!df fire r2_soul` (one kill), `r2_punch` (every full lamp drops its battery), `r2_spool` (one battery counts as inserted), `!df souls` (all).
@@ -232,7 +233,7 @@ whole step: `!df goto step4`. There is no `step2` key: `!df goto step2` is an al
   ONE per press (`battery inserted by <you>, k/3`), clink + spark at the relay slot, and the battery stands on the
   ground under the table with the power switch spark (played once per battery: it loops by itself). Knife the post instead (or any gun melee): deny buzz +
   "Bare steel? No." (once per 20 s), console `r2 <you> hit lamp X without the knuckles (<weapon>)`, no battery.
-- Last battery in: `step complete r2`, R2_DONE, the fifth step glow on the relay, the notice goes, M3 / R3 opens.
+- Last battery in: `step complete r2`, R2_DONE, the notice goes, M3 / R3 opens.
   Every lamp of
   the set ends filled with its beam off. Nobody holding a Jet Gun: A2_JETGUN_RICH ("Before the end you will need a Jet Gun").
 - Act 2 reward at once: `act 2 reward given (rich): side reward + Max Ammo at the table`, Richtofen's reward line, blue
@@ -456,7 +457,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   powerup_on_caution too; `!df fire orb_aura` cycles). At the
   table with charges missing: "The rock needs N more charge(s)". Full, one press within 150: "Press F to place the rock
   in the relay", the clink only (no snap on the table), the rock rests on the RIGHT slot with NO aura, the "Rock" notice is
-  cleared, D6_DONE, `step complete step6`, the seventh step glow on the relay.
+  cleared, D6_DONE, `step complete step6`.
 - `!df goto step6` MAXIS (after `!df side maxis`): console `m2 done: Step 6 node = the cabin hearth ...` and `s6 node 0
   hearth cabin hearth`; RICH `r1 done: Step 6 node = the transformer block ...`.
 - Drop test: go down while carrying: `s6 orb dropped at ..., 60 s to pick it up`; wait: `s6 orb returned home (...)` =
@@ -487,8 +488,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   table is armed again`), hold again. Song must NOT play twice within its own length (256.5 s): `s7 song still running
   from the last attempt, not restarted`. Never two rocks at once.
 - Survive (or `!df fire s7_time`): `s7 wave over: success`, tower lights, the rock glides back onto the right slot in 2 s
-  with the rising sound, `s7 orb back on the table, slot 2`, D7_DONE, `step complete step7`, the eighth step glow (the
-  relay mast is fully lit), one more white and one more side runner on the tower.
+  with the rising sound, `s7 orb back on the table, slot 2`, D7_DONE, `step complete step7`, one more white and one more side runner on the tower.
 - AFTER the hold the song keeps playing (256 s from its start, it cannot be stopped): `s7 after the hold: waves near the
   players until the song ends in N s`. Walk anywhere: zombies keep rising near you (every 1.3 s, up to the cap around
   you) and hunt you normally, no rock to defend. When the song ends: `s7 after-hold waves over (song ended, or a new
@@ -577,7 +577,7 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
   later with no side: `no side locked, defaulting to rich (use !df side maxis first to test Maxis)`; type `!df side
   maxis` FIRST for a Maxis test (it cannot be changed afterwards).
 - `!df goto m3` (Maxis) / `!df goto r3` (Richtofen) RICH from round 1: boxes with a steady glow, the card on the middle slot (no glow), lamps filled
-  (steady glow, no sparks), five step glows on the relay mast, `act 2 reward given silently (goto)` (no Max Ammo, no
+  (steady glow, no sparks), the relay runner on the tower, `act 2 reward given silently (goto)` (no Max Ammo, no
   line). MAXIS: the lantern still lies where M1 left it, now the charged burning lantern, burning there (no prompt, nothing
   swapped in or out - it was never picked up); all four graves (outside the map, unreachable anyway) are GONE -
   `df_m2_fill` deletes each one quietly on a skip too (model, both bullet walls, trigger), same as a real fourth kill, just
@@ -610,8 +610,8 @@ going), `!df fire blackout_on` (all three ON, completes the step if it is open),
 - Beam alias / orientation: `!df fire beam_test` = one light shaft from the table to the nearest lamp for 20 s, console
   `beam test: <alias> from the table to lamp X`. Wrong way round: `set df_beam_flip 1`, fire again. Nothing: `set
   df_beam_fx fx_zmb_tranzit_god_ray_pwr_station` (or `_interior_med`, `mc_towerlight`), fire again. Say which one reads as a beam.
-- Step glows: eight small glows up the relay mast by the end. Too faint / too strong? `set df_step_glow_fx <fx>` before
-  loading swaps the glow (default fx_zmb_tranzit_key_glint, dimmer than the old bulb glow).
+- Relay runner: from Step 4 to the end of the game, a blue (Richtofen) or red (Maxis) runner leaves the plugged relay
+  every ~4 s and climbs the nearest tower leg; no glows on the relay mast any more.
 - Table pose: the M1 lantern and the M2 burning lantern lie at the SAME pose on the table (`!df goto m2` then `!df goto
   step5` on Maxis); the M1 one must not spin. Sunk, floating, inside the relay? Say so. Rock rest height: 3 above slot 2 / the ground (`!df fire
   table_demo`, `!df tp DF_ORB_SPOT_n`).
